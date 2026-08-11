@@ -1,122 +1,103 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect, useRef } from 'react';
+import { PendingActionType } from './types/game';
+import { useGame } from './hooks/useGame';
+import GameSetup from './components/GameSetup';
+import GameBoard from './components/GameBoard';
+import Sidebar from './components/Sidebar';
+import TradeModal from './components/Modals/TradeModal';
+import CardModal from './components/Modals/CardModal';
+import BankruptcyModal from './components/Modals/BankruptcyModal';
+import GameOverModal from './components/Modals/GameOverModal';
+import { GamePhase, type TradeOffer } from './types/game';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const game = useGame();
+  const { state } = game;
+  const [showTrade, setShowTrade] = useState(false);
+
+  function handleRoll() {
+    game.rollDice();
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    const total = d1 + d2;
+    const animDuration = 500 + (total * 150);
+    setTimeout(() => {
+      game.diceAnimated([d1, d2]);
+      setTimeout(() => {
+        game.resolveSpace();
+      }, animDuration);
+    }, 500);
+  }
+
+  function handleDrawCard() {
+    game.drawCard();
+  }
+
+  useEffect(() => {
+    if (state.phase === GamePhase.Resolving && !state.pendingAction) {
+      game.resolveSpace();
+    }
+  }, [state.phase, state.pendingAction, game]);
+
+  useEffect(() => {
+    if (state.pendingAction?.type === PendingActionType.DrawCard) {
+      const t = setTimeout(() => game.drawCard(), 300);
+      return () => clearTimeout(t);
+    }
+  }, [state.pendingAction, game]);
+
+  const wasInJailRef = useRef<Record<number, boolean>>({});
+  useEffect(() => {
+    const player = state.players[state.currentPlayer];
+    const wasInJail = wasInJailRef.current[player.id] ?? false;
+    wasInJailRef.current[player.id] = player.inJail;
+
+    if (player.inJail && !wasInJail && state.phase === GamePhase.Waiting && !state.pendingAction) {
+      setTimeout(() => game.endTurn(), 300);
+    }
+  }, [state.players, state.phase, state.pendingAction, state.currentPlayer, game]);
+
+  if (state.phase === GamePhase.Setup) {
+    return (
+      <div className="app">
+        <GameSetup onStart={game.startGame} />
+      </div>
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <GameBoard state={state} onSell={game.sellHouse} onMortgage={game.mortgage} onUnmortgage={game.unmortgage} onBuild={game.buildHouse}>
+        <Sidebar
+          state={state}
+          onRoll={handleRoll}
+          onEndTurn={game.endTurn}
+          onProposeTrade={() => setShowTrade(true)}
+          onDrawCard={handleDrawCard}
+          onBuyProperty={game.buyProperty}
+          onDeclineBuy={game.declineBuy}
+          onPayRent={game.payRent}
+          onDeclareBankruptcy={game.declareBankruptcy}
+          onSkipAction={game.skipAction}
+          onPayJailFine={game.payJailFine}
+          onUseGetOutOfJailFree={game.useGetOutOfJailFree}
+        />
+      </GameBoard>
+      <CardModal state={state} onResolve={game.resolveCard} />
+      <BankruptcyModal state={state} onClose={game.skipAction} onBankruptcy={game.declareBankruptcy} />
+      <GameOverModal state={state} onReset={game.resetGame} />
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {showTrade && (
+        <TradeModal
+          state={state}
+          onPropose={(offer: TradeOffer) => {
+            game.proposeTrade(offer);
+            setShowTrade(false);
+          }}
+          onClose={() => setShowTrade(false)}
+        />
+      )}
+    </div>
+  );
 }
-
-export default App
