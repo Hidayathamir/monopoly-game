@@ -282,14 +282,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
             };
           } else if (space.owner === null) {
-            if (player.money >= (space.price ?? 0)) {
-              return {
-                ...state,
-                phase: GamePhase.Buying,
-                pendingAction: { type: PendingActionType.BuyProperty, spaceId: space.id },
-              };
-            }
-            return { ...state, phase: GamePhase.Waiting };
+            return {
+              ...state,
+              phase: GamePhase.Buying,
+              pendingAction: { type: PendingActionType.BuyProperty, spaceId: space.id },
+            };
           } else if (space.owner === state.currentPlayer) {
             return { ...state, phase: GamePhase.Waiting };
           }
@@ -315,6 +312,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (pending?.type !== PendingActionType.BuyProperty) return state;
       const space = state.board[pending.spaceId];
       const player = state.players[state.currentPlayer];
+      if (player.money < (space.price ?? 0)) return state;
       const newBoard = [...state.board];
       newBoard[pending.spaceId] = { ...space, owner: state.currentPlayer };
       const newPlayers = [...state.players];

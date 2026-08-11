@@ -439,14 +439,14 @@ describe('gameReducer', () => {
   });
 
   describe('RESOLVE_SPACE — edge cases', () => {
-    it('unowned property, cannot afford → no buy offer', () => {
+    it('unowned property, cannot afford → buy offer shown but disabled', () => {
       let state = makeStartedState();
       state = setMoney(state, 0, 1000);
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Resolving, dice: [1, 1] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect(s1.phase).toBe(GamePhase.Waiting);
+      expect(s1.phase).toBe(GamePhase.Buying);
       expect(s1.board[1].owner).toBeNull();
       expect(s1.players[0].money).toBe(1000);
     });
