@@ -1,28 +1,30 @@
-import { GamePhase, type GameState } from '../../types/game';
-import { formatMoney } from '../../utils/format';
+import { GamePhase, type GameState } from '../../types/game'
+import { formatMoney } from '../../utils/format'
+import Modal from './Modal'
+import Button from '../Button'
 
 interface Props {
-  state: GameState;
-  onReset: () => void;
+  state: GameState
+  onReset: () => void
 }
 
 export default function GameOverModal({ state, onReset }: Props) {
-  if (state.phase !== GamePhase.GameOver) return null;
-  const winner = state.players.find((p) => !p.bankrupt);
-  if (!winner) return null;
+  if (state.phase !== GamePhase.GameOver) return null
+  const winner = state.players.find((p) => !p.bankrupt)
+  if (!winner) return null
+
+  const netWorth = winner.money + state.board
+    .filter((s) => s.owner === winner.id)
+    .reduce((sum, s) => sum + (s.price ?? 0) + (s.houseCost ?? 0) * s.houses, 0)
 
   return (
-    <div className="modal-overlay">
-      <div className="modal modal-gameover">
-        <h2>🏆 Permainan Selesai!</h2>
-        <p className="winner-name">{winner.name} menang!</p>
-        <p>Dengan kekayaan bersih: {formatMoney(winner.money + state.board
-          .filter((s) => s.owner === winner.id)
-          .reduce((sum, s) => sum + (s.price ?? 0) + (s.houseCost ?? 0) * s.houses, 0))}</p>
-        <div className="modal-actions">
-          <button className="btn btn-primary" onClick={onReset}>Main Lagi</button>
-        </div>
-      </div>
-    </div>
-  );
+    <Modal className="text-center">
+      <h2 className="text-2xl text-gold m-0">🏆 Permainan Selesai!</h2>
+      <p className="text-[28px] text-gold font-bold">{winner.name} menang!</p>
+      <p className="text-sm m-0">Dengan kekayaan bersih: {formatMoney(netWorth)}</p>
+      <Modal.Actions>
+        <Button variant="primary" onClick={onReset}>Main Lagi</Button>
+      </Modal.Actions>
+    </Modal>
+  )
 }

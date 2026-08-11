@@ -1,23 +1,27 @@
-import { CardType, PendingActionType, type GameState } from '../../types/game';
+import { CardType, PendingActionType, type GameState } from '../../types/game'
+import Modal from './Modal'
+import Button from '../Button'
 
 interface Props {
-  state: GameState;
-  onResolve: () => void;
+  state: GameState
+  onResolve: () => void
 }
 
 export default function CardModal({ state, onResolve }: Props) {
-  const pending = state.pendingAction;
-  if (pending?.type !== PendingActionType.CardEffect) return null;
+  const pending = state.pendingAction
+  if (pending?.type !== PendingActionType.CardEffect) return null
 
   return (
-    <div className="modal-overlay">
-      <div className="modal modal-card">
-        <h3>{pending.card.type === CardType.Chance ? 'Kesempatan' : 'Dana Umum'}</h3>
-        <p className="card-description">{pending.card.description}</p>
-        <div className="modal-actions">
-          <button className="btn btn-primary" onClick={onResolve}>OK</button>
-        </div>
-      </div>
-    </div>
-  );
+    <Modal>
+      <h3 className="text-lg text-gold m-0">
+        {pending.card.type === CardType.Chance ? 'Kesempatan' : 'Dana Umum'}
+      </h3>
+      <p className="text-base p-4 bg-bg-dark rounded-lg text-center">
+        {pending.card.description}
+      </p>
+      <Modal.Actions>
+        <Button variant="primary" onClick={onResolve}>OK</Button>
+      </Modal.Actions>
+    </Modal>
+  )
 }
