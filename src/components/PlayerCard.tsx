@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Player, Space } from '../types/game'
+import type { Player } from '../types/game'
 import { formatMoney } from '../utils/format'
 
 function MoneyChange({ diff }: { diff: number }) {
@@ -27,11 +27,10 @@ interface PlayerCardProps {
   player: Player
   isCurrent: boolean
   color: string
-  properties: Space[]
   diff?: { diff: number; key: number } | null
 }
 
-export default function PlayerCard({ player, isCurrent, color, properties, diff }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, color, diff }: PlayerCardProps) {
   return (
     <div
       data-testid="player-card"
@@ -52,20 +51,6 @@ export default function PlayerCard({ player, isCurrent, color, properties, diff 
         {formatMoney(player.money)}
         {diff && <MoneyChange key={diff.key} diff={diff.diff} />}
       </div>
-      {properties.length > 0 && (
-        <div className="flex flex-wrap gap-[3px] mt-1">
-          {properties.map((s) => (
-            <span
-              key={s.id}
-              className="text-[9px] py-0.5 px-1.5 bg-bg-darker rounded border-l-2 whitespace-nowrap"
-              style={{ borderLeftColor: s.color ?? '#888' }}
-              title={`${s.name}${s.mortgaged ? ' (Digadai)' : ''}${s.houses > 0 ? ` (${s.houses === 5 ? 'Hotel' : `${s.houses}🏠`})` : ''}`}
-            >
-              {s.mortgaged ? '🔸' : ''}{s.name}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
