@@ -1,5 +1,6 @@
 import { SpaceType, type Space } from '../types/game';
 import boardData from './board-data.json';
+import config from './game-config.json';
 
 const TYPE_MAP: Record<string, SpaceType> = {
   go: SpaceType.Go,
@@ -29,8 +30,8 @@ export function createInitialBoard(): Space[] {
   }));
 }
 
-export const GO_SALARY = 200000;
-export const JAIL_FINE = 50000;
-export const JAIL_SPACE = 10;
-export const STARTING_MONEY = 1500000;
-export const MAX_JAIL_TURNS = 3;
+export const GO_SALARY = config.goSalary;
+export const JAIL_FINE = config.jailFine;
+export const JAIL_SPACE = config.jailSpace;
+export const STARTING_MONEY = config.startingMoney;
+export const MAX_JAIL_TURNS = config.maxJailTurns;

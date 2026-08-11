@@ -1,0 +1,7 @@
+{
+  "goSalary": 200000,
+  "jailFine": 50000,
+  "jailSpace": 10,
+  "startingMoney": 1500000,
+  "maxJailTurns": 3
+}
