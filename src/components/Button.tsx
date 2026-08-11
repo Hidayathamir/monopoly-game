@@ -30,10 +30,10 @@ export default function Button({
   return (
     <button
       className={[
-        'rounded-lg border-none cursor-pointer font-semibold w-full my-[3px] transition-transform duration-150',
+        'rounded-lg border-none font-semibold w-full my-[3px] transition-transform duration-150',
         variantClasses[variant],
         sizeClasses[size],
-        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-px hover:opacity-90',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:-translate-y-px hover:opacity-90',
         className,
       ].join(' ')}
       disabled={disabled}
