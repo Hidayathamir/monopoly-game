@@ -64,6 +64,14 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
 
+  function handleTooltipEnter() {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }
+
+  function handleTooltipLeave() {
+    timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
+  }
+
   const portalTarget = boardGridRef.current?.closest('[data-game-board]') as HTMLElement | null
 
   return (
@@ -113,17 +121,19 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
 
       {hoveredId != null && tooltipCellRect && boardRect && portalTarget &&
         createPortal(
-          <PropertyTooltip
-            space={board[hoveredId]}
-            state={state}
-            rect={tooltipCellRect}
-            boardRect={boardRect}
-            side={getSide(hoveredId)}
-            onSell={onSell}
-            onMortgage={onMortgage}
-            onUnmortgage={onUnmortgage}
-            onBuild={onBuild}
-          />,
+          <div onMouseEnter={handleTooltipEnter} onMouseLeave={handleTooltipLeave}>
+            <PropertyTooltip
+              space={board[hoveredId]}
+              state={state}
+              rect={tooltipCellRect}
+              boardRect={boardRect}
+              side={getSide(hoveredId)}
+              onSell={onSell}
+              onMortgage={onMortgage}
+              onUnmortgage={onUnmortgage}
+              onBuild={onBuild}
+            />
+          </div>,
           portalTarget,
         )
       }
