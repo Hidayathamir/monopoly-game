@@ -69,7 +69,7 @@ export default function App() {
 
   return (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
-      <GameBoard state={state} onSell={game.sellHouse} onMortgage={game.mortgage} onUnmortgage={game.unmortgage} onBuild={game.buildHouse}>
+      <GameBoard state={state} onSell={game.sellHouse} onMortgage={game.mortgage} onUnmortgage={game.unmortgage} onBuild={game.buildHouse} onSellProperty={game.sellProperty}>
         <Sidebar
           state={state}
           onRoll={handleRoll}

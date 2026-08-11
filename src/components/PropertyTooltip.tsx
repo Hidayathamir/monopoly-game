@@ -14,10 +14,11 @@ interface Props {
   onMortgage: (id: number) => void
   onUnmortgage: (id: number) => void
   onBuild: (id: number) => void
+  onSellProperty: (id: number) => void
 }
 
 export default function PropertyTooltip({
-  space, state, rect, boardRect, side, onSell, onMortgage, onUnmortgage, onBuild,
+  space, state, rect, boardRect, side, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty,
 }: Props) {
   const owner = space.owner !== null ? state.players[space.owner] : null
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
@@ -139,9 +140,18 @@ export default function PropertyTooltip({
               Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor((space.houseCost ?? 0) / 2))})
             </Button>
           )}
-          {!space.mortgaged && space.houses === 0 && (
+          {!space.mortgaged && space.houses === 0 && isOwned && (
             <Button size="sm" onClick={(e) => { e.stopPropagation(); onMortgage(space.id) }}>
               Gadai (+{formatMoney(Math.floor((space.price ?? 0) / 2))})
+            </Button>
+          )}
+          {!space.mortgaged && space.houses === 0 && isOwned && (
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={(e) => { e.stopPropagation(); onSellProperty(space.id) }}
+            >
+              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) / 2))})
             </Button>
           )}
           {space.mortgaged && (

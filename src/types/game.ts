@@ -64,6 +64,7 @@ export const GameActionType = {
   SellHouse: 'SELL_HOUSE',
   Mortgage: 'MORTGAGE',
   Unmortgage: 'UNMORTGAGE',
+  SellProperty: 'SELL_PROPERTY',
   ProposeTrade: 'PROPOSE_TRADE',
   AcceptTrade: 'ACCEPT_TRADE',
   RejectTrade: 'REJECT_TRADE',
@@ -164,6 +165,7 @@ export type GameAction =
   | { type: typeof GameActionType.SellHouse; spaceId: number }
   | { type: typeof GameActionType.Mortgage; spaceId: number }
   | { type: typeof GameActionType.Unmortgage; spaceId: number }
+  | { type: typeof GameActionType.SellProperty; spaceId: number }
   | { type: typeof GameActionType.ProposeTrade; offer: TradeOffer }
   | { type: typeof GameActionType.AcceptTrade }
   | { type: typeof GameActionType.RejectTrade }

@@ -10,9 +10,10 @@ interface Props {
   onMortgage: (spaceId: number) => void
   onUnmortgage: (spaceId: number) => void
   onBuild: (spaceId: number) => void
+  onSellProperty: (spaceId: number) => void
 }
 
-export default function GameBoard({ state, children, onSell, onMortgage, onUnmortgage, onBuild }: Props) {
+export default function GameBoard({ state, children, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty }: Props) {
   return (
     <div className="flex items-center justify-center w-screen h-screen">
       <div data-game-board className="relative w-[min(calc(100vw-16px),calc(100vh-16px))] aspect-square flex-shrink-0">
@@ -23,6 +24,7 @@ export default function GameBoard({ state, children, onSell, onMortgage, onUnmor
           onMortgage={onMortgage}
           onUnmortgage={onUnmortgage}
           onBuild={onBuild}
+          onSellProperty={onSellProperty}
         />
         <PlayerTokens state={state} playerColors={['#E74C3C', '#3498DB', '#2ECC71', '#F39C12']} />
         {children}

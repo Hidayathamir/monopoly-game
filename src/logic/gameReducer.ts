@@ -437,6 +437,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case GameActionType.SellProperty: {
+      const space = state.board[action.spaceId];
+      const player = state.players[state.currentPlayer];
+      if (space.owner !== state.currentPlayer) return state;
+      if (space.mortgaged || space.houses > 0) return state;
+      const sellValue = Math.floor((space.price ?? 0) / 2);
+      const newBoard = [...state.board];
+      newBoard[action.spaceId] = { ...space, owner: null };
+      const newPlayers = [...state.players];
+      newPlayers[state.currentPlayer] = {
+        ...player,
+        money: player.money + sellValue,
+        properties: player.properties.filter((id) => id !== action.spaceId),
+      };
+      return {
+        ...state,
+        board: newBoard,
+        players: newPlayers,
+        eventLog: [...state.eventLog, `${player.name} menjual ${space.name} ke bank seharga ${formatMoney(sellValue)}`],
+      };
+    }
+
     case GameActionType.ProposeTrade: {
       return {
         ...state,

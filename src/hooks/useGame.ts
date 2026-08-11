@@ -68,6 +68,10 @@ export function useGame() {
     dispatch({ type: 'UNMORTGAGE', spaceId });
   }, []);
 
+  const sellProperty = useCallback((spaceId: number) => {
+    dispatch({ type: 'SELL_PROPERTY', spaceId });
+  }, []);
+
   const proposeTrade = useCallback((offer: TradeOffer) => {
     dispatch({ type: 'PROPOSE_TRADE', offer });
   }, []);
@@ -115,6 +119,7 @@ export function useGame() {
     sellHouse,
     mortgage,
     unmortgage,
+    sellProperty,
     proposeTrade,
     drawCard,
     resolveCard,

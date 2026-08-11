@@ -11,6 +11,7 @@ interface Props {
   onMortgage: (spaceId: number) => void
   onUnmortgage: (spaceId: number) => void
   onBuild: (spaceId: number) => void
+  onSellProperty: (spaceId: number) => void
 }
 
 function getSide(id: number): CellSide {
@@ -44,7 +45,7 @@ const TYPE_BG: Record<string, string> = {
 
 const HIDE_DELAY = 400
 
-export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onBuild }: Props) {
+export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty }: Props) {
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [tooltipCellRect, setTooltipCellRect] = useState<DOMRect | null>(null)
@@ -132,6 +133,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
               onMortgage={onMortgage}
               onUnmortgage={onUnmortgage}
               onBuild={onBuild}
+              onSellProperty={onSellProperty}
             />
           </div>,
           portalTarget,
