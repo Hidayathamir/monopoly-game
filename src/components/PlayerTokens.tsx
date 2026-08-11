@@ -99,8 +99,8 @@ export default function PlayerTokens({ state, playerColors }: Props) {
             key={player.id}
             className={[
               'absolute w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold text-white',
-              'border-2 border-white -translate-x-1/2 -translate-y-1/2 z-10',
-              state.currentPlayer === player.id ? 'border-[3px] shadow-[0_0_8px_rgba(255,255,255,0.5)]' : '',
+              '-translate-x-1/2 -translate-y-1/2 z-10',
+              state.currentPlayer === player.id ? 'border-[3px] border-white shadow-[0_0_8px_rgba(255,255,255,0.5)]' : '',
               player.bankrupt ? 'opacity-30' : '',
             ].join(' ')}
             style={{
