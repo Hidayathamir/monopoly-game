@@ -9,7 +9,7 @@ interface ModalProps {
 export default function Modal({ children, className = '', onClose }: ModalProps) {
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-100"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100]"
       onClick={(e) => {
         if (e.target === e.currentTarget && onClose) onClose()
       }}
