@@ -1,185 +1,164 @@
-import { PendingActionType, type GameState, type Space } from '../types/game';
-import { formatMoney } from '../utils/format';
+import { PendingActionType, type GameState, type Space } from '../types/game'
+import { formatMoney } from '../utils/format'
+import Button from './Button'
 
-export type CellSide = 'top' | 'right' | 'bottom' | 'left' | 'corner';
+export type CellSide = 'top' | 'right' | 'bottom' | 'left' | 'corner'
 
 interface Props {
-  space: Space;
-  state: GameState;
-  rect: DOMRect;
-  boardRect: DOMRect;
-  side: CellSide;
-  onSell: (id: number) => void;
-  onMortgage: (id: number) => void;
-  onUnmortgage: (id: number) => void;
-  onBuild: (id: number) => void;
+  space: Space
+  state: GameState
+  rect: DOMRect
+  boardRect: DOMRect
+  side: CellSide
+  onSell: (id: number) => void
+  onMortgage: (id: number) => void
+  onUnmortgage: (id: number) => void
+  onBuild: (id: number) => void
 }
 
 export default function PropertyTooltip({
-  space,
-  state,
-  rect,
-  boardRect,
-  side,
-  onSell,
-  onMortgage,
-  onUnmortgage,
-  onBuild,
+  space, state, rect, boardRect, side, onSell, onMortgage, onUnmortgage, onBuild,
 }: Props) {
-  const owner = space.owner !== null ? state.players[space.owner] : null;
-  const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility';
-  const isOwned = space.owner === state.currentPlayer;
-  const isBankruptcy = state.pendingAction?.type === PendingActionType.Bankruptcy;
+  const owner = space.owner !== null ? state.players[space.owner] : null
+  const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
+  const isOwned = space.owner === state.currentPlayer
+  const isBankruptcy = state.pendingAction?.type === PendingActionType.Bankruptcy
 
   const canBuild =
     space.type === 'property' &&
     space.houses < 5 &&
     !space.mortgaged &&
     !isBankruptcy &&
-    state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity);
+    state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity)
 
-  const gap = 6;
-  const top = rect.top - boardRect.top;
-  const left = rect.left - boardRect.left;
+  const gap = 6
+  const top = rect.top - boardRect.top
+  const left = rect.left - boardRect.left
+  const topCorner = space.id === 20 || space.id === 30
 
-  const topCorner = space.id === 20 || space.id === 30;
-
-  let tooltipStyle: React.CSSProperties;
+  let tooltipStyle: React.CSSProperties
   switch (side) {
     case 'left':
       tooltipStyle = {
-        position: 'absolute',
-        top: top + rect.height + gap,
-        left: left + rect.width / 2,
-        bottom: 'auto',
-        right: 'auto',
-        transform: 'translateX(-50%)',
-      };
-      break;
+        position: 'absolute', top: top + rect.height + gap, left: left + rect.width / 2,
+        bottom: 'auto', right: 'auto', transform: 'translateX(-50%)',
+      }
+      break
     case 'right':
       tooltipStyle = {
-        position: 'absolute',
-        top: top + rect.height / 2,
-        left: left - gap,
-        bottom: 'auto',
-        right: 'auto',
-        transform: 'translate(-100%, -50%)',
-      };
-      break;
+        position: 'absolute', top: top + rect.height / 2, left: left - gap,
+        bottom: 'auto', right: 'auto', transform: 'translate(-100%, -50%)',
+      }
+      break
     case 'top':
       tooltipStyle = {
-        position: 'absolute',
-        top: top + rect.height / 2,
-        left: left + rect.width + gap,
-        bottom: 'auto',
-        right: 'auto',
-        transform: 'translateY(-50%)',
-      };
-      break;
+        position: 'absolute', top: top + rect.height / 2, left: left + rect.width + gap,
+        bottom: 'auto', right: 'auto', transform: 'translateY(-50%)',
+      }
+      break
     case 'corner':
       if (topCorner) {
         tooltipStyle = {
-          position: 'absolute',
-          top: top + rect.height + gap,
-          left: left + rect.width / 2,
-          bottom: 'auto',
-          right: 'auto',
-          transform: 'translateX(-50%)',
-        };
+          position: 'absolute', top: top + rect.height + gap, left: left + rect.width / 2,
+          bottom: 'auto', right: 'auto', transform: 'translateX(-50%)',
+        }
       } else {
         tooltipStyle = {
-          position: 'absolute',
-          top: top - gap,
-          left: left + rect.width / 2,
-          bottom: 'auto',
-          right: 'auto',
-          transform: 'translate(-50%, -100%)',
-        };
+          position: 'absolute', top: top - gap, left: left + rect.width / 2,
+          bottom: 'auto', right: 'auto', transform: 'translate(-50%, -100%)',
+        }
       }
-      break;
+      break
     case 'bottom':
     default:
       tooltipStyle = {
-        position: 'absolute',
-        top: top - gap,
-        left: left + rect.width / 2,
-        bottom: 'auto',
-        right: 'auto',
-        transform: 'translate(-50%, -100%)',
-      };
-      break;
+        position: 'absolute', top: top - gap, left: left + rect.width / 2,
+        bottom: 'auto', right: 'auto', transform: 'translate(-50%, -100%)',
+      }
+      break
   }
 
   return (
-    <div className="property-tooltip" style={tooltipStyle}>
-      <div className="tooltip-header" style={space.color ? { borderLeftColor: space.color } : {}}>
+    <div
+      className="absolute bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[160px] z-[999] shadow-lg pointer-events-auto"
+      style={tooltipStyle}
+    >
+      <div className="text-xs text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
         <strong>{space.name}</strong>
       </div>
+      {space.mortgaged && <div className="text-[10px] text-red-danger font-bold">Digadaikan</div>}
       {isBuyable && space.price && (
         <>
-          <div className="tooltip-row">Harga: <strong>{formatMoney(space.price)}</strong></div>
+          <div className="text-[10px] text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>
           {space.rent && space.type === 'property' && (
-            <div className="tooltip-rent">
-              <div className="tooltip-row">Sewa dasar: {formatMoney(space.rent[0])}</div>
-              <div className="tooltip-row">1 🏠 : {formatMoney(space.rent[1])}</div>
-              <div className="tooltip-row">2 🏠 : {formatMoney(space.rent[2])}</div>
-              <div className="tooltip-row">3 🏠 : {formatMoney(space.rent[3])}</div>
-              <div className="tooltip-row">4 🏠 : {formatMoney(space.rent[4])}</div>
-              <div className="tooltip-row">🏨 : {formatMoney(space.rent[space.rent.length - 1])}</div>
+            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+              <div className="text-text-dim">Sewa dasar: {formatMoney(space.rent[0])}</div>
+              <div className="text-text-dim">1 🏠 : {formatMoney(space.rent[1])}</div>
+              <div className="text-text-dim">2 🏠 : {formatMoney(space.rent[2])}</div>
+              <div className="text-text-dim">3 🏠 : {formatMoney(space.rent[3])}</div>
+              <div className="text-text-dim">4 🏠 : {formatMoney(space.rent[4])}</div>
+              <div className="text-text-dim">🏨 : {formatMoney(space.rent[space.rent.length - 1])}</div>
             </div>
           )}
           {space.rent && space.type === 'railroad' && (
-            <div className="tooltip-rent">
-              <div className="tooltip-row">1 Stasiun: {formatMoney(space.rent[0])}</div>
-              <div className="tooltip-row">2 Stasiun: {formatMoney(space.rent[1])}</div>
-              <div className="tooltip-row">3 Stasiun: {formatMoney(space.rent[2])}</div>
-              <div className="tooltip-row">4 Stasiun: {formatMoney(space.rent[3])}</div>
+            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+              <div className="text-text-dim">1 Stasiun: {formatMoney(space.rent[0])}</div>
+              <div className="text-text-dim">2 Stasiun: {formatMoney(space.rent[1])}</div>
+              <div className="text-text-dim">3 Stasiun: {formatMoney(space.rent[2])}</div>
+              <div className="text-text-dim">4 Stasiun: {formatMoney(space.rent[3])}</div>
             </div>
           )}
           {space.type === 'utility' && (
-            <div className="tooltip-rent">
-              <div className="tooltip-row">1 Perusahaan: 4× Dadu</div>
-              <div className="tooltip-row">2 Perusahaan: 10× Dadu</div>
+            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+              <div className="text-text-dim">1 Perusahaan: 4× Dadu</div>
+              <div className="text-text-dim">2 Perusahaan: 10× Dadu</div>
             </div>
           )}
-          {space.houseCost && <div className="tooltip-row">Biaya rumah: {formatMoney(space.houseCost)}</div>}
+          {space.houseCost && <div className="text-[10px] text-text-dim">Biaya rumah: {formatMoney(space.houseCost)}</div>}
           {space.houses > 0 && (
-            <div className="tooltip-row">
+            <div className="text-[10px] text-text-dim">
               Level: {space.houses === 5 ? '🏨 Hotel' : '🏠'.repeat(space.houses)}
             </div>
           )}
         </>
       )}
-      {space.mortgaged && <div className="tooltip-row mortgaged">Digadaikan</div>}
       {owner && (
-        <div className="tooltip-row">
-          Pemilik: <span style={{ color: '#f0c040' }}>{owner.name}</span>
+        <div className="text-[10px] text-text-dim">
+          Pemilik: <span className="text-gold">{owner.name}</span>
         </div>
       )}
       {isOwned && (
-        <div className="tooltip-actions">
+        <div className="mt-1.5 pt-1.5 border-t border-border-light flex flex-col gap-[3px]">
           {space.houses > 0 && (
-            <button className="btn btn-small btn-sell" onClick={(e) => { e.stopPropagation(); onSell(space.id); }}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={(e) => { e.stopPropagation(); onSell(space.id) }}
+            >
               Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor((space.houseCost ?? 0) / 2))})
-            </button>
+            </Button>
           )}
           {!space.mortgaged && space.houses === 0 && (
-            <button className="btn btn-small" onClick={(e) => { e.stopPropagation(); onMortgage(space.id); }}>
+            <Button size="sm" onClick={(e) => { e.stopPropagation(); onMortgage(space.id) }}>
               Gadai (+{formatMoney(Math.floor((space.price ?? 0) / 2))})
-            </button>
+            </Button>
           )}
           {space.mortgaged && (
-            <button className="btn btn-small" onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id); }}>
+            <Button size="sm" onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}>
               Tebus (-{formatMoney(Math.floor((space.price ?? 0) / 2 * 1.1))})
-            </button>
+            </Button>
           )}
           {canBuild && (
-            <button className="btn btn-small btn-build" onClick={(e) => { e.stopPropagation(); onBuild(space.id); }}>
+            <Button
+              size="sm"
+              variant="success"
+              onClick={(e) => { e.stopPropagation(); onBuild(space.id) }}
+            >
               Bangun ({formatMoney(space.houseCost!)})
-            </button>
+            </Button>
           )}
         </div>
       )}
     </div>
-  );
+  )
 }
