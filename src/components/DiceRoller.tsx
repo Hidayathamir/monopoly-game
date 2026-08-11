@@ -22,7 +22,7 @@ export default function DiceRoller({ state, onRoll }: Props) {
   const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail
 
   return (
-    <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+    <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
       <div className="flex gap-3 justify-center mb-1.5">
         <Dice value={state.dice?.[0]} rolling={rolling} />
         <Dice value={state.dice?.[1]} rolling={rolling} />

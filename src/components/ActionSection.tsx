@@ -28,7 +28,7 @@ export default function ActionSection({
   if (pending?.type === PendingActionType.BuyProperty) {
     const space = state.board[pending.spaceId]
     return (
-      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
           <p className="text-xs my-[3px] text-center">Beli <strong>{space.name}</strong>?</p>
           <p className="text-xs my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
@@ -44,7 +44,7 @@ export default function ActionSection({
     const canAffordNow = player.money >= amount
     const label = pending.type === PendingActionType.PayRent ? 'Bayar sewa' : 'Uang tidak cukup!'
     return (
-      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
           <p className="text-xs my-[3px] text-center">{label} <strong>{formatMoney(amount)}</strong></p>
           {!canAffordNow && (
@@ -63,7 +63,7 @@ export default function ActionSection({
 
   if (pending?.type === PendingActionType.DrawCard) {
     return (
-      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <Button variant="primary" onClick={onDrawCard}>Ambil Kartu</Button>
       </div>
     )
@@ -71,7 +71,7 @@ export default function ActionSection({
 
   if (pending?.type === PendingActionType.CardEffect) {
     return (
-      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+      <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
           <p className="text-xs my-[3px] text-center">{pending.card.description}</p>
           <p className="text-[11px] text-muted text-center">Klik tombol untuk melanjutkan</p>
@@ -83,7 +83,7 @@ export default function ActionSection({
   if (!canAct) return null
 
   return (
-    <div className="bg-bg-card rounded-lg p-2 flex-shrink-0">
+    <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
       {player.inJail ? (
         <>
           <p className="text-[11px] text-muted text-center mt-1">Di Penjara — pilih:</p>
