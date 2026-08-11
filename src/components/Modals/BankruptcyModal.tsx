@@ -1,5 +1,6 @@
 import { PendingActionType, type GameState } from '../../types/game'
 import { formatMoney } from '../../utils/format'
+import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
 import Button from '../Button'
 
@@ -19,7 +20,7 @@ export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props)
     let money = player.money
     const ownedProps = state.board.filter((s) => s.owner === state.currentPlayer && !s.mortgaged)
     for (const s of ownedProps) {
-      money += Math.floor((s.houseCost ?? 0) / 2) * s.houses
+      money += Math.floor(getTotalHouseInvestment(s) / 2)
       money += Math.floor((s.price ?? 0) / 2)
     }
     return money >= amount

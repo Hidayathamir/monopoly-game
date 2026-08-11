@@ -15,6 +15,20 @@ const TYPE_MAP: Record<string, SpaceType> = {
   freeParking: SpaceType.FreeParking,
 };
 
+export function getHouseCost(space: Space, level: number): number {
+  if (!space.houseCost || level < 0 || level >= space.houseCost.length) return 0;
+  return space.houseCost[level];
+}
+
+export function getTotalHouseInvestment(space: Space): number {
+  if (!space.houseCost) return 0;
+  let total = 0;
+  for (let i = 0; i < space.houses && i < space.houseCost.length; i++) {
+    total += space.houseCost[i];
+  }
+  return total;
+}
+
 export function createInitialBoard(): Space[] {
   return boardData.map((item: Record<string, unknown>) => ({
     id: item.id as number,
@@ -22,7 +36,7 @@ export function createInitialBoard(): Space[] {
     type: TYPE_MAP[item.type as string] ?? SpaceType.Property,
     price: item.price as number | undefined,
     rent: item.rent as number[] | undefined,
-    houseCost: item.houseCost as number | undefined,
+    houseCost: item.houseCost as number[] | undefined,
     color: item.color as string | undefined,
     owner: null,
     houses: 0,

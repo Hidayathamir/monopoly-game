@@ -1,4 +1,5 @@
 import { SpaceType, type Space, type Player } from '../types/game';
+import { getTotalHouseInvestment } from '../data/board';
 
 export function calculatePropertyRent(space: Space, dice?: [number, number]): number {
   if (!space.rent) return 0;
@@ -65,7 +66,7 @@ export function getPlayerTotalAssets(player: Player, board: Space[]): number {
     if (space.mortgaged) continue;
     total += (space.price ?? 0) / 2;
     if (space.type === SpaceType.Property || space.type === SpaceType.Railroad || space.type === SpaceType.Utility) {
-      total += (space.houseCost ?? 0) * space.houses;
+      total += getTotalHouseInvestment(space);
     }
   }
   return total;

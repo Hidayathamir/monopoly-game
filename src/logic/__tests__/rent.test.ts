@@ -9,7 +9,7 @@ function makeSpace(overrides: Partial<Space> = {}): Space {
     type: SpaceType.Property,
     price: 60000,
     rent: [2000, 4000, 10000, 30000, 90000, 160000, 250000, 450000],
-    houseCost: 50000,
+    houseCost: [50000],
     color: '#8B4513',
     owner: null,
     houses: 0,
@@ -54,7 +54,7 @@ describe('calculatePropertyRent', () => {
       name: 'Bali',
       price: 400000,
       rent: [50000, 200000, 600000, 1400000, 1700000, 2000000, 2200000, 2000000],
-      houseCost: 200000,
+      houseCost: [200000],
       houses: 5,
     });
     expect(calculatePropertyRent(space)).toBe(2000000);

@@ -1,5 +1,6 @@
 import { PendingActionType, type GameState, type Space } from '../types/game'
 import { formatMoney } from '../utils/format'
+import { getHouseCost } from '../data/board'
 import Button from './Button'
 
 export type CellSide = 'top' | 'right' | 'bottom' | 'left' | 'corner'
@@ -31,7 +32,8 @@ export default function PropertyTooltip({
     !space.mortgaged &&
     !isBankruptcy &&
     space.id === state.players[state.currentPlayer]?.position
-  const canAffordBuild = state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity)
+  const nextHouseCost = getHouseCost(space, space.houses)
+  const canAffordBuild = state.players[state.currentPlayer]?.money >= nextHouseCost
 
   const gap = 6
   const top = rect.top - boardRect.top
@@ -116,7 +118,7 @@ export default function PropertyTooltip({
               <div className="text-text-dim">2 Perusahaan: 10× Dadu</div>
             </div>
           )}
-          {space.houseCost && <div className="text-sm text-text-dim">Biaya rumah: {formatMoney(space.houseCost)}</div>}
+          {space.houseCost && <div className="text-sm text-text-dim">Biaya rumah selanjutnya: {formatMoney(nextHouseCost)}</div>}
           {space.houses > 0 && (
             <div className="text-sm text-text-dim">
               Level: {space.houses === 5 ? '🏨 Hotel' : '🏠'.repeat(space.houses)}
@@ -137,7 +139,7 @@ export default function PropertyTooltip({
               variant="secondary"
               onClick={(e) => { e.stopPropagation(); onSell(space.id) }}
             >
-              Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor((space.houseCost ?? 0) / 2))})
+              Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor(getHouseCost(space, space.houses - 1) / 2))})
             </Button>
           )}
           {!space.mortgaged && space.houses === 0 && isOwned && (
@@ -166,7 +168,7 @@ export default function PropertyTooltip({
               disabled={!canAffordBuild}
               onClick={(e) => { e.stopPropagation(); onBuild(space.id) }}
             >
-              Bangun ({formatMoney(space.houseCost!)}){!canAffordBuild ? ' - uang kurang' : ''}
+              Bangun ({formatMoney(nextHouseCost)}){!canAffordBuild ? ' - uang kurang' : ''}
             </Button>
           )}
         </div>

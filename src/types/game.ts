@@ -98,7 +98,7 @@ export type Space = {
   type: SpaceType;
   price?: number;
   rent?: number[];
-  houseCost?: number;
+  houseCost?: number[];
   color?: string;
   owner: number | null;
   houses: number;

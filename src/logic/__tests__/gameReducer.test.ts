@@ -209,7 +209,7 @@ describe('gameReducer', () => {
 
       state = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(state.board[1].houses).toBe(1);
-      expect(state.players[0].money).toBe(1440000 - 50000);
+      expect(state.players[0].money).toBe(1440000 - 25000);
     });
 
     it('cannot build if not enough money', () => {

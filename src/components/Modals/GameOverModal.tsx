@@ -1,5 +1,6 @@
 import { GamePhase, type GameState } from '../../types/game'
 import { formatMoney } from '../../utils/format'
+import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
 import Button from '../Button'
 
@@ -15,7 +16,7 @@ export default function GameOverModal({ state, onReset }: Props) {
 
   const netWorth = winner.money + state.board
     .filter((s) => s.owner === winner.id)
-    .reduce((sum, s) => sum + (s.price ?? 0) + (s.houseCost ?? 0) * s.houses, 0)
+    .reduce((sum, s) => sum + (s.price ?? 0) + getTotalHouseInvestment(s), 0)
 
   return (
     <Modal className="text-center">

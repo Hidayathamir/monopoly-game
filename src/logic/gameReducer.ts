@@ -1,6 +1,6 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, type GameState, type GameAction, type Player } from '../types/game';
 import { formatMoney } from '../utils/format';
-import { createInitialBoard, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE } from '../data/board';
+import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard } from './rent';
@@ -363,8 +363,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case GameActionType.BuildHouse: {
       const space = state.board[action.spaceId];
       const player = state.players[state.currentPlayer];
-      if (space.houses >= 5 || !space.houseCost || player.money < space.houseCost) return state;
-      const cost = space.houseCost;
+      const cost = getHouseCost(space, space.houses);
+      if (space.houses >= 5 || cost === 0 || player.money < cost) return state;
       const newHouses = space.houses + 1;
       const newMoney = player.money - cost;
       const newBoard = [...state.board];
@@ -386,8 +386,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case GameActionType.SellHouse: {
       const space = state.board[action.spaceId];
       const player = state.players[state.currentPlayer];
-      if (space.houses <= 0 || !space.houseCost) return state;
-      const refund = Math.floor(space.houseCost / 2);
+      if (space.houses <= 0) return state;
+      const refund = Math.floor(getHouseCost(space, space.houses - 1) / 2);
       const newBoard = [...state.board];
       newBoard[action.spaceId] = { ...space, houses: space.houses - 1 };
       const newPlayers = [...state.players];
