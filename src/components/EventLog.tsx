@@ -16,7 +16,7 @@ export default function EventLog({ log }: Props) {
   return (
     <div
       data-testid="event-log"
-      className="max-h-10 overflow-y-auto text-[9px] flex flex-col gap-px flex-shrink-0 w-full p-1 bg-bg-dark rounded"
+      className="flex-1 overflow-y-auto text-[9px] flex flex-col gap-px w-full p-1 bg-bg-dark rounded"
       ref={ref}
     >
       {log.map((entry, i) => (
