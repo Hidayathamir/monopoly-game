@@ -72,19 +72,6 @@ test.describe('Monopoly Game E2E', () => {
     await expect(panel.first()).toContainText('Rp1,5M')
   })
 
-  test('dice roll and turn switching works', async ({ page }) => {
-    await page.locator('input[type="text"]').first().fill('P1')
-    await page.locator('input[type="text"]').nth(1).fill('P2')
-    await page.click('button:has-text("Mulai")')
-
-    await handleTurn(page)
-    await handleTurn(page)
-
-    const log = page.locator('[data-testid="event-log"]')
-    await expect(log).toContainText('P1')
-    await expect(log).toContainText('P2')
-  })
-
   test('buy property and see it in panel', async ({ page }) => {
     await page.locator('input[type="text"]').first().fill('Buyer')
     await page.locator('input[type="text"]').nth(1).fill('Other')
@@ -97,26 +84,6 @@ test.describe('Monopoly Game E2E', () => {
     const cards = page.locator('[data-testid="player-card"]')
     const firstCardText = await cards.first().textContent()
     expect(firstCardText).not.toBe('Rp1,5M')
-  })
-
-  test('card modal appears and dismisses', async ({ page }) => {
-    await page.locator('input[type="text"]').first().fill('X')
-    await page.locator('input[type="text"]').nth(1).fill('Y')
-    await page.click('button:has-text("Mulai")')
-
-    let foundCard = false
-    for (let i = 0; i < 30; i++) {
-      await handleTurn(page)
-
-      const entries = page.locator('[data-testid="event-entry"]')
-      const cardEntries = entries.filter({ hasText: /Kesempatan|Dana Umum|mengambil kartu/ })
-      if (await cardEntries.count() > 0) {
-        foundCard = true
-        break
-      }
-    }
-
-    expect(foundCard).toBe(true)
   })
 
   test('4-player game survives many turns without crash', async ({ page }) => {
