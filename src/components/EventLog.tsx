@@ -26,7 +26,7 @@ export default function EventLog({ log }: Props) {
   return (
     <div
       data-testid="event-log"
-      className="flex-1 overflow-y-auto text-[9px] flex flex-col gap-px w-full p-1 bg-bg-dark rounded [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex-1 overflow-y-auto text-sm flex flex-col gap-px w-full p-1 bg-bg-dark rounded [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       ref={ref}
     >
       {log.map((entry, i) => (

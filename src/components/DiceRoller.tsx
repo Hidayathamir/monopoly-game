@@ -33,12 +33,12 @@ export default function DiceRoller({ state, onRoll }: Props) {
         </Button>
       )}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
-        <p className="text-[11px] text-muted text-center mt-1">
+        <p className="text-base text-muted text-center mt-1">
           Ganda? {state.dice[0] === state.dice[1] ? 'Ya! 🎉' : 'Tidak 😔'} — {3 - player.jailTurns}x lagi
         </p>
       )}
       {state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice !== null && (
-        <p className="text-[11px] text-muted text-center mt-1">
+        <p className="text-base text-muted text-center mt-1">
           {state.dice[0]} + {state.dice[1]} = {state.dice[0] + state.dice[1]}
         </p>
       )}

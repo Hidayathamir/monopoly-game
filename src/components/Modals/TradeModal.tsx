@@ -34,9 +34,9 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
 
   return (
     <Modal>
-      <h3 className="text-lg text-gold m-0">🤝 Tukar</h3>
+      <h3 className="text-2xl text-gold m-0">🤝 Tukar</h3>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-text-dim">Dengan:</label>
+        <label className="text-base text-text-dim">Dengan:</label>
         <select
           value={targetPlayer ?? ''}
           onChange={(e) => setTargetPlayer(Number(e.target.value))}
@@ -52,12 +52,12 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <h4 className="text-sm text-gold m-0">Anda tawarkan:</h4>
-          <label className="text-xs flex items-center gap-1 text-text-dim">
-            Uang: <input type="number" value={offerCash} onChange={(e) => setOfferCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-xs" />
+          <h4 className="text-lg text-gold m-0">Anda tawarkan:</h4>
+          <label className="text-base flex items-center gap-1 text-text-dim">
+            Uang: <input type="number" value={offerCash} onChange={(e) => setOfferCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
           {currentProps.map((s) => (
-            <label key={s.id} className="text-xs flex items-center gap-1 text-text-dim">
+            <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
               <input
                 type="checkbox"
                 checked={offerProperties.includes(s.id)}
@@ -73,9 +73,9 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
           ))}
         </div>
         <div className="flex flex-col gap-1.5">
-          <h4 className="text-sm text-gold m-0">Anda minta:</h4>
-          <label className="text-xs flex items-center gap-1 text-text-dim">
-            Uang: <input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-xs" />
+          <h4 className="text-lg text-gold m-0">Anda minta:</h4>
+          <label className="text-base flex items-center gap-1 text-text-dim">
+            Uang: <input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
         </div>
       </div>

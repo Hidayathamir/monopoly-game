@@ -27,11 +27,11 @@ export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props)
 
   return (
     <Modal>
-      <h3 className="text-lg text-gold m-0">⚠️ Kebangkrutan</h3>
-      <p className="text-sm m-0">{player.name} tidak bisa membayar <strong>{formatMoney(amount)}</strong>.</p>
-      <p className="text-sm m-0">Uang saat ini: {formatMoney(player.money)}</p>
+      <h3 className="text-2xl text-gold m-0">⚠️ Kebangkrutan</h3>
+      <p className="text-lg m-0">{player.name} tidak bisa membayar <strong>{formatMoney(amount)}</strong>.</p>
+      <p className="text-lg m-0">Uang saat ini: {formatMoney(player.money)}</p>
       {canPayAfterLiquidation && (
-        <p className="text-muted text-xs">Jual rumah / gadaikan properti untuk mendapatkan uang.</p>
+        <p className="text-muted text-base">Jual rumah / gadaikan properti untuk mendapatkan uang.</p>
       )}
       <Modal.Actions>
         {!canPayAfterLiquidation && (

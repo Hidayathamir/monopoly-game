@@ -88,7 +88,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
           <div
             key={space.id}
             className={[
-              'border border-border text-[9px] flex flex-col items-center justify-center relative overflow-visible p-0.5',
+              'border border-border text-sm flex flex-col items-center justify-center relative overflow-visible p-0.5',
               'hover:bg-bg-cell-hover hover:z-[2]',
               TYPE_BG[space.type] ?? 'bg-bg-cell',
               space.type === 'chance' ? '[&_.cell-name]:text-gold' : '',
@@ -101,14 +101,14 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
             onMouseEnter={(e) => handleEnter(space.id, e)}
             onMouseLeave={handleLeave}
           >
-            <div className="text-[7px] text-center font-semibold leading-tight text-text-dim">{space.name}</div>
-            {space.price && <div className="text-[7px] text-[#80c080]">{formatMoney(space.price)}</div>}
+            <div className="text-xs text-center font-semibold leading-tight text-text-dim">{space.name}</div>
+            {space.price && <div className="text-xs text-[#80c080]">{formatMoney(space.price)}</div>}
             {space.houses > 0 && space.houses < 5 && (
-              <div className="text-[7px] tracking-[-1px]">{'🏠'.repeat(space.houses)}</div>
+              <div className="text-xs tracking-[-1px]">{'🏠'.repeat(space.houses)}</div>
             )}
-            {space.houses === 5 && <div className="text-[10px]">🏨</div>}
+            {space.houses === 5 && <div className="text-base">🏨</div>}
             {space.mortgaged && (
-              <div className="absolute top-px right-0.5 text-[7px] bg-red-danger text-white rounded-sm px-0.5 font-bold">M</div>
+              <div className="absolute top-px right-0.5 text-xs bg-red-danger text-white rounded-sm px-0.5 font-bold">M</div>
             )}
             {owner && (
               <div

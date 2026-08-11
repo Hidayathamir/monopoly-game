@@ -19,9 +19,9 @@ export default function GameOverModal({ state, onReset }: Props) {
 
   return (
     <Modal className="text-center">
-      <h2 className="text-2xl text-gold m-0">🏆 Permainan Selesai!</h2>
-      <p className="text-[28px] text-gold font-bold">{winner.name} menang!</p>
-      <p className="text-sm m-0">Dengan kekayaan bersih: {formatMoney(netWorth)}</p>
+      <h2 className="text-3xl text-gold m-0">🏆 Permainan Selesai!</h2>
+      <p className="text-[49px] text-gold font-bold">{winner.name} menang!</p>
+      <p className="text-lg m-0">Dengan kekayaan bersih: {formatMoney(netWorth)}</p>
       <Modal.Actions>
         <Button variant="primary" onClick={onReset}>Main Lagi</Button>
       </Modal.Actions>

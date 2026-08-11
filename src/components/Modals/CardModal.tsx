@@ -13,10 +13,10 @@ export default function CardModal({ state, onResolve }: Props) {
 
   return (
     <Modal>
-      <h3 className="text-lg text-gold m-0">
+      <h3 className="text-2xl text-gold m-0">
         {pending.card.type === CardType.Chance ? 'Kesempatan' : 'Dana Umum'}
       </h3>
-      <p className="text-base p-4 bg-bg-dark rounded-lg text-center">
+      <p className="text-xl p-4 bg-bg-dark rounded-lg text-center">
         {pending.card.description}
       </p>
       <Modal.Actions>

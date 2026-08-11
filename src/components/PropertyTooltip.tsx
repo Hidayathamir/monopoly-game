@@ -85,15 +85,15 @@ export default function PropertyTooltip({
       className="absolute bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[160px] z-[999] shadow-lg pointer-events-auto"
       style={tooltipStyle}
     >
-      <div className="text-xs text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
+      <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
         <strong>{space.name}</strong>
       </div>
-      {space.mortgaged && <div className="text-[10px] text-red-danger font-bold">Digadaikan</div>}
+      {space.mortgaged && <div className="text-sm text-red-danger font-bold">Digadaikan</div>}
       {isBuyable && space.price && (
         <>
-          <div className="text-[10px] text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>
+          <div className="text-sm text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>
           {space.rent && space.type === 'property' && (
-            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+            <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">Sewa dasar: {formatMoney(space.rent[0])}</div>
               <div className="text-text-dim">1 🏠 : {formatMoney(space.rent[1])}</div>
               <div className="text-text-dim">2 🏠 : {formatMoney(space.rent[2])}</div>
@@ -103,7 +103,7 @@ export default function PropertyTooltip({
             </div>
           )}
           {space.rent && space.type === 'railroad' && (
-            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+            <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">1 Stasiun: {formatMoney(space.rent[0])}</div>
               <div className="text-text-dim">2 Stasiun: {formatMoney(space.rent[1])}</div>
               <div className="text-text-dim">3 Stasiun: {formatMoney(space.rent[2])}</div>
@@ -111,21 +111,21 @@ export default function PropertyTooltip({
             </div>
           )}
           {space.type === 'utility' && (
-            <div className="my-1 p-1 bg-bg-darker rounded text-[10px]">
+            <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">1 Perusahaan: 4× Dadu</div>
               <div className="text-text-dim">2 Perusahaan: 10× Dadu</div>
             </div>
           )}
-          {space.houseCost && <div className="text-[10px] text-text-dim">Biaya rumah: {formatMoney(space.houseCost)}</div>}
+          {space.houseCost && <div className="text-sm text-text-dim">Biaya rumah: {formatMoney(space.houseCost)}</div>}
           {space.houses > 0 && (
-            <div className="text-[10px] text-text-dim">
+            <div className="text-sm text-text-dim">
               Level: {space.houses === 5 ? '🏨 Hotel' : '🏠'.repeat(space.houses)}
             </div>
           )}
         </>
       )}
       {owner && (
-        <div className="text-[10px] text-text-dim">
+        <div className="text-sm text-text-dim">
           Pemilik: <span className="text-gold">{owner.name}</span>
         </div>
       )}

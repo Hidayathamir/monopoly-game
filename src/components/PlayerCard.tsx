@@ -14,7 +14,7 @@ function MoneyChange({ diff }: { diff: number }) {
   return (
     <span
       className={[
-        'ml-2 text-[13px] font-bold inline-block animate-money-float',
+        'ml-2 text-lg font-bold inline-block animate-money-float',
         isGain ? 'text-green-money' : 'text-red-danger',
       ].join(' ')}
     >
@@ -41,13 +41,13 @@ export default function PlayerCard({ player, isCurrent, color, diff }: PlayerCar
       ].join(' ')}
       style={{ borderLeftColor: color }}
     >
-      <div className="flex items-center gap-1.5 text-xs mb-0.5">
+      <div className="flex items-center gap-1.5 text-base mb-0.5">
         <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ backgroundColor: color }} />
         <strong>{player.name}</strong>
-        {player.inJail && <span className="text-xs">🔒</span>}
-        {player.bankrupt && <span className="text-[9px] font-bold text-red-danger">BANGKRUT</span>}
+        {player.inJail && <span className="text-base">🔒</span>}
+        {player.bankrupt && <span className="text-sm font-bold text-red-danger">BANGKRUT</span>}
       </div>
-      <div className="text-sm font-bold text-green-money">
+      <div className="text-lg font-bold text-green-money">
         {formatMoney(player.money)}
         {diff && <MoneyChange key={diff.key} diff={diff.diff} />}
       </div>

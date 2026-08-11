@@ -30,8 +30,8 @@ export default function ActionSection({
     return (
       <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-xs my-[3px] text-center">Beli <strong>{space.name}</strong>?</p>
-          <p className="text-xs my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
+          <p className="text-base my-[3px] text-center">Beli <strong>{space.name}</strong>?</p>
+          <p className="text-base my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
           <Button variant="success" onClick={onBuyProperty} disabled={player.money < (space.price ?? 0)}>
             Beli ({formatMoney(space.price)}){player.money < (space.price ?? 0) ? ' - uang kurang' : ''}
           </Button>
@@ -48,9 +48,9 @@ export default function ActionSection({
     return (
       <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-xs my-[3px] text-center">{label} <strong>{formatMoney(amount)}</strong></p>
+          <p className="text-base my-[3px] text-center">{label} <strong>{formatMoney(amount)}</strong></p>
           {!canAffordNow && (
-            <p className="text-[11px] text-muted text-center font-bold" style={{ color: '#f39c12' }}>
+            <p className="text-base text-muted text-center font-bold" style={{ color: '#f39c12' }}>
               Hover properti di papan untuk jual/gadai/tebus aset
             </p>
           )}
@@ -75,8 +75,8 @@ export default function ActionSection({
     return (
       <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-xs my-[3px] text-center">{pending.card.description}</p>
-          <p className="text-[11px] text-muted text-center">Klik tombol untuk melanjutkan</p>
+          <p className="text-base my-[3px] text-center">{pending.card.description}</p>
+          <p className="text-base text-muted text-center">Klik tombol untuk melanjutkan</p>
         </div>
       </div>
     )
@@ -88,7 +88,7 @@ export default function ActionSection({
     <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
       {player.inJail ? (
         <>
-          <p className="text-[11px] text-muted text-center mt-1">Di Penjara — pilih:</p>
+          <p className="text-base text-muted text-center mt-1">Di Penjara — pilih:</p>
           {player.hasGetOutOfJailFree && (
             <Button variant="success" size="sm" onClick={onUseGetOutOfJailFree}>
               🎴 Gunakan Kartu Bebas Penjara
@@ -100,15 +100,15 @@ export default function ActionSection({
                 Bayar {formatMoney(JAIL_FINE)}
               </Button>
               {player.money < JAIL_FINE && (
-                <p className="text-[11px] text-muted text-center mt-1">Uang tidak cukup</p>
+                <p className="text-base text-muted text-center mt-1">Uang tidak cukup</p>
               )}
-              <p className="text-[11px] text-muted text-center mt-1">
+              <p className="text-base text-muted text-center mt-1">
                 atau lempar dadu ganda ({3 - player.jailTurns}x lagi)
               </p>
             </>
           )}
           {player.jailTurns === 0 && (
-            <p className="text-[11px] text-muted text-center mt-1">
+            <p className="text-base text-muted text-center mt-1">
               Lempar dadu ganda untuk keluar. Bayar bisa mulai putaran depan.
             </p>
           )}
@@ -121,18 +121,18 @@ export default function ActionSection({
               <Button size="sm" onClick={onProposeTrade}>🤝 Tukar</Button>
             </>
           ) : (
-            <p className="text-[11px] text-muted text-center mt-1" style={{ color: '#e74c3c' }}>
+            <p className="text-base text-muted text-center mt-1" style={{ color: '#e74c3c' }}>
               Uang minus! Jual aset dulu sebelum akhiri giliran.
             </p>
           )}
         </>
       ) : (
-        <p className="text-[11px] text-muted text-center mt-1">
+        <p className="text-base text-muted text-center mt-1">
           Giliran {player.name} — lempar dadu
         </p>
       )}
       {(hasRolled && !player.inJail) || player.money < 0 ? (
-        <p className="text-[11px] text-muted text-center" style={{ fontSize: '10px' }}>
+        <p className="text-base text-muted text-center" style={{ fontSize: '16px' }}>
           Hover properti di papan untuk jual/gadai
         </p>
       ) : null}

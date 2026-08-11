@@ -35,7 +35,7 @@ export default function PlayerPanel({ state, playerColors }: Props) {
 
   return (
     <div className="bg-bg-card rounded-lg p-2 min-h-0 overflow-y-auto flex flex-col w-full">
-      <h3 className="text-sm text-gold m-0 mb-1.5">Pemain</h3>
+      <h3 className="text-lg text-gold m-0 mb-1.5">Pemain</h3>
       {players.map((player) => {
         const isCurrent = player.id === currentPlayer
 
