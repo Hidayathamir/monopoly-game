@@ -25,7 +25,7 @@ export default function Sidebar({ state, ...actions }: Props) {
   return (
     <div
       data-testid="sidebar"
-      className="absolute top-[calc(100%/11)] left-[calc(100%/11)] w-[calc(100%*9/11)] h-[calc(100%*9/11)] flex flex-col items-center gap-1 p-2 overflow-hidden z-[5] bg-bg-main/92 rounded"
+      className="absolute top-[calc(100%/11)] left-[calc(100%/11)] w-[calc(100%*9/11)] h-[calc(100%*9/11)] flex flex-col items-center gap-1 p-2 z-[5] bg-bg-main/92 rounded"
     >
       <DiceRoller state={state} onRoll={actions.onRoll} />
       <ActionSection state={state} {...actions} />
