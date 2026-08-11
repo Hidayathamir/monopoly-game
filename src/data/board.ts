@@ -32,6 +32,6 @@ export function createInitialBoard(): Space[] {
 
 export const GO_SALARY = config.goSalary;
 export const JAIL_FINE = config.jailFine;
-export const JAIL_SPACE = config.jailSpace;
+export const JAIL_SPACE = 10;
 export const STARTING_MONEY = config.startingMoney;
-export const MAX_JAIL_TURNS = config.maxJailTurns;
+export const MAX_JAIL_TURNS = 3;
