@@ -353,7 +353,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, `${player.name} membayar sewa ${formatMoney(pending.amount)}`],
+          eventLog: [...state.eventLog, `${player.name} membayar sewa ${formatMoney(pending.amount)} ke ${state.players[space.owner!].name}`],
         };
       }
       return {
