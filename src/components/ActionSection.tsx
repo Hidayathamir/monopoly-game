@@ -32,7 +32,9 @@ export default function ActionSection({
         <div className="flex flex-col gap-1 items-center">
           <p className="text-xs my-[3px] text-center">Beli <strong>{space.name}</strong>?</p>
           <p className="text-xs my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
-          <Button variant="success" onClick={onBuyProperty}>Beli ({formatMoney(space.price)})</Button>
+          <Button variant="success" onClick={onBuyProperty} disabled={player.money < (space.price ?? 0)}>
+            Beli ({formatMoney(space.price)}){player.money < (space.price ?? 0) ? ' - uang kurang' : ''}
+          </Button>
           <Button variant="secondary" onClick={onDeclineBuy}>Tidak</Button>
         </div>
       </div>
