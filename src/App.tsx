@@ -49,6 +49,8 @@ export default function App() {
   const wasInJailRef = useRef<Record<number, boolean>>({})
   useEffect(() => {
     const player = state.players[state.currentPlayer]
+    if (!player) return
+
     const wasInJail = wasInJailRef.current[player.id] ?? false
     wasInJailRef.current[player.id] = player.inJail
 
