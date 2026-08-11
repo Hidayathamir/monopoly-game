@@ -54,7 +54,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
 
   function handleEnter(id: number, e: React.MouseEvent) {
     if (timerRef.current) clearTimeout(timerRef.current)
-    const board = boardGridRef.current?.closest('.game-board')
+    const board = boardGridRef.current?.closest('[data-game-board]')
     if (board) setBoardRect(board.getBoundingClientRect())
     setTooltipCellRect((e.currentTarget as HTMLElement).getBoundingClientRect())
     setHoveredId(id)
@@ -64,7 +64,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
 
-  const portalTarget = boardGridRef.current?.closest('.game-board') as HTMLElement | null
+  const portalTarget = boardGridRef.current?.closest('[data-game-board]') as HTMLElement | null
 
   return (
     <div
