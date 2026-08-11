@@ -5,7 +5,7 @@ async function handleTurn(page: Page) {
   if (!await rollBtn.isVisible({ timeout: 500 }).catch(() => false)) return false
 
   await rollBtn.click()
-  await page.waitForTimeout(4000)
+  await page.waitForTimeout(2000)
 
   const buyBtn = page.locator('button:has-text("Beli (")').first()
   if (await buyBtn.isVisible({ timeout: 500 }).catch(() => false)) {
@@ -23,12 +23,12 @@ async function handleTurn(page: Page) {
   if (await cardBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await cardBtn.click()
     await page.waitForTimeout(500)
-  }
 
-  const okBtn = page.locator('button:has-text("OK")').first()
-  if (await okBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await okBtn.click()
-    await page.waitForTimeout(500)
+    const okBtn = page.locator('button:has-text("OK")').first()
+    if (await okBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await okBtn.click()
+      await page.waitForTimeout(500)
+    }
   }
 
   const payBtn = page.locator('button:has-text("Bayar")').first()

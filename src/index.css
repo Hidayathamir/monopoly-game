@@ -41,3 +41,16 @@
   60% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-24px); }
 }
+
+body {
+  background: var(--color-bg-main);
+  color: var(--color-text);
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+}
