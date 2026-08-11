@@ -1,124 +1,108 @@
-import { useState, useEffect, useRef } from 'react';
-import type { GameState } from '../types/game';
+import { useState, useEffect, useRef } from 'react'
+import type { GameState } from '../types/game'
 
 interface Props {
-  state: GameState;
-  playerColors: string[];
+  state: GameState
+  playerColors: string[]
 }
 
-const RATIO = 100 / 11;
+const RATIO = 100 / 11
 
 function c(col: number, row: number) {
   return {
     x: Math.round((col - 0.5) * RATIO * 100) / 100,
     y: Math.round((row - 0.5) * RATIO * 100) / 100,
-  };
+  }
 }
 
 const POSITIONS: Record<number, { x: number; y: number }> = {
-  0:  c(11, 11), 1:  c(10, 11), 2:  c(9, 11),  3:  c(8, 11),
-  4:  c(7, 11),  5:  c(6, 11),  6:  c(5, 11),  7:  c(4, 11),
-  8:  c(3, 11),  9:  c(2, 11),  10: c(1, 11),  11: c(1, 10),
-  12: c(1, 9),   13: c(1, 8),   14: c(1, 7),   15: c(1, 6),
-  16: c(1, 5),   17: c(1, 4),   18: c(1, 3),   19: c(1, 2),
-  20: c(1, 1),   21: c(2, 1),   22: c(3, 1),   23: c(4, 1),
-  24: c(5, 1),   25: c(6, 1),   26: c(7, 1),   27: c(8, 1),
-  28: c(9, 1),   29: c(10, 1),  30: c(11, 1),  31: c(11, 2),
-  32: c(11, 3),  33: c(11, 4),  34: c(11, 5),  35: c(11, 6),
-  36: c(11, 7),  37: c(11, 8),  38: c(11, 9),  39: c(11, 10),
-};
+  0: c(11, 11), 1: c(10, 11), 2: c(9, 11), 3: c(8, 11),
+  4: c(7, 11), 5: c(6, 11), 6: c(5, 11), 7: c(4, 11),
+  8: c(3, 11), 9: c(2, 11), 10: c(1, 11), 11: c(1, 10),
+  12: c(1, 9), 13: c(1, 8), 14: c(1, 7), 15: c(1, 6),
+  16: c(1, 5), 17: c(1, 4), 18: c(1, 3), 19: c(1, 2),
+  20: c(1, 1), 21: c(2, 1), 22: c(3, 1), 23: c(4, 1),
+  24: c(5, 1), 25: c(6, 1), 26: c(7, 1), 27: c(8, 1),
+  28: c(9, 1), 29: c(10, 1), 30: c(11, 1), 31: c(11, 2),
+  32: c(11, 3), 33: c(11, 4), 34: c(11, 5), 35: c(11, 6),
+  36: c(11, 7), 37: c(11, 8), 38: c(11, 9), 39: c(11, 10),
+}
 
 const OFFSETS: Record<number, { dx: number; dy: number }> = {
-  0: { dx: -8, dy: -8 },
-  1: { dx: 8, dy: -8 },
-  2: { dx: -8, dy: 8 },
-  3: { dx: 8, dy: 8 },
-};
+  0: { dx: -8, dy: -8 }, 1: { dx: 8, dy: -8 },
+  2: { dx: -8, dy: 8 }, 3: { dx: 8, dy: 8 },
+}
 
 function getPath(from: number, to: number): number[] {
-  if (from === to) return [];
-  const path: number[] = [];
-  let current = from;
-
-  // Card "maju ke start" — always animate forward through the board
+  if (from === to) return []
+  const path: number[] = []
+  let current = from
   if (to === 0 && from > 0) {
     for (let i = 0; i < 40 - from; i++) {
-      current = (current + 1) % 40;
-      path.push(current);
+      current = (current + 1) % 40
+      path.push(current)
     }
-    return path;
+    return path
   }
-
-  // Short backward move (card effect like "mundur 3 langkah")
   if (to < from && from - to <= 12) {
     for (let i = 0; i < from - to; i++) {
-      current = (current - 1 + 40) % 40;
-      path.push(current);
+      current = (current - 1 + 40) % 40
+      path.push(current)
     }
-    return path;
+    return path
   }
-
-  // Forward move (dice roll or card that wraps past GO)
-  const steps = to > from ? to - from : 40 - from + to;
+  const steps = to > from ? to - from : 40 - from + to
   for (let i = 0; i < steps; i++) {
-    current = (current + 1) % 40;
-    path.push(current);
+    current = (current + 1) % 40
+    path.push(current)
   }
-  return path;
+  return path
 }
 
 export default function PlayerTokens({ state, playerColors }: Props) {
-  const { players } = state;
-  const [displayPositions, setDisplayPositions] = useState<Record<number, number>>({});
-  const prevTargets = useRef<Record<number, number>>({});
-  const animating = useRef<Record<number, boolean>>({});
+  const { players } = state
+  const [displayPositions, setDisplayPositions] = useState<Record<number, number>>({})
+  const prevTargets = useRef<Record<number, number>>({})
+  const animating = useRef<Record<number, boolean>>({})
 
   useEffect(() => {
     players.forEach((player) => {
-      const prevTarget = prevTargets.current[player.id] ?? 0;
-      if (prevTarget === player.position) return;
-      if (animating.current[player.id]) return;
-
-      prevTargets.current[player.id] = player.position;
-
-      // Instant jump for jail — skip walking animation
+      const prevTarget = prevTargets.current[player.id] ?? 0
+      if (prevTarget === player.position) return
+      if (animating.current[player.id]) return
+      prevTargets.current[player.id] = player.position
       if (player.inJail && player.position === 10) {
-        setDisplayPositions((prev) => ({ ...prev, [player.id]: 10 }));
-        animating.current[player.id] = false;
-        return;
+        setDisplayPositions((prev) => ({ ...prev, [player.id]: 10 }))
+        animating.current[player.id] = false
+        return
       }
-
-      animating.current[player.id] = true;
-
-      const path = getPath(displayPositions[player.id] ?? prevTarget, player.position);
-
+      animating.current[player.id] = true
+      const path = getPath(displayPositions[player.id] ?? prevTarget, player.position)
       function step(index: number) {
-        if (index >= path.length) {
-          animating.current[player.id] = false;
-          return;
-        }
-        setDisplayPositions((prev) => ({ ...prev, [player.id]: path[index] }));
-        setTimeout(() => step(index + 1), 150);
+        if (index >= path.length) { animating.current[player.id] = false; return }
+        setDisplayPositions((prev) => ({ ...prev, [player.id]: path[index] }))
+        setTimeout(() => step(index + 1), 150)
       }
-
-      if (path.length > 0) {
-        setTimeout(() => step(0), 50);
-      } else {
-        animating.current[player.id] = false;
-      }
-    });
-  }, [players.map((p) => `${p.id}:${p.position}`).join(','), displayPositions]);
+      if (path.length > 0) { setTimeout(() => step(0), 50) }
+      else { animating.current[player.id] = false }
+    })
+  }, [players.map((p) => `${p.id}:${p.position}`).join(','), displayPositions])
 
   return (
-    <div className="player-tokens">
+    <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
       {players.map((player) => {
-        const posId = displayPositions[player.id] ?? player.position;
-        const pos = POSITIONS[posId] ?? POSITIONS[0];
-        const offset = OFFSETS[player.id] ?? OFFSETS[0];
+        const posId = displayPositions[player.id] ?? player.position
+        const pos = POSITIONS[posId] ?? POSITIONS[0]
+        const offset = OFFSETS[player.id] ?? OFFSETS[0]
         return (
           <div
             key={player.id}
-            className={`player-token ${player.bankrupt ? 'token-bankrupt' : ''} ${state.currentPlayer === player.id ? 'token-active' : ''}`}
+            className={[
+              'absolute w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold text-white',
+              'border-2 border-white -translate-x-1/2 -translate-y-1/2 z-10',
+              state.currentPlayer === player.id ? 'border-[3px] shadow-[0_0_8px_rgba(255,255,255,0.5)]' : '',
+              player.bankrupt ? 'opacity-30' : '',
+            ].join(' ')}
             style={{
               backgroundColor: playerColors[player.id],
               left: `calc(${pos.x}% + ${offset.dx}px)`,
@@ -129,8 +113,8 @@ export default function PlayerTokens({ state, playerColors }: Props) {
           >
             {player.id + 1}
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
