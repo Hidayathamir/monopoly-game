@@ -25,13 +25,13 @@ export default function PropertyTooltip({
   const isOwned = space.owner === state.currentPlayer
   const isBankruptcy = state.pendingAction?.type === PendingActionType.Bankruptcy
 
-  const canBuild =
+  const canBuildBase =
     space.type === 'property' &&
     space.houses < 5 &&
     !space.mortgaged &&
     !isBankruptcy &&
-    space.id === state.players[state.currentPlayer]?.position &&
-    state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity)
+    space.id === state.players[state.currentPlayer]?.position
+  const canAffordBuild = state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity)
 
   const gap = 6
   const top = rect.top - boardRect.top
@@ -159,13 +159,14 @@ export default function PropertyTooltip({
               Tebus (-{formatMoney(Math.floor((space.price ?? 0) / 2 * 1.1))})
             </Button>
           )}
-          {canBuild && (
+          {canBuildBase && (
             <Button
               size="sm"
               variant="success"
+              disabled={!canAffordBuild}
               onClick={(e) => { e.stopPropagation(); onBuild(space.id) }}
             >
-              Bangun ({formatMoney(space.houseCost!)})
+              Bangun ({formatMoney(space.houseCost!)}){!canAffordBuild ? ' - uang kurang' : ''}
             </Button>
           )}
         </div>
