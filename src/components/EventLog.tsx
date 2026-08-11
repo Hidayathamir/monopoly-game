@@ -13,10 +13,20 @@ export default function EventLog({ log }: Props) {
     }
   }, [log])
 
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      el.scrollTop = el.scrollHeight
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div
       data-testid="event-log"
-      className="max-h-32 overflow-y-auto text-[9px] flex flex-col gap-px w-full p-1 bg-bg-dark rounded [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex-1 overflow-y-auto text-[9px] flex flex-col gap-px w-full p-1 bg-bg-dark rounded [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       ref={ref}
     >
       {log.map((entry, i) => (
