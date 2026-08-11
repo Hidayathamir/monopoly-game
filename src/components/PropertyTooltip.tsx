@@ -29,6 +29,7 @@ export default function PropertyTooltip({
     space.houses < 5 &&
     !space.mortgaged &&
     !isBankruptcy &&
+    space.id === state.players[state.currentPlayer]?.position &&
     state.players[state.currentPlayer]?.money >= (space.houseCost ?? Infinity)
 
   const gap = 6
