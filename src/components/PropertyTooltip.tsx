@@ -1,6 +1,7 @@
 import { PendingActionType, type GameState, type Space } from '../types/game'
 import { formatMoney } from '../utils/format'
 import { getHouseCost } from '../data/board'
+import { GO_SALARY } from '../data/board'
 import Button from './Button'
 
 export type CellSide = 'top' | 'right' | 'bottom' | 'left' | 'corner'
@@ -91,6 +92,12 @@ export default function PropertyTooltip({
         <strong>{space.name}</strong>
       </div>
       {space.mortgaged && <div className="text-sm text-red-danger font-bold">Digadaikan</div>}
+      {space.type === 'go' && (
+        <div className="text-sm text-text-dim">Dapat <strong className="text-green-money">{formatMoney(GO_SALARY)}</strong> setiap lewat MULAI</div>
+      )}
+      {space.type === 'freeParking' && (
+        <div className="text-sm text-text-dim">Jackpot saat ini: <strong className="text-green-money">{formatMoney(state.freeParkingPot)}</strong></div>
+      )}
       {isBuyable && space.price && (
         <>
           <div className="text-sm text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>
