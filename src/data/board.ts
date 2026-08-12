@@ -2,6 +2,8 @@ import { SpaceType, type Space } from '../types/game';
 import boardData from './board-data.json';
 import config from './game-config.json';
 
+const m = config.priceMultiplier;
+
 const TYPE_MAP: Record<string, SpaceType> = {
   go: SpaceType.Go,
   property: SpaceType.Property,
@@ -29,14 +31,24 @@ export function getTotalHouseInvestment(space: Space): number {
   return total;
 }
 
+function scaleRent(rent: number[] | undefined): number[] | undefined {
+  if (!rent) return rent;
+  return rent.map((r) => r * m);
+}
+
+function scaleHouseCost(hc: number[] | undefined): number[] | undefined {
+  if (!hc) return hc;
+  return hc.map((c) => c * m);
+}
+
 export function createInitialBoard(): Space[] {
   return boardData.map((item: Record<string, unknown>) => ({
     id: item.id as number,
     name: item.name as string,
     type: TYPE_MAP[item.type as string] ?? SpaceType.Property,
-    price: item.price as number | undefined,
-    rent: item.rent as number[] | undefined,
-    houseCost: item.houseCost as number[] | undefined,
+    price: (item.price as number | undefined) != null ? (item.price as number) * m : undefined,
+    rent: scaleRent(item.rent as number[] | undefined),
+    houseCost: scaleHouseCost(item.houseCost as number[] | undefined),
     color: item.color as string | undefined,
     owner: null,
     houses: 0,
@@ -44,8 +56,8 @@ export function createInitialBoard(): Space[] {
   }));
 }
 
-export const GO_SALARY = config.goSalary;
-export const JAIL_FINE = config.jailFine;
+export const GO_SALARY = config.goSalary * m;
+export const JAIL_FINE = config.jailFine * m;
 export const JAIL_SPACE = 10;
-export const STARTING_MONEY = config.startingMoney;
+export const STARTING_MONEY = config.startingMoney * m;
 export const MAX_JAIL_TURNS = 3;
