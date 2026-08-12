@@ -29,7 +29,7 @@ describe('resolveCardEffect', () => {
     const card: Card = { id: 1, description: 'Dapat Rp200000', type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200000 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(700000);
-    expect(result.message).toContain('Rp200K');
+    expect(result.message).toContain('Rp 200 Ribu');
   });
 
   it('pay money adds to free parking', () => {

@@ -69,7 +69,7 @@ test.describe('Monopoly Game E2E', () => {
     await expect(panel).toHaveCount(2)
     await expect(panel.first()).toContainText('Alpha')
     await expect(panel.nth(1)).toContainText('Beta')
-    await expect(panel.first()).toContainText('Rp1,5M')
+    await expect(panel.first()).toContainText('Rp 1,5 Juta')
   })
 
   test('buy property and see it in panel', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Monopoly Game E2E', () => {
 
     const cards = page.locator('[data-testid="player-card"]')
     const firstCardText = await cards.first().textContent()
-    expect(firstCardText).not.toBe('Rp1,5M')
+    expect(firstCardText).not.toBe('Rp 1,5 Juta')
   })
 
   test('4-player game survives many turns without crash', async ({ page }) => {

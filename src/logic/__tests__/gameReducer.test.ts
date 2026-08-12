@@ -598,7 +598,7 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Buying, pendingAction: { type: PendingActionType.BuyProperty, spaceId: 1 } };
       const s1 = gameReducer(state, { type: GameActionType.BuyProperty });
-      expect(s1.eventLog).toContain('Alice membeli Cirebon seharga Rp60K');
+      expect(s1.eventLog).toContain('Alice membeli Cirebon seharga Rp 60 Ribu');
     });
 
     it('pay rent produces correct message', () => {
@@ -607,7 +607,7 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Resolving, pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000 } };
       const s1 = gameReducer(state, { type: GameActionType.PayRent });
-      expect(s1.eventLog.some((e) => e.includes('membayar sewa') && e.includes('2K'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.includes('membayar sewa') && e.includes('2 Ribu'))).toBe(true);
     });
 
     it('build house produces correct message', () => {
