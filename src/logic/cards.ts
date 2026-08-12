@@ -105,13 +105,7 @@ function updatePlayerMoney(state: GameState, playerIndex: number, amount: number
     ...newPlayers[playerIndex],
     money: newPlayers[playerIndex].money + amount,
   };
-  const newEventLog = [...state.eventLog];
-  if (amount > 0) {
-    newEventLog.push(`${newPlayers[playerIndex].name} mendapatkan ${formatMoney(amount)}`);
-  } else if (amount < 0) {
-    newEventLog.push(`${newPlayers[playerIndex].name} membayar ${formatMoney(-amount)}`);
-  }
-  return { ...state, players: newPlayers, eventLog: newEventLog };
+  return { ...state, players: newPlayers };
 }
 
 function addToFreeParking(state: GameState, amount: number): GameState {
@@ -126,6 +120,5 @@ function sendPlayerToJail(state: GameState, playerIndex: number): GameState {
     inJail: true,
     jailTurns: 0,
   };
-  const newEventLog = [...state.eventLog, `${newPlayers[playerIndex].name} masuk Penjara!`];
-  return { ...state, players: newPlayers, eventLog: newEventLog };
+  return { ...state, players: newPlayers };
 }

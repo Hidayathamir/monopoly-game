@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveCardEffect } from '../cards';
 import { CardType, CardActionType, GamePhase, type GameState, type Card } from '../../types/game';
 import { createInitialBoard } from '../../data/board';
+import { GO_SALARY } from '../../data/board';
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -26,18 +27,18 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 describe('resolveCardEffect', () => {
   it('collect money', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Dapat Rp200000', type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200000 } };
+    const card: Card = { id: 1, description: 'Dapat Rp200000', type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200000000 } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].money).toBe(700000);
-    expect(result.message).toContain('Rp 200 Ribu');
+    expect(result.state.players[0].money).toBe(200500000);
+    expect(result.message).toContain('Rp 200 Juta');
   });
 
   it('pay money adds to free parking', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Chance, effect: { action: CardActionType.Pay, amount: 100000 } };
+    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Chance, effect: { action: CardActionType.Pay, amount: 100000000 } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].money).toBe(400000);
-    expect(result.state.freeParkingPot).toBe(100000);
+    expect(result.state.players[0].money).toBe(-99500000);
+    expect(result.state.freeParkingPot).toBe(100000000);
   });
 
   it('go to jail sends player to position 10', () => {
@@ -53,7 +54,7 @@ describe('resolveCardEffect', () => {
     const card: Card = { id: 1, description: 'Maju ke Jakarta', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].position).toBe(5);
-    expect(result.state.players[0].money).toBe(700000);
+    expect(result.state.players[0].money).toBe(500000 + GO_SALARY);
   });
 
   it('go to space (back 3 steps)', () => {
@@ -72,10 +73,10 @@ describe('resolveCardEffect', () => {
 
   it('collect from players', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Ulang tahun', type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10000 } };
+    const card: Card = { id: 1, description: 'Ulang tahun', type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10000000 } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].money).toBe(510000);
-    expect(result.state.players[1].money).toBe(490000);
+    expect(result.state.players[0].money).toBe(10500000);
+    expect(result.state.players[1].money).toBe(0);
   });
 
   it('street repairs', () => {
@@ -83,16 +84,16 @@ describe('resolveCardEffect', () => {
     board[1].owner = 0;
     board[1].houses = 2;
     const state = makeState({ board, players: [{ ...makeState().players[0], properties: [1] }] });
-    const card: Card = { id: 1, description: 'Perbaikan jalan', type: CardType.Chance, effect: { action: CardActionType.StreetRepairs, perHouse: 25000, perHotel: 100000 } };
+    const card: Card = { id: 1, description: 'Perbaikan jalan', type: CardType.Chance, effect: { action: CardActionType.StreetRepairs, perHouse: 25000000, perHotel: 100000000 } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].money).toBe(450000);
-    expect(result.state.freeParkingPot).toBe(50000);
+    expect(result.state.players[0].money).toBe(-49500000);
+    expect(result.state.freeParkingPot).toBe(50000000);
   });
 
   it('player money does not go below 0 on pay', () => {
     const state = makeState({ players: [{ ...makeState().players[0], money: 30000 }] });
-    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Community, effect: { action: CardActionType.Pay, amount: 100000 } };
+    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Community, effect: { action: CardActionType.Pay, amount: 100000000 } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].money).toBe(-70000);
+    expect(result.state.players[0].money).toBe(-99970000);
   });
 });

@@ -19,7 +19,7 @@ export default function DiceRoller({ state, onRoll }: Props) {
   }
 
   const canRoll = state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice === null
-  const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail
+  const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
 
   return (
     <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">

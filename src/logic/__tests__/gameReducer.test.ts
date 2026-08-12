@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { gameReducer, createInitialState } from '../gameReducer';
 import { GamePhase, GameActionType, PendingActionType, type GameState } from '../../types/game';
+import { STARTING_MONEY, GO_SALARY } from '../../data/board';
 
 function makeStartedState(playerCount = 2): GameState {
   const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
@@ -38,8 +39,8 @@ describe('gameReducer', () => {
     it('creates players with Rp1500000 each', () => {
       const state = makeStartedState(3);
       expect(state.players).toHaveLength(3);
-      expect(state.players[0].money).toBe(1500000);
-      expect(state.players[1].money).toBe(1500000);
+      expect(state.players[0].money).toBe(STARTING_MONEY);
+      expect(state.players[1].money).toBe(STARTING_MONEY);
       expect(state.players[2].name).toBe('Charlie');
       expect(state.phase).toBe(GamePhase.Waiting);
       expect(state.currentPlayer).toBe(0);
@@ -62,7 +63,7 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.RollDice });
       const s2 = gameReducer(s1, { type: GameActionType.DiceAnimated, dice: [3, 4] });
       expect(s2.players[0].position).toBe(5);
-      expect(s2.players[0].money).toBe(1700000);
+      expect(s2.players[0].money).toBe(STARTING_MONEY + GO_SALARY);
     });
 
     it('doubles gives extra turn', () => {
@@ -146,7 +147,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.BuyProperty });
       expect(s1.board[1].owner).toBe(0);
-      expect(s1.players[0].money).toBe(1440000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000);
       expect(s1.players[0].properties).toContain(1);
       expect(s1.pendingAction).toBeNull();
     });
@@ -163,7 +164,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.DeclineBuy });
       expect(s1.board[1].owner).toBeNull();
-      expect(s1.players[0].money).toBe(1500000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY);
       expect(s1.pendingAction).toBeNull();
     });
   });
@@ -176,12 +177,12 @@ describe('gameReducer', () => {
       state = {
         ...state,
         phase: GamePhase.Resolving,
-        pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000 },
+        pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000000 },
       };
 
       const s1 = gameReducer(state, { type: GameActionType.PayRent });
-      expect(s1.players[0].money).toBe(1498000);
-      expect(s1.players[1].money).toBe(1500000 - 60000 + 2000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 2000000);
+      expect(s1.players[1].money).toBe(STARTING_MONEY - 60000000 + 2000000);
       expect(s1.phase).toBe(GamePhase.Waiting);
     });
 
@@ -193,12 +194,12 @@ describe('gameReducer', () => {
       state = {
         ...state,
         phase: GamePhase.Resolving,
-        pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000 },
+        pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000000 },
       };
 
       const s1 = gameReducer(state, { type: GameActionType.PayRent });
       expect(s1.pendingAction?.type).toBe(PendingActionType.Bankruptcy);
-      expect((s1.pendingAction as { amount: number })?.amount).toBe(2000);
+      expect((s1.pendingAction as { amount: number })?.amount).toBe(2000000);
     });
   });
 
@@ -209,7 +210,7 @@ describe('gameReducer', () => {
 
       state = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(state.board[1].houses).toBe(1);
-      expect(state.players[0].money).toBe(1440000 - 25000);
+      expect(state.players[0].money).toBe(STARTING_MONEY - 60000000 - 25000000);
     });
 
     it('cannot build if not enough money', () => {
@@ -228,7 +229,6 @@ describe('gameReducer', () => {
       state = {
         ...state,
         board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)),
-        players: [{ ...state.players[0], money: 1440000 }],
       };
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
@@ -256,7 +256,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.SellHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(1);
-      expect(s1.players[0].money).toBe(1440000 + 25000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 25000000);
     });
   });
 
@@ -267,7 +267,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.Mortgage, spaceId: 1 });
       expect(s1.board[1].mortgaged).toBe(true);
-      expect(s1.players[0].money).toBe(1440000 + 30000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 30000000);
     });
 
     it('cannot mortgage with houses', () => {
@@ -287,13 +287,12 @@ describe('gameReducer', () => {
       state = {
         ...state,
         board: state.board.map((s) => (s.id === 1 ? { ...s, mortgaged: true } : s)),
-        players: [{ ...state.players[0], money: 1400000 }],
       };
 
-      const cost = Math.floor(60000 / 2 * 1.1);
+      const cost = Math.floor(60000000 / 2 * 1.1);
       const s1 = gameReducer(state, { type: GameActionType.Unmortgage, spaceId: 1 });
       expect(s1.board[1].mortgaged).toBe(false);
-      expect(s1.players[0].money).toBe(1400000 - cost);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 - cost);
     });
   });
 
@@ -400,17 +399,17 @@ describe('gameReducer', () => {
       state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect(s1.players[0].money).toBe(1300000);
-      expect(s1.freeParkingPot).toBe(200000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 200000000);
+      expect(s1.freeParkingPot).toBe(200000000);
     });
 
     it('collects free parking jackpot', () => {
       let state = makeStartedState();
       state = setPosition(state, 0, 20);
-      state = { ...state, phase: GamePhase.Resolving, freeParkingPot: 350000, dice: [2, 2] };
+      state = { ...state, phase: GamePhase.Resolving, freeParkingPot: 350000000, dice: [2, 2] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect(s1.players[0].money).toBe(1850000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY + 350000000);
       expect(s1.freeParkingPot).toBe(0);
     });
   });
@@ -433,8 +432,8 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.phase).toBe(GamePhase.Waiting);
-      expect(s1.players[0].money).toBe(1500000);
-      expect(s1.players[1].money).toBe(1440000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY);
+      expect(s1.players[1].money).toBe(STARTING_MONEY - 60000000);
     });
   });
 
@@ -471,7 +470,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.pendingAction?.type).toBe(PendingActionType.PayRent);
-      expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(25000);
+      expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(25000000);
     });
 
     it('owns 2 railroads → higher rent pending', () => {
@@ -482,7 +481,7 @@ describe('gameReducer', () => {
       state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(50000);
+      expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(50000000);
     });
 
     it('land on other player utility → pending pay rent', () => {
@@ -516,7 +515,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.DeclineBuy });
       expect(s1.board[1].owner).toBeNull();
-      expect(s1.players[0].money).toBe(1500000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY);
       expect(s1.pendingAction).toBeNull();
     });
   });
@@ -525,7 +524,7 @@ describe('gameReducer', () => {
     it('sell houses to 0 then mortgage works', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
-      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 2 } : s)), players: [{ ...state.players[0], money: 1340000 }] };
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 2 } : s)) };
 
       state = gameReducer(state, { type: GameActionType.SellHouse, spaceId: 1 });
       state = gameReducer(state, { type: GameActionType.SellHouse, spaceId: 1 });
@@ -598,22 +597,21 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Buying, pendingAction: { type: PendingActionType.BuyProperty, spaceId: 1 } };
       const s1 = gameReducer(state, { type: GameActionType.BuyProperty });
-      expect(s1.eventLog).toContain('Alice membeli Cirebon seharga Rp 60 Ribu');
+      expect(s1.eventLog).toContain('Alice membeli Cirebon seharga Rp 60 Juta');
     });
 
     it('pay rent produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 1, 1);
       state = setPosition(state, 0, 1);
-      state = { ...state, phase: GamePhase.Resolving, pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000 } };
+      state = { ...state, phase: GamePhase.Resolving, pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2000000 } };
       const s1 = gameReducer(state, { type: GameActionType.PayRent });
-      expect(s1.eventLog.some((e) => e.includes('membayar sewa') && e.includes('2 Ribu'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.includes('membayar sewa') && e.includes('2 Juta'))).toBe(true);
     });
 
     it('build house produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
-      state = { ...state, players: [{ ...state.players[0], money: 1440000 }] };
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.eventLog.some((e) => e.includes('membangun') && e.includes('Cirebon'))).toBe(true);
     });
@@ -621,7 +619,7 @@ describe('gameReducer', () => {
     it('build hotel produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
-      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)), players: [{ ...state.players[0], money: 1440000 }] };
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)) };
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.eventLog.some((e) => e.includes('Hotel'))).toBe(true);
     });
