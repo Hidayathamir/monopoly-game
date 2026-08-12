@@ -443,7 +443,7 @@ describe('gameReducer', () => {
       let state = makeStartedState();
       state = setMoney(state, 0, 1000);
       state = setPosition(state, 0, 1);
-      state = { ...state, phase: GamePhase.Resolving, dice: [1, 1] };
+      state = { ...state, phase: GamePhase.Resolving, dice: [1, 1], players: [{ ...state.players[0], passedGo: true }, state.players[1]] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.phase).toBe(GamePhase.Buying);

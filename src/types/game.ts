@@ -86,6 +86,7 @@ export type Player = {
   money: number;
   position: number;
   properties: number[];
+  passedGo: boolean;
   inJail: boolean;
   jailTurns: number;
   bankrupt: boolean;

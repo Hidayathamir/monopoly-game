@@ -7,8 +7,8 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     phase: GamePhase.Waiting,
     players: [
-      { id: 0, name: 'Alice', money: 500000, position: 0, properties: [], inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false },
-      { id: 1, name: 'Bob', money: 500000, position: 0, properties: [], inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false },
+      { id: 0, name: 'Alice', money: 500000, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false },
+      { id: 1, name: 'Bob', money: 500000, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false },
     ],
     currentPlayer: 0,
     board: createInitialBoard(),

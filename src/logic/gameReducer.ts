@@ -36,6 +36,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           money: STARTING_MONEY,
           position: 0,
           properties: [],
+          passedGo: false,
           inJail: false,
           jailTurns: 0,
           bankrupt: false,
@@ -75,7 +76,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const newPos = (player.position + total) % 40;
           let newMoney = player.money;
           const newEventLog = [...state.eventLog, `${player.name} keluar dari penjara! (dadu ganda)`];
-          if (newPos < player.position) {
+          const passedGo = newPos < player.position
+          if (passedGo) {
             newMoney += GO_SALARY;
             newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
           }
@@ -83,6 +85,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             ...newPlayers[state.currentPlayer],
             position: newPos,
             money: newMoney,
+            passedGo: newPlayers[state.currentPlayer].passedGo || passedGo,
           };
           return {
             ...state,
@@ -100,7 +103,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const newPos = (player.position + total) % 40;
             let newMoney = player.money;
             const newEventLog = [...state.eventLog, `${player.name} sudah 3 kali gagal, dipaksa keluar penjara`];
-            if (newPos < player.position) {
+            const forcedPassedGo = newPos < player.position
+            if (forcedPassedGo) {
               newMoney += GO_SALARY;
               newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
             }
@@ -110,6 +114,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               jailTurns: 0,
               position: newPos,
               money: newMoney,
+              passedGo: newPlayers[state.currentPlayer].passedGo || forcedPassedGo,
             };
             return {
               ...state,
@@ -142,8 +147,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newMoney = player.money;
       const newEventLog = [...state.eventLog, `${player.name} melempar ${dice[0]}+${dice[1]}=${total}`];
 
+      let passedGo = false
       if (newPos < player.position || newPos === 0) {
         if (player.position !== 0) {
+          passedGo = true
           newMoney += GO_SALARY;
           newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
         }
@@ -177,6 +184,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...movedPlayers[state.currentPlayer],
         position: newPos,
         money: newMoney,
+        passedGo: movedPlayers[state.currentPlayer].passedGo || passedGo,
       };
 
       return {
@@ -282,6 +290,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
             };
           } else if (space.owner === null) {
+            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, `${player.name} harus mengelilingi papan 1x sebelum membeli properti`] }
             return {
               ...state,
               phase: GamePhase.Buying,
