@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function PlayerPanel({ state, playerColors }: Props) {
-  const { players, currentPlayer } = state
+  const { players, currentPlayer, board } = state
   const prevMoney = useRef<Record<number, number>>({})
   const prevPos = useRef<Record<number, number>>({})
   const [diffs, setDiffs] = useState<Record<number, { diff: number; key: number }>>({})
@@ -34,21 +34,23 @@ export default function PlayerPanel({ state, playerColors }: Props) {
   }, [players])
 
   return (
-    <div className="bg-bg-card rounded-lg p-2 min-h-0 overflow-y-auto flex flex-col w-full">
-      <h3 className="text-lg text-gold m-0 mb-1.5">Pemain</h3>
-      {players.map((player) => {
-        const isCurrent = player.id === currentPlayer
-
-        return (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            isCurrent={isCurrent}
-            color={playerColors[player.id]}
-            diff={diffs[player.id] ?? null}
-          />
-        )
-      })}
+    <div className="w-full">
+      <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">Pemain</div>
+      <div className="flex flex-wrap gap-2 justify-center">
+        {players.map((player) => {
+          const isCurrent = player.id === currentPlayer
+          return (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              isCurrent={isCurrent}
+              color={playerColors[player.id]}
+              diff={diffs[player.id] ?? null}
+              board={board}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
