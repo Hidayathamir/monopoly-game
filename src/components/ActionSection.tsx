@@ -126,11 +126,7 @@ export default function ActionSection({
             </p>
           )}
         </>
-      ) : (
-        <p className="text-base text-muted text-center mt-1">
-          Giliran {player.name} — lempar dadu
-        </p>
-      )}
+      ) : null}
       {(hasRolled && !player.inJail) || player.money < 0 ? (
         <p className="text-base text-muted text-center" style={{ fontSize: '16px' }}>
           Hover properti di papan untuk jual/gadai
