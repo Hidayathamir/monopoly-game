@@ -28,7 +28,7 @@ export default function Dice({ value, rolling }: DiceProps) {
         <div className="grid grid-cols-3 grid-rows-3 w-full h-full p-2 gap-0.5">
           {Array.from({ length: 9 }, (_, i) => (
             <span key={i} className="flex items-center justify-center">
-              {PIPS[value].includes(i) && (
+              {(PIPS[value] ?? []).includes(i) && (
                 <span data-testid="dice-pip" className="w-2 h-2 rounded-full bg-bg-main" />
               )}
             </span>
