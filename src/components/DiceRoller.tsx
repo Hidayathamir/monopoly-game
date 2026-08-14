@@ -22,24 +22,19 @@ export default function DiceRoller({ state, onRoll }: Props) {
   const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
 
   return (
-    <div className="bg-bg-card rounded-lg p-2 flex-shrink-0 w-full">
-      <div className="flex gap-3 justify-center mb-1.5">
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex gap-4 justify-center">
         <Dice value={state.dice?.[0]} rolling={rolling} />
         <Dice value={state.dice?.[1]} rolling={rolling} />
       </div>
       {(canRoll || canRollJail) && (
         <Button variant="primary" size="lg" onClick={handleRoll}>
-          {player.inJail ? '🎲 Lempar Dadu (Penjara)' : '🎲 Lempar Dadu'}
+          {player.inJail ? 'Lempar Dadu (Penjara)' : 'Lempar Dadu'}
         </Button>
       )}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
-        <p className="text-base text-muted text-center mt-1">
-          Ganda? {state.dice[0] === state.dice[1] ? 'Ya! 🎉' : 'Tidak 😔'} — {3 - player.jailTurns}x lagi
-        </p>
-      )}
-      {state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice !== null && (
-        <p className="text-base text-muted text-center mt-1">
-          {state.dice[0]} + {state.dice[1]} = {state.dice[0] + state.dice[1]}
+        <p className="text-base text-muted text-center">
+          Ganda? {state.dice[0] === state.dice[1] ? 'Ya!' : 'Tidak'} — {3 - player.jailTurns}x lagi
         </p>
       )}
     </div>
