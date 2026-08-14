@@ -207,7 +207,7 @@ Expected: FAIL (module not found).
 - [ ] **Step 3: Create `TurnHeader.tsx`**
 
 ```tsx
-import { GamePhase, PendingActionType, type GameState } from '../types/game'
+import { PendingActionType, type GameState } from '../types/game'
 
 interface Props {
   state: GameState
@@ -237,8 +237,6 @@ export default function TurnHeader({ state }: Props) {
   )
 }
 ```
-
-Note: `GamePhase` is imported and referenced by type through `GameState`; it is intentionally listed in the import so lint's no-unused check passes only if used. If `GamePhase` ends up unused in `statusText`, remove it from the import.
 
 - [ ] **Step 4: Run the test, verify it passes**
 
