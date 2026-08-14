@@ -1,43 +1,46 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 interface Props {
   log: string[]
 }
 
 export default function EventLog({ log }: Props) {
+  const [expanded, setExpanded] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (ref.current) {
-      ref.current.scrollTop = ref.current.scrollHeight
-    }
-  }, [log])
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
+  }, [log, expanded])
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new ResizeObserver(() => {
-      el.scrollTop = el.scrollHeight
-    })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+  const visible = expanded ? log : log.slice(-2)
 
   return (
-    <div
-      data-testid="event-log"
-      className="flex-1 overflow-y-auto text-sm flex flex-col gap-px w-full p-1 bg-bg-dark rounded [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      ref={ref}
-    >
-      {log.map((entry, i) => (
-        <div
-          key={i}
-          data-testid="event-entry"
-          className="py-0.5 px-1 border-b border-[#1a2a4a] text-muted"
+    <div className="w-full border-t border-border pt-2">
+      <div
+        data-testid="event-log"
+        ref={ref}
+        className={expanded ? 'max-h-32 overflow-y-auto' : ''}
+      >
+        {visible.map((entry, i) => (
+          <div
+            key={expanded ? i : log.length - visible.length + i}
+            data-testid="event-entry"
+            className="text-xs text-muted leading-snug py-0.5"
+          >
+            {entry}
+          </div>
+        ))}
+        {log.length === 0 && <div className="text-xs text-muted">Belum ada kejadian</div>}
+      </div>
+      {log.length > 2 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-gold mt-1 hover:opacity-80"
         >
-          {entry}
-        </div>
-      ))}
+          {expanded ? 'Tutup ▴' : 'Riwayat penuh ▾'}
+        </button>
+      )}
     </div>
   )
 }
