@@ -33,28 +33,26 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player, isCurrent, color, diff, board }: PlayerCardProps) {
-  const [hovered, setHovered] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const owned = player.properties
     .map((id) => board[id])
     .filter((s): s is Space => s !== undefined)
 
-  function handleEnter() {
+  function handleEnter(e: React.MouseEvent<HTMLDivElement>) {
     clearTimeout(timerRef.current)
-    setHovered(true)
+    setPopupRect(e.currentTarget.getBoundingClientRect())
   }
 
   function handleLeave() {
-    timerRef.current = setTimeout(() => setHovered(false), 200)
+    timerRef.current = setTimeout(() => setPopupRect(null), 200)
   }
 
   return (
     <>
       <div
         data-testid="player-card"
-        ref={ref}
         className={[
           'px-2 py-1.5 rounded-lg bg-bg-dark/70 border border-border-light overflow-hidden flex-1 min-w-[130px]',
           isCurrent ? 'ring-2 ring-gold/80 bg-[#1a4a7a]/70' : '',
@@ -76,13 +74,13 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
         </div>
       </div>
 
-      {hovered && ref.current &&
+      {popupRect &&
         createPortal(
           <PlayerPopup
             player={player}
             owned={owned}
             color={color}
-            rect={ref.current.getBoundingClientRect()}
+            rect={popupRect}
             onEnter={() => clearTimeout(timerRef.current)}
             onLeave={handleLeave}
           />,
