@@ -9,13 +9,16 @@ import { GameActionType, type GameState } from '../../types/game'
 
 const noop = () => {}
 
-function makeRolledState(): GameState {
-  const s = gameReducer(createInitialState(), {
+function makeState(): GameState {
+  return gameReducer(createInitialState(), {
     type: GameActionType.StartGame,
     playerCount: 2,
     names: ['Alice', 'Bob'],
   })
-  return { ...s, dice: [2, 3] }
+}
+
+function makeRolledState(): GameState {
+  return { ...makeState(), dice: [2, 3] }
 }
 
 function makeProps() {
@@ -51,6 +54,13 @@ describe('Sidebar', () => {
     expect(domIndex(turnLabel)).toBeLessThan(domIndex(endTurn))
     expect(domIndex(endTurn)).toBeLessThan(domIndex(playersLabel))
     expect(domIndex(playersLabel)).toBeLessThan(domIndex(eventLog))
+  })
+
+  it('renders the roll button above the player list', () => {
+    renderWithProviders(<Sidebar state={makeState()} isMyTurn onLeave={noop} {...makeProps()} />)
+    const roll = screen.getByRole('button', { name: /Roll/ })
+    const playersLabel = screen.getByText('Players')
+    expect(domIndex(roll)).toBeLessThan(domIndex(playersLabel))
   })
 
   it('renders the leave icon at the top of the sidebar', () => {

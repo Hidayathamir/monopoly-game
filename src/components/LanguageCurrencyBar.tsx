@@ -8,6 +8,7 @@ export default function LanguageCurrencyBar() {
   const { currency, setCurrency } = useCurrency()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const close = () => setOpen(false)
 
   useEffect(() => {
     if (!open) return
@@ -38,7 +39,7 @@ export default function LanguageCurrencyBar() {
               value={i18n.language}
               onChange={(e) => {
                 i18n.changeLanguage(e.target.value)
-                setOpen(false)
+                close()
               }}
               className="bg-input-bg text-text text-xs rounded px-1 py-0.5 border border-border"
             >
@@ -53,7 +54,7 @@ export default function LanguageCurrencyBar() {
               value={currency}
               onChange={(e) => {
                 setCurrency(e.target.value as Currency)
-                setOpen(false)
+                close()
               }}
               className="bg-input-bg text-text text-xs rounded px-1 py-0.5 border border-border"
             >

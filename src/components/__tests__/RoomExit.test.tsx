@@ -29,9 +29,9 @@ describe('RoomExit', () => {
     expect(onLeave).not.toHaveBeenCalled()
   })
 
-  it('calls onLeave only after confirming (icon variant)', () => {
+  it('calls onLeave only after confirming (button variant)', () => {
     const onLeave = vi.fn()
-    renderWithProviders(<RoomExit onLeave={onLeave} variant="icon" />)
+    renderWithProviders(<RoomExit onLeave={onLeave} />)
     fireEvent.click(screen.getByRole('button', { name: 'Leave Room' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave' }))
     expect(onLeave).toHaveBeenCalledTimes(1)
