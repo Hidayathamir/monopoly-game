@@ -61,3 +61,7 @@ export const JAIL_FINE = config.jailFine * m;
 export const JAIL_SPACE = 10;
 export const STARTING_MONEY = config.startingMoney * m;
 export const MAX_JAIL_TURNS = 3;
+export const INCOME_TAX_RATE = config.incomeTaxRate;
+export const SELL_RATE = config.sellRate;
+export const MORTGAGED_SELL_EXTRA = config.mortgagedSellExtra;
+export const HOUSE_SELL_RATE = config.houseSellRate;
