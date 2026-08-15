@@ -23,10 +23,11 @@ Added to `src/data/game-config.json` (all raw; scaled by `priceMultiplier`):
 | Key | Value | Meaning |
 | --- | --- | --- |
 | `incomeTaxRate` | `0.1` | Income tax = 10% of total assets |
-| `mortgageRate` | `0.5` | Mortgage pays 50% of price |
 | `sellRate` | `0.75` | Direct sell-to-bank pays 75% of price |
 | `mortgagedSellExtra` | `0.1` | Selling an already-mortgaged property pays +10% of price on top of the mortgage already received |
 | `houseSellRate` | `0.75` | Selling a house/hotel refunds 75% of its build cost |
+
+Mortgage stays hardcoded at 50% of price (unmortgage at 55%); not a config key.
 
 Rationale (issue 2): a direct sale nets 75%. Mortgage already paid 50%; selling a
 mortgaged property adds only 10% more, for a total of 60% — so "mortgage then sell"
