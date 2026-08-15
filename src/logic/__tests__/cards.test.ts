@@ -75,6 +75,14 @@ describe('resolveCardEffect', () => {
     expect(result.state.lastMoveSteps).toBe(38) // (5 - 7 + 40) % 40
   })
 
+  it('a backward card that wraps past GO records negative lastMoveSteps', () => {
+    const state = makeState({ players: [{ ...makeState().players[0], position: 2, passedGo: false }] })
+    const card: Card = { id: 10, description: 'Mundurlah 3 langkah.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
+    const result = resolveCardEffect(state, card)
+    expect(result.state.players[0].position).toBe(39)
+    expect(result.state.lastMoveSteps).toBe(-3)
+  })
+
   it('a backward card sets negative lastMoveSteps and no passedGo', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 20, passedGo: false }] })
     const card: Card = { id: 10, description: 'Mundurlah 3 langkah.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }

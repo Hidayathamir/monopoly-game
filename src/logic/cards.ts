@@ -91,7 +91,9 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
     message += `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}. `;
   }
 
-  const steps = isBackward ? spaceId - player.position : (spaceId - player.position + 40) % 40;
+  const steps = isBackward
+    ? -((player.position - spaceId + 40) % 40)
+    : (spaceId - player.position + 40) % 40;
   const newPlayers = [...newState.players];
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
