@@ -455,6 +455,7 @@ In `src/logic/gameReducer.ts`, import `isMonopoly` (add to the existing `../rent
                 : state.eventLog,
             };
           } else if (space.owner === null) {
+```
 
 - [ ] **Step 5: Tooltip notice**
 
