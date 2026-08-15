@@ -68,6 +68,11 @@ test('two clients create and join a room, then start a game', async ({ browser }
   await pageA.click('button:has-text("Start")')
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  await expect(pageA.locator('button:has-text("Roll")')).toBeVisible({ timeout: 5000 })
+  await expect(pageA.locator('[data-testid="waiting-for"]')).toHaveCount(0)
+  await expect(pageB.locator('button:has-text("Roll")')).toHaveCount(0)
+  await expect(pageB.locator('[data-testid="waiting-for"]')).toBeVisible()
 })
 
 test('a player can leave the room mid-game and return to the menu', async ({ browser }) => {

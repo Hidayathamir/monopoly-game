@@ -37,7 +37,7 @@ async function handleTurn(page: Page) {
     await page.waitForTimeout(200)
   }
 
-  const endBtn = page.locator('button:has-text("End")').first()
+  const endBtn = page.locator('button:has-text("End"), button:has-text("Roll Again")').first()
   if (await endBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await endBtn.click()
     await page.waitForTimeout(200)
