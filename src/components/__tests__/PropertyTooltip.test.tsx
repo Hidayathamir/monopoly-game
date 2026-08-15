@@ -57,4 +57,10 @@ describe('PropertyTooltip', () => {
     renderWithProviders(<PropertyTooltip space={space} state={makeState(100)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
     expect(screen.getByRole('button', { name: /Sell House/ }).textContent).toContain('37')
   })
+
+  it('hides owner action buttons when it is not your turn', () => {
+    renderWithProviders(<PropertyTooltip space={{ ...mortgagedSpace, mortgaged: false }} state={makeState(100)} isMyTurn={false} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    expect(screen.queryByRole('button', { name: /Mortgage/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Sell to Bank/ })).toBeNull()
+  })
 })

@@ -7,11 +7,12 @@ import Button from '../Button'
 
 interface Props {
   state: GameState
+  isMyTurn: boolean
   onClose: () => void
   onBankruptcy: () => void
 }
 
-export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props) {
+export default function BankruptcyModal({ state, isMyTurn, onClose, onBankruptcy }: Props) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const pending = state.pendingAction
@@ -38,10 +39,16 @@ export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props)
         <p className="text-muted text-base">{t('bankruptcy.hint')}</p>
       )}
       <Modal.Actions>
-        {!canPayAfterLiquidation && (
-          <Button variant="danger" onClick={onBankruptcy}>{t('bankruptcy.declare')}</Button>
+        {!isMyTurn ? (
+          <p className="text-base text-muted text-center">{t('turn.waitingFor', { name: player.name })}</p>
+        ) : (
+          <>
+            {!canPayAfterLiquidation && (
+              <Button variant="danger" onClick={onBankruptcy}>{t('bankruptcy.declare')}</Button>
+            )}
+            <Button variant="secondary" onClick={onClose}>{t('bankruptcy.close')}</Button>
+          </>
         )}
-        <Button variant="secondary" onClick={onClose}>{t('bankruptcy.close')}</Button>
       </Modal.Actions>
     </Modal>
   )

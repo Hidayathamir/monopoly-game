@@ -6,6 +6,7 @@ import PlayerTokens from './PlayerTokens'
 
 interface Props {
   state: GameState
+  isMyTurn: boolean
   children?: ReactNode
   onSell: (spaceId: number) => void
   onMortgage: (spaceId: number) => void
@@ -13,12 +14,13 @@ interface Props {
   onSellProperty: (spaceId: number) => void
 }
 
-export default function GameBoard({ state, children, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
+export default function GameBoard({ state, isMyTurn, children, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   return (
     <div className="flex items-center justify-center w-screen h-screen">
       <div data-game-board className="relative w-[calc(100vw-16px)] h-[calc(100vh-16px)] flex-shrink-0 overflow-hidden">
         <BoardGrid
           state={state}
+          isMyTurn={isMyTurn}
           playerColors={PLAYER_COLORS}
           onSell={onSell}
           onMortgage={onMortgage}

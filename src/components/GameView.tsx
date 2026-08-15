@@ -16,6 +16,7 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
       <GameBoard
         state={state}
+        isMyTurn={isMyTurn}
         onSell={game.sellHouse}
         onMortgage={game.mortgage}
         onUnmortgage={game.unmortgage}
@@ -39,8 +40,8 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
           onLeave={onLeave}
         />
       </GameBoard>
-      <CardModal state={state} onResolve={game.resolveCard} />
-      <BankruptcyModal state={state} onClose={game.skipAction} onBankruptcy={game.declareBankruptcy} />
+      <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
+      <BankruptcyModal state={state} isMyTurn={isMyTurn} onClose={game.skipAction} onBankruptcy={game.declareBankruptcy} />
       <GameOverModal state={state} onReset={game.resetGame} />
       {showTrade && (
         <TradeModal

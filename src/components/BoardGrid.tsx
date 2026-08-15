@@ -6,6 +6,7 @@ import PropertyTooltip from './PropertyTooltip'
 
 interface Props {
   state: GameState
+  isMyTurn: boolean
   playerColors: string[]
   onSell: (spaceId: number) => void
   onMortgage: (spaceId: number) => void
@@ -76,7 +77,7 @@ function computeTooltipPosition(
   return { top, left }
 }
 
-export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
+export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   const { t } = useTranslation()
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
@@ -172,6 +173,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
             <PropertyTooltip
               space={board[hoveredId]}
               state={state}
+              isMyTurn={isMyTurn}
               onSell={onSell}
               onMortgage={onMortgage}
               onUnmortgage={onUnmortgage}

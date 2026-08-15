@@ -5,13 +5,15 @@ import Button from '../Button'
 
 interface Props {
   state: GameState
+  isMyTurn: boolean
   onResolve: () => void
 }
 
-export default function CardModal({ state, onResolve }: Props) {
+export default function CardModal({ state, isMyTurn, onResolve }: Props) {
   const { t } = useTranslation()
   const pending = state.pendingAction
   if (pending?.type !== PendingActionType.CardEffect) return null
+  const player = state.players[state.currentPlayer]
 
   return (
     <Modal>
@@ -22,7 +24,11 @@ export default function CardModal({ state, onResolve }: Props) {
         {t('card.' + (pending.card.type === CardType.Chance ? 'chance' : 'community') + '.' + pending.card.id)}
       </p>
       <Modal.Actions>
-        <Button variant="primary" onClick={onResolve}>OK</Button>
+        {isMyTurn ? (
+          <Button variant="primary" onClick={onResolve}>OK</Button>
+        ) : (
+          <p className="text-base text-muted text-center">{t('turn.waitingFor', { name: player.name })}</p>
+        )}
       </Modal.Actions>
     </Modal>
   )

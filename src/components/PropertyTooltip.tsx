@@ -8,6 +8,7 @@ import Button from './Button'
 interface Props {
   space: Space
   state: GameState
+  isMyTurn?: boolean
   onSell: (id: number) => void
   onMortgage: (id: number) => void
   onUnmortgage: (id: number) => void
@@ -15,7 +16,7 @@ interface Props {
 }
 
 export default function PropertyTooltip({
-  space, state, onSell, onMortgage, onUnmortgage, onSellProperty,
+  space, state, isMyTurn = true, onSell, onMortgage, onUnmortgage, onSellProperty,
 }: Props) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
@@ -91,7 +92,7 @@ export default function PropertyTooltip({
           {t('tooltip.owner')}<span className="text-gold">{owner.name}</span>
         </div>
       )}
-      {isOwned && (
+      {isOwned && isMyTurn && (
         <div className="mt-1.5 pt-1.5 border-t border-border-light flex flex-col gap-[3px]">
           {space.houses > 0 && (
             <Button
