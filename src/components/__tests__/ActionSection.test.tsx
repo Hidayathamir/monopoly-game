@@ -58,6 +58,7 @@ describe('ActionSection', () => {
       ...s,
       players: s.players.map((p, i) => i === 0 ? { ...p, position: 8, properties: [8], passedGo: true } : p),
       board: s.board.map((b) => b.id === 8 ? { ...b, owner: 0 } : b),
+      dice: [2, 3],
       justBoughtSpaceId: 8,
     }
     render(<ActionSection state={s} {...actions} onBuild={() => {}} />)
