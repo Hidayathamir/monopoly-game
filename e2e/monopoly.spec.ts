@@ -56,7 +56,7 @@ test.describe('Monopoly Game E2E', () => {
   })
 
   test('setup screen renders correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toHaveText('Indonesia Monopoly')
+    await expect(page.locator('h1')).toHaveText('Monopoly')
     await expect(page.locator('button:has-text("Start")')).toBeVisible()
     await expect(page.getByLabel('player-count')).toBeVisible()
   })

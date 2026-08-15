@@ -110,7 +110,7 @@
   "event.bankruptcy": "{{name}} bangkrut!",
   "event.bankruptcyWin": "{{name}} bangkrut! {{winner}} menang!",
 
-  "setup.title": "Monopoli Indonesia",
+  "setup.title": "Monopoli",
   "setup.singleDevice": "Satu Perangkat",
   "setup.multiplayer": "Multiplayer (LAN)",
   "setup.playerCount": "Jumlah Pemain",

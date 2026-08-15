@@ -110,7 +110,7 @@
   "event.bankruptcy": "{{name}} went bankrupt!",
   "event.bankruptcyWin": "{{name}} went bankrupt! {{winner}} wins!",
 
-  "setup.title": "Indonesia Monopoly",
+  "setup.title": "Monopoly",
   "setup.singleDevice": "Single Device",
   "setup.multiplayer": "Multiplayer (LAN)",
   "setup.playerCount": "Number of Players",
