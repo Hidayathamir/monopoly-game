@@ -1,4 +1,5 @@
 import { CardType, PendingActionType, type GameState } from '../../types/game'
+import { useTranslation } from 'react-i18next'
 import Modal from './Modal'
 import Button from '../Button'
 
@@ -8,16 +9,17 @@ interface Props {
 }
 
 export default function CardModal({ state, onResolve }: Props) {
+  const { t } = useTranslation()
   const pending = state.pendingAction
   if (pending?.type !== PendingActionType.CardEffect) return null
 
   return (
     <Modal>
       <h3 className="text-2xl text-gold m-0">
-        {pending.card.type === CardType.Chance ? 'Kesempatan' : 'Dana Umum'}
+        {t(pending.card.type === CardType.Chance ? 'cardmodal.chance' : 'cardmodal.community')}
       </h3>
       <p className="text-xl p-4 bg-bg-dark rounded-lg text-center">
-        {pending.card.description}
+        {t('card.' + (pending.card.type === CardType.Chance ? 'chance' : 'community') + '.' + pending.card.id)}
       </p>
       <Modal.Actions>
         <Button variant="primary" onClick={onResolve}>OK</Button>

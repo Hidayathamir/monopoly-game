@@ -95,7 +95,6 @@ export type Player = {
 
 export type Space = {
   id: number;
-  name: string;
   type: SpaceType;
   price?: number;
   rent?: number[];
@@ -109,10 +108,11 @@ export type Space = {
 
 export type Card = {
   id: number;
-  description: string;
   type: CardType;
   effect: CardEffect;
 };
+
+export type LogEntry = { key: string; params?: Record<string, string | number> };
 
 export type CardEffect =
   | { action: typeof CardActionType.Collect; amount: number }
@@ -134,7 +134,7 @@ export type GameState = {
   dice: [number, number] | null;
   doublesCount: number;
   lastMoveSteps: number | null;
-  eventLog: string[];
+  eventLog: LogEntry[];
   pendingAction: PendingAction | null;
   justBoughtSpaceId: number | null;
 };

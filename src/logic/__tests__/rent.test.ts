@@ -5,7 +5,6 @@ import { SpaceType, type Space } from '../../types/game';
 function makeSpace(overrides: Partial<Space> = {}): Space {
   return {
     id: 1,
-    name: 'Cirebon',
     type: SpaceType.Property,
     price: 60000,
     rent: [2000, 4000, 10000, 30000, 90000, 160000, 250000, 450000],
@@ -51,7 +50,6 @@ describe('calculatePropertyRent', () => {
 
   it('Boardwalk rent at hotel level', () => {
     const space = makeSpace({
-      name: 'Bali',
       price: 400000,
       rent: [50000, 200000, 600000, 1400000, 1700000, 2000000, 2200000, 2000000],
       houseCost: [200000],
@@ -63,14 +61,14 @@ describe('calculatePropertyRent', () => {
 
 describe('railroad rent', () => {
   it('calculates railroad rent based on count', () => {
-    const gambir = makeSpace({ type: SpaceType.Railroad, name: 'Gambir', rent: [25000, 50000, 100000, 200000], price: 200000 });
+    const gambir = makeSpace({ type: SpaceType.Railroad, rent: [25000, 50000, 100000, 200000], price: 200000 });
     expect(calculatePropertyRent(gambir)).toBe(25000);
   });
 });
 
 describe('utility rent', () => {
   it('4x dice roll for 1 utility', () => {
-    const pln = makeSpace({ type: SpaceType.Utility, name: 'PLN', price: 150000, rent: [0] });
+    const pln = makeSpace({ type: SpaceType.Utility, price: 150000, rent: [0] });
     expect(calculatePropertyRent(pln, [3, 4])).toBe(28);
   });
 });

@@ -35,6 +35,6 @@ describe('useGame doubles auto-advance', () => {
     act(() => vi.advanceTimersByTime(500))
     expect(result.current.state.dice).toBeNull()
     expect(result.current.state.currentPlayer).toBe(0)
-    expect(result.current.state.eventLog.some((e) => e.includes('main lagi'))).toBe(true)
+    expect(result.current.state.eventLog.some((e) => e.key.includes('main lagi'))).toBe(true)
   })
 })

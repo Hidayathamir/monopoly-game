@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import type { Player, Space } from '../types/game'
 import { formatMoney } from '../utils/format'
 
@@ -100,6 +101,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
   onEnter: () => void
   onLeave: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div
       className="fixed bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[180px] max-w-[260px] max-h-[60vh] overflow-y-auto z-[999] shadow-lg"
@@ -129,7 +131,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: s.color || color }}
                 />
-                <span className={s.mortgaged ? 'line-through opacity-50' : ''}>{s.name}</span>
+                <span className={s.mortgaged ? 'line-through opacity-50' : ''}>{t('board.space.' + s.id)}</span>
                 {s.mortgaged && <span className="text-red-danger text-xs font-bold">Gadai</span>}
               </div>
             ))}

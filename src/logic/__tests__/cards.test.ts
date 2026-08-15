@@ -29,7 +29,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 describe('resolveCardEffect', () => {
   it('collect money', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Dapat Rp200000', type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(700);
     expect(result.message).toContain('Rp 200');
@@ -37,7 +37,7 @@ describe('resolveCardEffect', () => {
 
   it('pay money adds to free parking', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Chance, effect: { action: CardActionType.Pay, amount: 100 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.Pay, amount: 100 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(400);
     expect(result.state.freeParkingPot).toBe(100);
@@ -45,7 +45,7 @@ describe('resolveCardEffect', () => {
 
   it('go to jail sends player to position 10', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Masuk penjara!', type: CardType.Chance, effect: { action: CardActionType.GoToJail } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.GoToJail } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].position).toBe(10);
     expect(result.state.players[0].inJail).toBe(true);
@@ -53,7 +53,7 @@ describe('resolveCardEffect', () => {
 
   it('go to space (forward) collects salary if passes GO', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 35 }] });
-    const card: Card = { id: 1, description: 'Maju ke Jakarta', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].position).toBe(5);
     expect(result.state.players[0].money).toBe(500 + GO_SALARY);
@@ -61,14 +61,14 @@ describe('resolveCardEffect', () => {
 
   it('go to space (back 3 steps)', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 10 }] });
-    const card: Card = { id: 1, description: 'Mundur 3 langkah', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].position).toBe(7);
   });
 
   it('a forward card that wraps sets passedGo and positive lastMoveSteps', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 7, passedGo: false }] })
-    const card: Card = { id: 4, description: 'Majulah ke Stasiun Gambir.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } }
+    const card: Card = { id: 4, type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } }
     const result = resolveCardEffect(state, card)
     expect(result.state.players[0].passedGo).toBe(true)
     expect(result.state.players[0].money).toBe(500 + GO_SALARY)
@@ -77,7 +77,7 @@ describe('resolveCardEffect', () => {
 
   it('a backward card that wraps past GO records negative lastMoveSteps', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 2, passedGo: false }] })
-    const card: Card = { id: 10, description: 'Mundurlah 3 langkah.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
+    const card: Card = { id: 10, type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
     const result = resolveCardEffect(state, card)
     expect(result.state.players[0].position).toBe(39)
     expect(result.state.lastMoveSteps).toBe(-3)
@@ -85,7 +85,7 @@ describe('resolveCardEffect', () => {
 
   it('a backward card sets negative lastMoveSteps and no passedGo', () => {
     const state = makeState({ players: [{ ...makeState().players[0], position: 20, passedGo: false }] })
-    const card: Card = { id: 10, description: 'Mundurlah 3 langkah.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
+    const card: Card = { id: 10, type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
     const result = resolveCardEffect(state, card)
     expect(result.state.players[0].position).toBe(17)
     expect(result.state.players[0].passedGo).toBe(false)
@@ -95,14 +95,14 @@ describe('resolveCardEffect', () => {
 
   it('get out of jail free card', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Bebas penjara', type: CardType.Chance, effect: { action: CardActionType.GetOutOfJailFree } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.GetOutOfJailFree } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].hasGetOutOfJailFree).toBe(true);
   });
 
   it('collect from players', () => {
     const state = makeState();
-    const card: Card = { id: 1, description: 'Ulang tahun', type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(510);
     expect(result.state.players[1].money).toBe(490);
@@ -113,7 +113,7 @@ describe('resolveCardEffect', () => {
     board[1].owner = 0;
     board[1].houses = 2;
     const state = makeState({ board, players: [{ ...makeState().players[0], properties: [1] }] });
-    const card: Card = { id: 1, description: 'Perbaikan jalan', type: CardType.Chance, effect: { action: CardActionType.StreetRepairs, perHouse: 25, perHotel: 100 } };
+    const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.StreetRepairs, perHouse: 25, perHotel: 100 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(450);
     expect(result.state.freeParkingPot).toBe(50);
@@ -121,7 +121,7 @@ describe('resolveCardEffect', () => {
 
   it('player money does not go below 0 on pay', () => {
     const state = makeState({ players: [{ ...makeState().players[0], money: 30 }] });
-    const card: Card = { id: 1, description: 'Bayar Rp100000', type: CardType.Community, effect: { action: CardActionType.Pay, amount: 100 } };
+    const card: Card = { id: 1, type: CardType.Community, effect: { action: CardActionType.Pay, amount: 100 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(-70);
   });

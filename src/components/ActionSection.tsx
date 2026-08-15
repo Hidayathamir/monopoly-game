@@ -1,4 +1,5 @@
 import { GamePhase, PendingActionType, type GameState } from '../types/game'
+import { useTranslation } from 'react-i18next'
 import { formatMoney } from '../utils/format'
 import { JAIL_FINE, getHouseCost } from '../data/board'
 import Button from './Button'
@@ -23,6 +24,7 @@ export default function ActionSection({
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
   onBuild, isMyTurn = true,
 }: Props) {
+  const { t } = useTranslation()
   const player = state.players[state.currentPlayer]
   if (!isMyTurn) return null
   const pending = state.pendingAction
@@ -34,7 +36,7 @@ export default function ActionSection({
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-base my-[3px] text-center">Beli <strong>{space.name}</strong>?</p>
+          <p className="text-base my-[3px] text-center">Beli <strong>{t('board.space.' + space.id)}</strong>?</p>
           <p className="text-base my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
           <Button variant="success" onClick={onBuyProperty} disabled={player.money < (space.price ?? 0)}>
             Beli ({formatMoney(space.price)}){player.money < (space.price ?? 0) ? ' - uang kurang' : ''}
@@ -79,7 +81,7 @@ export default function ActionSection({
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-base my-[3px] text-center">{pending.card.description}</p>
+          <p className="text-base my-[3px] text-center">{t('card.' + (pending.card.id >= 100 ? 'community' : 'chance') + '.' + pending.card.id)}</p>
           <p className="text-base text-muted text-center">Klik tombol untuk melanjutkan</p>
         </div>
       </div>

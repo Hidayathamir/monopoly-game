@@ -146,7 +146,7 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.EndTurn })
       expect(s1.currentPlayer).toBe(1)
       expect(s1.dice).toBeNull()
-      expect(s1.eventLog).toContain('Giliran Bob')
+      expect(s1.eventLog).toContainEqual({ key: 'Giliran Bob' })
     });
   });
 
@@ -460,7 +460,7 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.players[0].money).toBe(STARTING_MONEY - 150);
       expect(s1.freeParkingPot).toBe(150);
-      expect(s1.eventLog.some((e) => e.includes('pajak penghasilan') && e.includes('10%'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('pajak penghasilan') && e.key.includes('10%'))).toBe(true);
     });
 
     it('pays flat luxury tax to free parking', () => {
@@ -471,7 +471,7 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.players[0].money).toBe(STARTING_MONEY - 100);
       expect(s1.freeParkingPot).toBe(100);
-      expect(s1.eventLog.some((e) => e.includes('pajak mewah'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('pajak mewah'))).toBe(true);
     });
 
     it('collects free parking jackpot', () => {
@@ -668,7 +668,7 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Buying, pendingAction: { type: PendingActionType.BuyProperty, spaceId: 1 } };
       const s1 = gameReducer(state, { type: GameActionType.BuyProperty });
-      expect(s1.eventLog).toContain('Alice membeli Cirebon seharga Rp 60');
+      expect(s1.eventLog).toContainEqual({ key: 'Alice membeli 1 seharga Rp 60' });
     });
 
     it('pay rent produces correct message', () => {
@@ -677,14 +677,14 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 1);
       state = { ...state, phase: GamePhase.Resolving, pendingAction: { type: PendingActionType.PayRent, spaceId: 1, amount: 2 } };
       const s1 = gameReducer(state, { type: GameActionType.PayRent });
-      expect(s1.eventLog.some((e) => e.includes('membayar sewa'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('membayar sewa'))).toBe(true);
     });
 
     it('build house produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
-      expect(s1.eventLog.some((e) => e.includes('membangun') && e.includes('Cirebon'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('membangun') && e.key.includes('di 1 seharga'))).toBe(true);
     });
 
     it('build hotel produces correct message', () => {
@@ -692,7 +692,7 @@ describe('gameReducer', () => {
       state = buyProperty(state, 0, 1);
       state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)) };
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
-      expect(s1.eventLog.some((e) => e.includes('Hotel'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('Hotel'))).toBe(true);
     });
 
     it('jail entry produces correct message', () => {
@@ -700,7 +700,7 @@ describe('gameReducer', () => {
       state = setPosition(state, 0, 30);
       state = { ...state, phase: GamePhase.Resolving };
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect(s1.eventLog.some((e) => e.includes('masuk Penjara'))).toBe(true);
+      expect(s1.eventLog.some((e) => e.key.includes('masuk Penjara'))).toBe(true);
     });
   });
 });

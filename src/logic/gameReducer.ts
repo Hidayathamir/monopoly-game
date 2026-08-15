@@ -50,7 +50,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: GamePhase.Waiting,
         players,
         currentPlayer: 0,
-        eventLog: ['Permainan dimulai!'],
+        eventLog: [{ key: 'Permainan dimulai!' }],
       };
     }
 
@@ -78,11 +78,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const total = dice[0] + dice[1];
           const newPos = (player.position + total) % 40;
           let newMoney = player.money;
-          const newEventLog = [...state.eventLog, `${player.name} keluar dari penjara! (dadu ganda)`];
+          const newEventLog = [...state.eventLog, { key: `${player.name} keluar dari penjara! (dadu ganda)` }];
           const passedGo = newPos < player.position
           if (passedGo) {
             newMoney += GO_SALARY;
-            newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
+            newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
           }
           newPlayers[state.currentPlayer] = {
             ...newPlayers[state.currentPlayer],
@@ -106,11 +106,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const total = dice[0] + dice[1];
             const newPos = (player.position + total) % 40;
             let newMoney = player.money;
-            const newEventLog = [...state.eventLog, `${player.name} sudah 3 kali gagal, dipaksa keluar penjara`];
+            const newEventLog = [...state.eventLog, { key: `${player.name} sudah 3 kali gagal, dipaksa keluar penjara` }];
             const forcedPassedGo = newPos < player.position
             if (forcedPassedGo) {
               newMoney += GO_SALARY;
-              newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
+              newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
             }
             newPlayers[state.currentPlayer] = {
               ...newPlayers[state.currentPlayer],
@@ -144,7 +144,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             dice: null,
             doublesCount: 0,
             lastMoveSteps: null,
-            eventLog: [...state.eventLog, `${player.name} gagal keluar penjara (percobaan ke-${newTurns})`, `Giliran ${state.players[nextPlayer].name}`],
+            eventLog: [...state.eventLog, { key: `${player.name} gagal keluar penjara (percobaan ke-${newTurns})` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
           };
         }
       }
@@ -152,14 +152,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const total = dice[0] + dice[1];
       const newPos = (player.position + total) % 40;
       let newMoney = player.money;
-      const newEventLog = [...state.eventLog, `${player.name} melempar ${dice[0]}+${dice[1]}=${total}`];
+      const newEventLog = [...state.eventLog, { key: `${player.name} melempar ${dice[0]}+${dice[1]}=${total}` }];
 
       let passedGo = false
       if (newPos < player.position || newPos === 0) {
         if (player.position !== 0) {
           passedGo = true
           newMoney += GO_SALARY;
-          newEventLog.push(`${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}`);
+          newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
         }
       }
 
@@ -183,7 +183,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           dice: null,
           doublesCount: 0,
           lastMoveSteps: null,
-          eventLog: [...newEventLog, `3x ganda berturut-turut! ${player.name} masuk Penjara!`, `Giliran ${state.players[nextPlayer].name}`],
+          eventLog: [...newEventLog, { key: `3x ganda berturut-turut! ${player.name} masuk Penjara!` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
         };
       }
 
@@ -234,7 +234,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               dice: null,
               doublesCount: 0,
               lastMoveSteps: null,
-              eventLog: [...state.eventLog, `${player.name} masuk Penjara!`, `Giliran ${state.players[next].name}`],
+              eventLog: [...state.eventLog, { key: `${player.name} masuk Penjara!` }, { key: `Giliran ${state.players[next].name}` }],
             };
           }
           return { ...state, phase: GamePhase.Waiting };
@@ -255,7 +255,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: 0,
-            eventLog: [...state.eventLog, `${player.name} mendapat jackpot Parkir Gratis ${formatMoney(pot)}!`],
+            eventLog: [...state.eventLog, { key: `${player.name} mendapat jackpot Parkir Gratis ${formatMoney(pot)}!` }],
           };
         }
 
@@ -278,7 +278,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: state.freeParkingPot + taxAmount,
-            eventLog: [...state.eventLog, message],
+            eventLog: [...state.eventLog, { key: message }],
           };
         }
 
@@ -301,7 +301,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const currentPlayer = state.players[state.currentPlayer];
             const owner = state.players[space.owner];
             if (owner.inJail) {
-              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, `${owner.name} di penjara — tidak mendapat sewa dari ${currentPlayer.name}`] };
+              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: `${owner.name} di penjara — tidak mendapat sewa dari ${currentPlayer.name}` }] };
             }
 
             return {
@@ -309,11 +309,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               phase: GamePhase.Resolving,
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
               eventLog: monopoly
-                ? [...state.eventLog, `${owner.name} memiliki komplek lengkap — sewa ${currentPlayer.name} jadi 2x!`]
+                ? [...state.eventLog, { key: `${owner.name} memiliki komplek lengkap — sewa ${currentPlayer.name} jadi 2x!` }]
                 : state.eventLog,
             };
           } else if (space.owner === null) {
-            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, `${player.name} harus mengelilingi papan 1x sebelum membeli properti`] }
+            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: `${player.name} harus mengelilingi papan 1x sebelum membeli properti` }] }
             return {
               ...state,
               phase: GamePhase.Buying,
@@ -360,7 +360,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         pendingAction: null,
         justBoughtSpaceId: pending.spaceId,
-        eventLog: [...state.eventLog, `${player.name} membeli ${space.name} seharga ${formatMoney(space.price)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} membeli ${space.id} seharga ${formatMoney(space.price)}` }],
       };
     }
 
@@ -384,7 +384,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, `${player.name} membayar sewa ${formatMoney(pending.amount)} ke ${state.players[space.owner!].name}`],
+          eventLog: [...state.eventLog, { key: `${player.name} membayar sewa ${formatMoney(pending.amount)} ke ${state.players[space.owner!].name}` }],
         };
       }
       return {
@@ -412,7 +412,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         board: newBoard,
         players: newPlayers,
         pendingAction: null,
-        eventLog: [...state.eventLog, `${player.name} membangun ${houseOrHotel} di ${space.name} seharga ${formatMoney(cost)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} membangun ${houseOrHotel} di ${space.id} seharga ${formatMoney(cost)}` }],
       };
     }
 
@@ -429,7 +429,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, `${player.name} menjual rumah di ${space.name}, mendapat ${formatMoney(refund)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} menjual rumah di ${space.id}, mendapat ${formatMoney(refund)}` }],
       };
     }
 
@@ -446,7 +446,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, `${player.name} menggadaikan ${space.name} seharga ${formatMoney(mortgageValue)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} menggadaikan ${space.id} seharga ${formatMoney(mortgageValue)}` }],
       };
     }
 
@@ -464,7 +464,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, `${player.name} menebus ${space.name} seharga ${formatMoney(unmortgageCost)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} menebus ${space.id} seharga ${formatMoney(unmortgageCost)}` }],
       };
     }
 
@@ -488,7 +488,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, `${player.name} menjual ${space.name} ke bank seharga ${formatMoney(sellValue)}`],
+        eventLog: [...state.eventLog, { key: `${player.name} menjual ${space.id} ke bank seharga ${formatMoney(sellValue)}` }],
       };
     }
 
@@ -496,7 +496,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         pendingAction: { type: PendingActionType.DrawCard, cardType: CardType.Chance },
-        eventLog: [...state.eventLog, `${state.players[state.currentPlayer].name} mengajukan tawaran pertukaran ke ${state.players[action.offer.toId].name}`],
+        eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} mengajukan tawaran pertukaran ke ${state.players[action.offer.toId].name}` }],
       };
     }
 
@@ -525,7 +525,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         chanceDeck: isChance ? deck : state.chanceDeck,
         communityDeck: isChance ? state.communityDeck : deck,
         pendingAction: { type: PendingActionType.CardEffect, card },
-        eventLog: [...state.eventLog, `${state.players[state.currentPlayer].name} mengambil kartu: ${card.description}`],
+        eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} mengambil kartu: ${card.id}` }],
       };
     }
 
@@ -544,7 +544,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         pendingAction: null,
         currentPlayer: wentToJail ? getNextPlayer(result.state) : result.state.currentPlayer,
         dice: wentToJail ? null : result.state.dice,
-        eventLog: [...result.state.eventLog, result.message, ...(wentToJail ? [`Giliran ${result.state.players[getNextPlayer(result.state)].name}`] : [])],
+        eventLog: [...result.state.eventLog, { key: result.message }, ...(wentToJail ? [{ key: `Giliran ${result.state.players[getNextPlayer(result.state)].name}` }] : [])],
       };
     }
 
@@ -557,7 +557,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         players: newPlayers,
         freeParkingPot: 0,
-        eventLog: [...state.eventLog, `${player.name} mendapat jackpot ${formatMoney(pot)}!`],
+        eventLog: [...state.eventLog, { key: `${player.name} mendapat jackpot ${formatMoney(pot)}!` }],
       };
     }
 
@@ -578,7 +578,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayer: nextPlayer,
         freeParkingPot: state.freeParkingPot + JAIL_FINE,
         dice: null,
-        eventLog: [...state.eventLog, `${player.name} membayar ${formatMoney(JAIL_FINE)} untuk keluar dari penjara`, `Giliran ${state.players[nextPlayer].name}`],
+        eventLog: [...state.eventLog, { key: `${player.name} membayar ${formatMoney(JAIL_FINE)} untuk keluar dari penjara` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
       };
     }
 
@@ -598,7 +598,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         currentPlayer: nextPlayer,
         dice: null,
-        eventLog: [...state.eventLog, `${player.name} menggunakan Kartu Bebas Penjara!`, `Giliran ${state.players[nextPlayer].name}`],
+        eventLog: [...state.eventLog, { key: `${player.name} menggunakan Kartu Bebas Penjara!` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
       };
     }
 
@@ -616,7 +616,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           dice: null,
           doublesCount: state.dice?.[0] === state.dice?.[1] ? state.doublesCount : 0,
-          eventLog: [...state.eventLog, `${state.players[state.currentPlayer].name} main lagi (dadu ganda)!`],
+          eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} main lagi (dadu ganda)!` }],
         };
       }
 
@@ -626,7 +626,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayer: nextPlayer,
         dice: null,
         doublesCount: 0,
-        eventLog: [...state.eventLog, `Giliran ${state.players[nextPlayer].name}`],
+        eventLog: [...state.eventLog, { key: `Giliran ${state.players[nextPlayer].name}` }],
       };
     }
 
@@ -653,7 +653,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           board: newBoard,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, `${player.name} bangkrut! ${activePlayers[0]?.name ?? ''} menang!`],
+          eventLog: [...state.eventLog, { key: `${player.name} bangkrut! ${activePlayers[0]?.name ?? ''} menang!` }],
         };
       }
       const winnerIdx = newPlayers.indexOf(activePlayers[0]);
@@ -664,7 +664,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         currentPlayer: winnerIdx,
         pendingAction: null,
-        eventLog: [...state.eventLog, `${player.name} bangkrut!`],
+        eventLog: [...state.eventLog, { key: `${player.name} bangkrut!` }],
       };
     }
 

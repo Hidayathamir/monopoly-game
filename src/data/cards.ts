@@ -9,7 +9,7 @@ type RawEffect = {
   perHotel?: number;
 };
 
-type RawCard = { id: number; description: string; effect: RawEffect };
+type RawCard = { id: number; effect: RawEffect };
 
 interface CardsData {
   chance: RawCard[];
@@ -19,7 +19,7 @@ interface CardsData {
 const data = cardsData as unknown as CardsData;
 
 function toCards(raw: RawCard[], type: CardType): Card[] {
-  return raw.map((c) => ({ id: c.id, description: c.description, type, effect: c.effect as unknown as CardEffect }));
+  return raw.map((c) => ({ id: c.id, type, effect: c.effect as unknown as CardEffect }));
 }
 
 export const CHANCE_CARDS: Card[] = toCards(data.chance, CardType.Chance);

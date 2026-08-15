@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from 'react'
+import type { LogEntry } from '../types/game'
 
 interface Props {
-  log: string[]
+  log: LogEntry[]
 }
 
 export default function EventLog({ log }: Props) {
@@ -27,7 +28,7 @@ export default function EventLog({ log }: Props) {
             data-testid="event-entry"
             className="text-xs text-muted leading-snug py-0.5"
           >
-            {entry}
+            {entry.key}
           </div>
         ))}
         {log.length === 0 && <div className="text-xs text-muted">Belum ada kejadian</div>}

@@ -1,5 +1,6 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import type { GameState } from '../types/game'
 import PropertyTooltip from './PropertyTooltip'
 
@@ -76,6 +77,7 @@ function computeTooltipPosition(
 }
 
 export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
+  const { t } = useTranslation()
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos | null>(null)
@@ -135,7 +137,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
             onMouseEnter={(e) => handleEnter(space.id, e)}
             onMouseLeave={handleLeave}
           >
-            <div className="text-xs text-center font-semibold leading-tight text-text-dim">{space.name}</div>
+            <div className="text-xs text-center font-semibold leading-tight text-text-dim">{t('board.space.' + space.id)}</div>
             {space.houses > 0 && space.houses < 5 && (
               <div className="text-xs tracking-[-1px]">{'🏠'.repeat(space.houses)}</div>
             )}

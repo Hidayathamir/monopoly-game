@@ -1,4 +1,5 @@
 import { type GameState, type Space } from '../types/game'
+import { useTranslation } from 'react-i18next'
 import { formatMoney } from '../utils/format'
 import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
 import { isMonopoly } from '../logic/rent'
@@ -16,6 +17,7 @@ interface Props {
 export default function PropertyTooltip({
   space, state, onSell, onMortgage, onUnmortgage, onSellProperty,
 }: Props) {
+  const { t } = useTranslation()
   const owner = space.owner !== null ? state.players[space.owner] : null
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
   const isOwned = space.owner === state.currentPlayer
@@ -27,7 +29,7 @@ export default function PropertyTooltip({
       className="bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[160px] shadow-lg pointer-events-auto"
     >
       <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
-        <strong>{space.name}</strong>
+        <strong>{t('board.space.' + space.id)}</strong>
       </div>
       {space.mortgaged && <div className="text-sm text-red-danger font-bold">Digadaikan</div>}
       {space.type === 'go' && (

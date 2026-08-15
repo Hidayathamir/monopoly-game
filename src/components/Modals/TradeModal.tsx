@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameState, TradeOffer } from '../../types/game'
 import Modal from './Modal'
 import Button from '../Button'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function TradeModal({ state, onPropose, onClose }: Props) {
+  const { t } = useTranslation()
   const [targetPlayer, setTargetPlayer] = useState<number | null>(null)
   const [offerProperties, setOfferProperties] = useState<number[]>([])
   const [offerCash, setOfferCash] = useState(0)
@@ -68,7 +70,7 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
                 }
                 className="mr-1"
               />
-              {s.name}
+              {t('board.space.' + s.id)}
             </label>
           ))}
         </div>

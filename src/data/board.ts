@@ -32,7 +32,6 @@ export function getTotalHouseInvestment(space: Space): number {
 export function createInitialBoard(): Space[] {
   return boardData.map((item: Record<string, unknown>) => ({
     id: item.id as number,
-    name: item.name as string,
     type: TYPE_MAP[item.type as string] ?? SpaceType.Property,
     price: item.price as number | undefined,
     rent: item.rent as number[] | undefined,

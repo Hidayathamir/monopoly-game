@@ -14,7 +14,7 @@ function makeState(money: number): GameState {
 afterEach(cleanup)
 
 const mortgagedSpace: Space = {
-  id: 8, name: 'Semarang', type: 'property', price: 100000000, owner: 0,
+  id: 8, type: 'property', price: 100000000, owner: 0,
   houses: 0, mortgaged: true,
 }
 

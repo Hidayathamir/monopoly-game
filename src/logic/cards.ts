@@ -98,7 +98,7 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
 
-  const spaceName = state.board[spaceId].name;
+  const spaceName = String(state.board[spaceId].id);
   message += `${player.name} ${isBackward ? 'mundur' : 'maju'} ke ${spaceName}.`;
 
   return { state: newState, message };
