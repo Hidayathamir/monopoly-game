@@ -79,8 +79,9 @@ those move to `translation.json` keyed by id (`board.space.0` … `board.space.3
   `Intl.NumberFormat(locale, { style: 'currency', currency, ... })`. This is the
   **only** place the multiplier and number formatting are applied.
 - `CurrencyContext.tsx` provides the active currency (default `USD`) and a setter,
-  persisted to `localStorage`. `formatMoney` is exposed via a `useMoney()` hook so
-  components re-render on currency change.
+  persisted to `localStorage`. It exposes a `useCurrency()` hook returning
+  `{ currency, setCurrency, formatMoney }` so components re-render and format
+  amounts correctly on currency change.
 - `STATE_VERSION` in `src/hooks/useGame.ts` bumps (5 → 6) to invalidate old
   saved games whose money is already multiplier-scaled.
 
@@ -107,9 +108,11 @@ Every `eventLog` string in `gameReducer.ts` and the `message` string returned by
 as `cardId` params, and money as raw numbers. The reducer no longer imports
 `formatMoney`.
 
-`EventLog.tsx` renders each entry via `t(entry.key, entry.params)`, resolving
-`spaceId`/`cardId` params into translated names and money params through the
-active currency. It keeps its expand/collapse behavior.
+`EventLog.tsx` renders each entry through a shared `resolveLogEntry(entry)`
+helper: it passes `key` + `params` to `t()` for interpolation, but first replaces
+`spaceId` params with the translated board name (`t('board.space.' + id)`) and
+`cardId` params with the translated card text, and formats money params through
+the active currency. It keeps its expand/collapse behavior.
 
 ## Language & currency toggles
 
