@@ -11,10 +11,11 @@ interface Props {
 
 export default function MultiplayerGame({ name, onExit }: Props) {
   const game = useNetworkGame()
+  const { join } = game
 
   useEffect(() => {
-    game.join(name)
-  }, [name, game.join])
+    join(name)
+  }, [name, join])
 
   if (game.state.phase === GamePhase.Setup) {
     return <Lobby game={game} onExit={onExit} />

@@ -1,8 +1,7 @@
 import { createServer as createHttpServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { join, extname, resolve, relative, isAbsolute } from 'node:path'
-import { WebSocketServer } from 'ws'
-import type { WebSocket } from 'ws'
+import { WebSocketServer, WebSocket } from 'ws'
 import { GameServer } from './gameServer'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 
@@ -23,13 +22,18 @@ export function createServer(distDir = 'dist') {
 
   function broadcast(msg: ServerMessage): void {
     const data = JSON.stringify(msg)
-    for (const ws of sockets.values()) ws.send(data)
+    for (const ws of sockets.values()) {
+      if (ws.readyState === WebSocket.OPEN) ws.send(data)
+    }
   }
 
   const game = new GameServer({
     broadcastState: (state) => broadcast({ type: 'state', state }),
     broadcastLobby: (players) => broadcast({ type: 'lobby', players }),
-    send: (clientId, msg) => sockets.get(clientId)?.send(JSON.stringify(msg)),
+    send: (clientId, msg) => {
+      const ws = sockets.get(clientId)
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg))
+    },
   })
 
   const httpServer = createHttpServer(async (req, res) => {
@@ -67,6 +71,7 @@ export function createServer(distDir = 'dist') {
   wss.on('connection', (ws) => {
     const clientId = String(nextId++)
     sockets.set(clientId, ws)
+    ws.on('error', () => {})
     ws.on('message', (raw) => {
       try {
         const msg = JSON.parse(raw.toString()) as ClientMessage

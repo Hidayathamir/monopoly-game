@@ -43,7 +43,7 @@ describe('GameServer', () => {
   })
 
   it('only the host (slot 0) can start the game', () => {
-    const { server, sent } = setup()
+    const { server } = setup()
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c1')

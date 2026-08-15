@@ -8,6 +8,7 @@ export type NetworkGameApi = GameApi & {
   playerId: number | null
   lobby: LobbyPlayer[]
   status: ConnectionStatus
+  error: string | null
   join: (name: string) => void
   start: () => void
 }
@@ -17,6 +18,7 @@ export function useNetworkGame(): NetworkGameApi {
   const [playerId, setPlayerId] = useState<number | null>(null)
   const [lobby, setLobby] = useState<LobbyPlayer[]>([])
   const [status, setStatus] = useState<ConnectionStatus>('connecting')
+  const [error, setError] = useState<string | null>(null)
   const clientRef = useRef<GameClient | null>(null)
 
   useEffect(() => {
@@ -29,10 +31,13 @@ export function useNetworkGame(): NetworkGameApi {
           setLobby(message.players)
           setState(message.state)
           setStatus('connected')
+          setError(null)
         } else if (message.type === 'lobby') {
           setLobby(message.players)
         } else if (message.type === 'state') {
           setState(message.state)
+        } else if (message.type === 'error') {
+          setError(message.message)
         }
       },
     })
@@ -77,6 +82,7 @@ export function useNetworkGame(): NetworkGameApi {
     playerId,
     lobby,
     status,
+    error,
     join,
     start,
     roll,

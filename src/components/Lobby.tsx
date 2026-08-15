@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function Lobby({ game, onExit }: Props) {
-  const { lobby, playerId, status, start } = game
+  const { lobby, playerId, status, error, start } = game
   const isHost = playerId === 0
   const url = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -24,6 +24,7 @@ export default function Lobby({ game, onExit }: Props) {
 
         {status === 'connecting' && <p className="text-muted text-center">Menghubungkan…</p>}
         {status === 'disconnected' && <p className="text-red-danger text-center">Terputus dari server</p>}
+        {error && <p className="text-red-danger text-center">{error}</p>}
 
         <div className="flex flex-col gap-1">
           <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">Pemain</div>
