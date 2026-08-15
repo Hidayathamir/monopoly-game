@@ -39,4 +39,21 @@ describe('PropertyTooltip', () => {
     render(<PropertyTooltip space={space} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
     expect(screen.getByText(/Komplek lengkap/)).toBeTruthy()
   })
+
+  it('shows 75% payout on unmortgaged Jual ke Bank button', () => {
+    const space: Space = { ...mortgagedSpace, mortgaged: false }
+    render(<PropertyTooltip space={space} state={makeState(100000000)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    expect(screen.getByRole('button', { name: /Jual ke Bank/ }).textContent).toContain('75 Juta')
+  })
+
+  it('renders Jual ke Bank button on mortgaged property with 10% payout', () => {
+    render(<PropertyTooltip space={mortgagedSpace} state={makeState(100000000)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    expect(screen.getByRole('button', { name: /Jual ke Bank/ }).textContent).toContain('10 Juta')
+  })
+
+  it('shows 75% payout on house sell button', () => {
+    const space: Space = { ...mortgagedSpace, mortgaged: false, houses: 2, houseCost: [25000000, 50000000] }
+    render(<PropertyTooltip space={space} state={makeState(100000000)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    expect(screen.getByRole('button', { name: /Jual Rumah/ }).textContent).toContain('37,5 Juta')
+  })
 })

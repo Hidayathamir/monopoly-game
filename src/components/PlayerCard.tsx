@@ -116,6 +116,9 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
       <div className="text-sm text-green-money mb-1.5">
         Uang: <strong>{formatMoney(player.money)}</strong>
       </div>
+      {player.hasGetOutOfJailFree && (
+        <div className="text-sm text-gold mb-1.5">Kartu Bebas Penjara 🎴</div>
+      )}
       {owned.length > 0 && (
         <>
           <div className="text-xs text-text-dim mb-1">Properti:</div>

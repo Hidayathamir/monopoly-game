@@ -1,7 +1,6 @@
 import { type GameState, type Space } from '../types/game'
 import { formatMoney } from '../utils/format'
-import { getHouseCost } from '../data/board'
-import { GO_SALARY } from '../data/board'
+import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
 import { isMonopoly } from '../logic/rent'
 import Button from './Button'
 
@@ -97,7 +96,7 @@ export default function PropertyTooltip({
               variant="secondary"
               onClick={(e) => { e.stopPropagation(); onSell(space.id) }}
             >
-              Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor(getHouseCost(space, space.houses - 1) / 2))})
+              Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE))})
             </Button>
           )}
           {!space.mortgaged && space.houses === 0 && isOwned && (
@@ -111,7 +110,7 @@ export default function PropertyTooltip({
               variant="danger"
               onClick={(e) => { e.stopPropagation(); onSellProperty(space.id) }}
             >
-              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) / 2))})
+              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) * SELL_RATE))})
             </Button>
           )}
           {space.mortgaged && (
@@ -121,6 +120,15 @@ export default function PropertyTooltip({
               onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}
             >
               Tebus (-{formatMoney(unmortgageCost)}){state.players[state.currentPlayer]?.money < unmortgageCost ? ' - uang kurang' : ''}
+            </Button>
+          )}
+          {space.mortgaged && (
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={(e) => { e.stopPropagation(); onSellProperty(space.id) }}
+            >
+              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) * MORTGAGED_SELL_EXTRA))})
             </Button>
           )}
         </div>
