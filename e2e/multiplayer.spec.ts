@@ -106,3 +106,36 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
   await pageB.getByRole('button', { name: 'Leave', exact: true }).click()
   await expect(pageB.locator('button:has-text("Multiplayer")')).toBeVisible({ timeout: 5000 })
 })
+
+test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const page = await context.newPage()
+
+  await page.goto(`http://localhost:${PORT}/`)
+  await page.click('button:has-text("Multiplayer")')
+  await page.fill('input[placeholder="Name"]', 'Host')
+  await page.click('button:has-text("Continue")')
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+
+  await page.click('button:has-text("Add Bot")')
+  await expect(page.locator('text=Droid')).toBeVisible()
+
+  await page.click('button:has-text("Start (")')
+  await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  // Host rolls and ends turn; the bot then auto-plays its turn and returns to the host.
+  const rollBtn = page.locator('button:has-text("Roll")').first()
+  await expect(rollBtn).toBeVisible({ timeout: 5000 })
+  await rollBtn.click()
+  await page.waitForTimeout(2500)
+  const endBtn = page.locator('button:has-text("End")').first()
+  if (await endBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await endBtn.click()
+  }
+  await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
+})

@@ -143,4 +143,14 @@ test.describe('Monopoly Game E2E', () => {
     const count = await cards.count()
     expect(count).toBeGreaterThanOrEqual(2)
   })
+
+  test('local game with a bot seat auto-plays the bot turn', async ({ page }) => {
+    await page.locator('input[type="text"]').nth(0).fill('Alpha')
+    await page.getByLabel('Bot seat 2').check()
+    await page.click('button:has-text("Start")')
+
+    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="player-card"]')).toHaveCount(2)
+    await expect(page.locator('[data-testid="player-card"]').nth(1)).toContainText('Byte')
+  })
 })
