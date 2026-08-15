@@ -452,7 +452,7 @@ describe('gameReducer', () => {
   });
 
   describe('tax handling', () => {
-    it('pays income tax (10% of net worth) to free parking', () => {
+    it('pays income tax (10% of current money) to free parking', () => {
       let state = makeStartedState();
       state = setPosition(state, 0, 4);
       state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
@@ -460,7 +460,22 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.players[0].money).toBe(STARTING_MONEY - 150);
       expect(s1.freeParkingPot).toBe(150);
-      expect(s1.eventLog).toContainEqual({ key: 'event.incomeTax', params: { name: 'Alice', amount: 150, netWorth: 1500 } })
+      expect(s1.eventLog).toContainEqual({ key: 'event.incomeTax', params: { name: 'Alice', amount: 150, money: STARTING_MONEY } })
+    });
+
+    it('income tax ignores property value (10% of money only)', () => {
+      let state = makeStartedState();
+      state = {
+        ...state,
+        players: state.players.map((p, i) => i === 0 ? { ...p, money: 1000, properties: [1] } : p),
+        board: state.board.map((b) => b.id === 1 ? { ...b, owner: 0 } : b),
+      };
+      state = setPosition(state, 0, 4);
+      state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
+
+      const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
+      expect(s1.players[0].money).toBe(1000 - 100);
+      expect(s1.freeParkingPot).toBe(100);
     });
 
     it('pays flat luxury tax to free parking', () => {

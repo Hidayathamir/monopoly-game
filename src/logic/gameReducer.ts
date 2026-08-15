@@ -2,7 +2,7 @@ import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, Card
 import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
-import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly, getPlayerNetWorth } from './rent';
+import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -260,9 +260,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         case SpaceType.Tax: {
           const isIncome = space.taxType === 'income';
-          const netWorth = isIncome ? getPlayerNetWorth(player, state.board) : 0;
           const taxAmount = isIncome
-            ? Math.floor(netWorth * INCOME_TAX_RATE)
+            ? Math.floor(player.money * INCOME_TAX_RATE)
             : (space.price ?? 0);
           const newPlayers = [...state.players];
           newPlayers[state.currentPlayer] = {
@@ -270,7 +269,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             money: player.money - taxAmount,
           };
           const message: LogEntry = isIncome
-            ? { key: 'event.incomeTax', params: { name: player.name, amount: taxAmount, netWorth } }
+            ? { key: 'event.incomeTax', params: { name: player.name, amount: taxAmount, money: player.money } }
             : { key: 'event.luxuryTax', params: { name: player.name, amount: taxAmount } };
           return {
             ...state,
