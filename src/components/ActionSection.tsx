@@ -90,6 +90,7 @@ export default function ActionSection({
 
   const space = state.board[player.position]
   const canBuild =
+    state.dice !== null &&
     space?.type === 'property' &&
     space.owner === state.currentPlayer &&
     space.houses < 5 &&
