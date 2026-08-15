@@ -141,6 +141,12 @@
   "lobby.leave": "Keluar",
   "lobby.leaveRoom": "Keluar Ruangan",
 
+  "confirm.leaveTitle": "Keluar Ruangan",
+  "confirm.leaveMessage": "Yakin ingin keluar dari ruangan ini?",
+  "confirm.cancel": "Batal",
+  "confirm.leave": "Keluar",
+  "confirm.leaveExpand": "Opsi Keluar Ruangan",
+
   "turn.label": "Giliran",
   "turn.buyOffer": "Tawaran beli properti",
   "turn.payRent": "Bayar sewa",
