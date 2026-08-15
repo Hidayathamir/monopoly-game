@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { GameState } from '../types/game'
+import { PLAYER_OFFSETS } from '../data/players'
 
 interface Props {
   state: GameState
@@ -26,11 +27,6 @@ const POSITIONS: Record<number, { x: number; y: number }> = {
   28: c(9, 1), 29: c(10, 1), 30: c(11, 1), 31: c(11, 2),
   32: c(11, 3), 33: c(11, 4), 34: c(11, 5), 35: c(11, 6),
   36: c(11, 7), 37: c(11, 8), 38: c(11, 9), 39: c(11, 10),
-}
-
-const OFFSETS: Record<number, { dx: number; dy: number }> = {
-  0: { dx: -8, dy: -8 }, 1: { dx: 8, dy: -8 },
-  2: { dx: -8, dy: 8 }, 3: { dx: 8, dy: 8 },
 }
 
 function getPath(from: number, to: number): number[] {
@@ -93,7 +89,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
       {players.map((player) => {
         const posId = displayPositions[player.id] ?? player.position
         const pos = POSITIONS[posId] ?? POSITIONS[0]
-        const offset = OFFSETS[player.id] ?? OFFSETS[0]
+        const offset = PLAYER_OFFSETS[player.id] ?? PLAYER_OFFSETS[0]
         return (
           <div
             key={player.id}

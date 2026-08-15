@@ -1,4 +1,5 @@
 import type { GameState } from '../types/game'
+import { PLAYER_COLORS } from '../data/players'
 import TurnHeader from './TurnHeader'
 import DiceRoller from './DiceRoller'
 import PlayerPanel from './PlayerPanel'
@@ -19,8 +20,6 @@ interface Props {
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
 }
-
-const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12']
 
 export default function Sidebar({ state, ...actions }: Props) {
   return (
