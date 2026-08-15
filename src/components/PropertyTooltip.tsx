@@ -1,4 +1,4 @@
-import { PendingActionType, type GameState, type Space } from '../types/game'
+import { type GameState, type Space } from '../types/game'
 import { formatMoney } from '../utils/format'
 import { getHouseCost } from '../data/board'
 import { GO_SALARY } from '../data/board'
@@ -10,26 +10,16 @@ interface Props {
   onSell: (id: number) => void
   onMortgage: (id: number) => void
   onUnmortgage: (id: number) => void
-  onBuild: (id: number) => void
   onSellProperty: (id: number) => void
 }
 
 export default function PropertyTooltip({
-  space, state, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty,
+  space, state, onSell, onMortgage, onUnmortgage, onSellProperty,
 }: Props) {
   const owner = space.owner !== null ? state.players[space.owner] : null
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
   const isOwned = space.owner === state.currentPlayer
-  const isBankruptcy = state.pendingAction?.type === PendingActionType.Bankruptcy
-
-  const canBuildBase =
-    space.type === 'property' &&
-    space.houses < 5 &&
-    !space.mortgaged &&
-    !isBankruptcy &&
-    space.id === state.players[state.currentPlayer]?.position
   const nextHouseCost = getHouseCost(space, space.houses)
-  const canAffordBuild = state.players[state.currentPlayer]?.money >= nextHouseCost
 
   return (
     <div
@@ -113,16 +103,6 @@ export default function PropertyTooltip({
           {space.mortgaged && (
             <Button size="sm" onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}>
               Tebus (-{formatMoney(Math.floor((space.price ?? 0) / 2 * 1.1))})
-            </Button>
-          )}
-          {canBuildBase && (
-            <Button
-              size="sm"
-              variant="success"
-              disabled={!canAffordBuild}
-              onClick={(e) => { e.stopPropagation(); onBuild(space.id) }}
-            >
-              Bangun ({formatMoney(nextHouseCost)}){!canAffordBuild ? ' - uang kurang' : ''}
             </Button>
           )}
         </div>

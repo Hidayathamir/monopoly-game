@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { render, cleanup } from '@testing-library/react'
-import { afterEach, describe, it, expect } from 'vitest'
+import { render, cleanup, screen } from '@testing-library/react'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import ActionSection from '../ActionSection'
 import { gameReducer, createInitialState } from '../../logic/gameReducer'
@@ -23,5 +23,19 @@ describe('ActionSection', () => {
   it('renders nothing when it is not the current player turn', () => {
     const { container } = render(<ActionSection state={makeState()} {...actions} isMyTurn={false} />)
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows a build button when on own buildable property', () => {
+    let s = makeState()
+    s = {
+      ...s,
+      players: s.players.map((p, i) => i === 0 ? { ...p, position: 8, properties: [8], passedGo: true } : p),
+      board: s.board.map((b) => b.id === 8 ? { ...b, owner: 0 } : b),
+    }
+    const onBuild = vi.fn()
+    render(<ActionSection state={s} {...actions} onBuild={onBuild} />)
+    const btn = screen.getByRole('button', { name: /Bangun/ })
+    btn.click()
+    expect(onBuild).toHaveBeenCalledWith(8)
   })
 })

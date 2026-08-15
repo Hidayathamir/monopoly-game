@@ -1,6 +1,6 @@
 import { GamePhase, PendingActionType, type GameState } from '../types/game'
 import { formatMoney } from '../utils/format'
-import { JAIL_FINE } from '../data/board'
+import { JAIL_FINE, getHouseCost } from '../data/board'
 import Button from './Button'
 
 interface Props {
@@ -14,13 +14,14 @@ interface Props {
   onDeclareBankruptcy: () => void
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
+  onBuild?: (spaceId: number) => void
   isMyTurn?: boolean
 }
 
 export default function ActionSection({
   state, onEndTurn, onDrawCard, onProposeTrade, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
-  isMyTurn = true,
+  onBuild, isMyTurn = true,
 }: Props) {
   const player = state.players[state.currentPlayer]
   if (!isMyTurn) return null
@@ -87,8 +88,26 @@ export default function ActionSection({
 
   if (!canAct) return null
 
+  const space = state.board[player.position]
+  const canBuild =
+    space?.type === 'property' &&
+    space.owner === state.currentPlayer &&
+    space.houses < 5 &&
+    !space.mortgaged
+
   return (
     <div className="flex flex-col gap-1.5 w-full items-stretch">
+      {canBuild && (
+        <Button
+          variant="success"
+          size="sm"
+          onClick={() => onBuild?.(space.id)}
+          disabled={player.money < getHouseCost(space, space.houses)}
+        >
+          Bangun ({formatMoney(getHouseCost(space, space.houses))})
+          {player.money < getHouseCost(space, space.houses) ? ' - uang kurang' : ''}
+        </Button>
+      )}
       {player.inJail ? (
         <>
           <p className="text-base text-muted text-center mt-1">Di Penjara — pilih:</p>

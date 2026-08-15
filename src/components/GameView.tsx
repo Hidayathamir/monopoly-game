@@ -19,7 +19,6 @@ export default function GameView({ game }: { game: GameApi }) {
         onSell={game.sellHouse}
         onMortgage={game.mortgage}
         onUnmortgage={game.unmortgage}
-        onBuild={game.buildHouse}
         onSellProperty={game.sellProperty}
       >
         <Sidebar
@@ -36,6 +35,7 @@ export default function GameView({ game }: { game: GameApi }) {
           onSkipAction={game.skipAction}
           onPayJailFine={game.payJailFine}
           onUseGetOutOfJailFree={game.useGetOutOfJailFree}
+          onBuild={game.buildHouse}
         />
       </GameBoard>
       <CardModal state={state} onResolve={game.resolveCard} />

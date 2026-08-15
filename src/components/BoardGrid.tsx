@@ -9,7 +9,6 @@ interface Props {
   onSell: (spaceId: number) => void
   onMortgage: (spaceId: number) => void
   onUnmortgage: (spaceId: number) => void
-  onBuild: (spaceId: number) => void
   onSellProperty: (spaceId: number) => void
 }
 
@@ -44,7 +43,7 @@ interface TooltipPos {
   transform: string
 }
 
-export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty }: Props) {
+export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos | null>(null)
@@ -166,7 +165,6 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
               onSell={onSell}
               onMortgage={onMortgage}
               onUnmortgage={onUnmortgage}
-              onBuild={onBuild}
               onSellProperty={onSellProperty}
             />
           </div>,

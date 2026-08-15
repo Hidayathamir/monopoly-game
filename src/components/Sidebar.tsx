@@ -19,6 +19,7 @@ interface Props {
   onSkipAction: () => void
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
+  onBuild: (spaceId: number) => void
   isMyTurn: boolean
 }
 
