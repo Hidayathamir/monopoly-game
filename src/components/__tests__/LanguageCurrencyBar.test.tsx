@@ -27,9 +27,11 @@ describe('LanguageCurrencyBar', () => {
 
   it('closes the panel after selecting a language', () => {
     renderWithProviders(<LanguageCurrencyBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    const toggle = screen.getByRole('button', { name: 'Settings' })
+    fireEvent.click(toggle)
     fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'id' } })
-    expect(screen.queryByLabelText('Language')).toBeNull()
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByLabelText(/Language|Bahasa/)).toBeNull()
   })
 
   it('closes the panel after selecting a currency', () => {
