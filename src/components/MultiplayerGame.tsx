@@ -4,22 +4,30 @@ import { useNetworkGame } from '../hooks/useNetworkGame'
 import Lobby from './Lobby'
 import GameView from './GameView'
 
-interface Props {
+export interface JoinInfo {
   name: string
-  onExit: () => void
+  code: string | null
 }
 
-export default function MultiplayerGame({ name, onExit }: Props) {
-  const game = useNetworkGame()
-  const { join } = game
+interface Props {
+  joinInfo: JoinInfo
+  onLeft: () => void
+}
+
+export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
+  const game = useNetworkGame(onLeft)
+  const { create, join } = game
+  const name = joinInfo.name
+  const code = joinInfo.code
 
   useEffect(() => {
-    join(name)
-  }, [name, join])
+    if (code === null) create(name)
+    else join(code, name)
+  }, [code, name, create, join])
 
   if (game.state.phase === GamePhase.Setup) {
-    return <Lobby game={game} onExit={onExit} />
+    return <Lobby game={game} />
   }
 
-  return <GameView game={game} />
+  return <GameView game={game} onLeave={game.leave} />
 }

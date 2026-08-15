@@ -4,14 +4,17 @@ import { PLAYER_COLORS } from '../data/players'
 
 interface Props {
   onStartLocal: (playerCount: number, names: string[]) => void
-  onJoin: (name: string) => void
+  onCreate: (name: string) => void
+  onJoin: (name: string, code: string) => void
 }
 
-export default function GameSetup({ onStartLocal, onJoin }: Props) {
+export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
   const [mode, setMode] = useState<'local' | 'multiplayer'>('local')
   const [playerCount, setPlayerCount] = useState(2)
   const [names, setNames] = useState<string[]>(['', '', '', ''])
   const [myName, setMyName] = useState('')
+  const [roomCode, setRoomCode] = useState('')
+  const [mpAction, setMpAction] = useState<'create' | 'join'>('create')
 
   function handleNameChange(index: number, value: string) {
     const newNames = [...names]
@@ -22,6 +25,12 @@ export default function GameSetup({ onStartLocal, onJoin }: Props) {
   function handleStart() {
     const filledNames = names.slice(0, playerCount).map((n, i) => n.trim() || `Pemain ${i + 1}`)
     onStartLocal(playerCount, filledNames)
+  }
+
+  function handleSubmit() {
+    const name = myName.trim() || 'Pemain'
+    if (mpAction === 'create') onCreate(name)
+    else onJoin(name, roomCode.trim().toUpperCase())
   }
 
   return (
@@ -84,8 +93,29 @@ export default function GameSetup({ onStartLocal, onJoin }: Props) {
                 className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
               />
             </div>
-            <Button variant="start" size="lg" onClick={() => onJoin(myName.trim() || 'Pemain')}>
-              Masuk
+            <div className="flex gap-2">
+              <Button variant={mpAction === 'create' ? 'primary' : 'secondary'} size="sm" onClick={() => setMpAction('create')}>
+                Buat Kamar
+              </Button>
+              <Button variant={mpAction === 'join' ? 'primary' : 'secondary'} size="sm" onClick={() => setMpAction('join')}>
+                Masuk Kamar
+              </Button>
+            </div>
+            {mpAction === 'join' && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-base text-muted">Kode Kamar</label>
+                <input
+                  type="text"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  placeholder="Kode"
+                  maxLength={5}
+                  className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
+                />
+              </div>
+            )}
+            <Button variant="start" size="lg" onClick={handleSubmit}>
+              Lanjut
             </Button>
           </>
         )}

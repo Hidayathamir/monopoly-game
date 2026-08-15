@@ -27,7 +27,10 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const [error, setError] = useState<string | null>(null)
   const clientRef = useRef<GameClient | null>(null)
   const onLeftRef = useRef(onLeft)
-  onLeftRef.current = onLeft
+
+  useEffect(() => {
+    onLeftRef.current = onLeft
+  }, [onLeft])
 
   useEffect(() => {
     const client = new GameClient({

@@ -1,6 +1,7 @@
 import type { GameState } from '../types/game'
 import { PLAYER_COLORS } from '../data/players'
 import TurnHeader from './TurnHeader'
+import Button from './Button'
 import DiceRoller from './DiceRoller'
 import PlayerPanel from './PlayerPanel'
 import ActionSection from './ActionSection'
@@ -20,10 +21,11 @@ interface Props {
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
   onBuild: (spaceId: number) => void
+  onLeave?: () => void
   isMyTurn: boolean
 }
 
-export default function Sidebar({ state, isMyTurn, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props) {
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
       <div
@@ -35,6 +37,11 @@ export default function Sidebar({ state, isMyTurn, ...actions }: Props) {
         <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
         <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
         <EventLog log={state.eventLog} />
+        {onLeave && (
+          <Button variant="danger" size="sm" onClick={onLeave}>
+            Keluar Kamar
+          </Button>
+        )}
       </div>
     </div>
   )

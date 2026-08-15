@@ -7,7 +7,7 @@ import CardModal from './Modals/CardModal'
 import BankruptcyModal from './Modals/BankruptcyModal'
 import GameOverModal from './Modals/GameOverModal'
 
-export default function GameView({ game }: { game: GameApi }) {
+export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: () => void }) {
   const { state } = game
   const isMyTurn = game.myPlayerId === null || game.myPlayerId === state.currentPlayer
   const [showTrade, setShowTrade] = useState(false)
@@ -36,6 +36,7 @@ export default function GameView({ game }: { game: GameApi }) {
           onPayJailFine={game.payJailFine}
           onUseGetOutOfJailFree={game.useGetOutOfJailFree}
           onBuild={game.buildHouse}
+          onLeave={onLeave}
         />
       </GameBoard>
       <CardModal state={state} onResolve={game.resolveCard} />

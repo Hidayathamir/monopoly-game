@@ -74,7 +74,7 @@ export class RoomManager {
   }
 
   private generateCode(): string {
-    let code = ''
+    let code: string
     do {
       code = ''
       for (let i = 0; i < CODE_LENGTH; i++) {

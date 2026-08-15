@@ -5,12 +5,11 @@ import Button from './Button'
 
 interface Props {
   game: NetworkGameApi
-  onExit: () => void
 }
 
-export default function Lobby({ game, onExit }: Props) {
-  const { lobby, playerId, status, error, start } = game
-  const isHost = playerId === 0
+export default function Lobby({ game }: Props) {
+  const { lobby, playerId, hostPlayerId, code, status, error, start, leave } = game
+  const isHost = playerId !== null && playerId === hostPlayerId
   const url = typeof window !== 'undefined' ? window.location.origin : ''
 
   return (
@@ -18,7 +17,9 @@ export default function Lobby({ game, onExit }: Props) {
       <h1 className="text-4xl text-gold m-0">Lobi</h1>
       <div className="bg-bg-card px-10 py-6 rounded-xl flex flex-col gap-4 min-w-[360px]">
         <div className="text-center">
-          <p className="text-sm text-muted">Bagikan alamat ini ke temanmu:</p>
+          <p className="text-sm text-muted">Kode Kamar:</p>
+          <strong data-testid="room-code" className="text-4xl text-gold tracking-[0.3em]">{code ?? '—'}</strong>
+          <p className="text-sm text-muted mt-2">Bagikan kode atau alamat ini ke temanmu:</p>
           <strong className="text-text break-all">{url}</strong>
         </div>
 
@@ -33,7 +34,7 @@ export default function Lobby({ game, onExit }: Props) {
             return (
               <div key={i} className="flex items-center gap-2 text-base">
                 <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: PLAYER_COLORS[i] }} />
-                <span className="text-muted">{i === 0 ? 'Host' : 'Pemain'} {i + 1}</span>
+                <span className="text-muted">{i === hostPlayerId ? 'Host' : 'Pemain'} {i + 1}</span>
                 <span className="text-text">
                   {p?.name ?? '—'}
                   {p && !p.connected ? ' (terputus)' : ''}
@@ -48,7 +49,7 @@ export default function Lobby({ game, onExit }: Props) {
             Mulai ({lobby.filter((p) => p.name).length}/6)
           </Button>
         )}
-        <Button variant="secondary" onClick={onExit}>
+        <Button variant="secondary" onClick={leave}>
           Keluar
         </Button>
       </div>
