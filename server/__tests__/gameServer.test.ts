@@ -166,6 +166,17 @@ describe('GameServer', () => {
     expect(server.getState().phase).toBe(GamePhase.Waiting)
   })
 
+  it('transfers host when the host disconnects in the lobby', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.join('c2', 'Charlie')
+    server.disconnect('c0')
+    expect(server.getHostPlayerId()).toBe(1)
+    server.start('c1')
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+  })
+
   it('frees the seat when a player leaves the lobby', () => {
     const { server } = setup()
     server.join('c0', 'Alice')

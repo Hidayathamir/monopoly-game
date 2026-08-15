@@ -52,11 +52,11 @@ export class GameServer {
     return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected }))
   }
 
-  join(clientId: ClientId, name: string): void {
+  join(clientId: ClientId, name: string): boolean {
     const trimmed = name.trim()
     if (!trimmed) {
       this.events.send(clientId, { type: 'error', message: 'Nama tidak boleh kosong' })
-      return
+      return false
     }
 
     const disconnected = this.slots.find((s) => s.name === trimmed && !s.connected)
@@ -72,23 +72,23 @@ export class GameServer {
         code: this.code,
       })
       this.broadcast()
-      return
+      return true
     }
 
     if (this.slots.some((s) => s.name === trimmed && s.connected)) {
       this.events.send(clientId, { type: 'error', message: 'Nama sudah dipakai' })
-      return
+      return false
     }
 
     if (this.state.phase !== GamePhase.Setup) {
       this.events.send(clientId, { type: 'error', message: 'Permainan sudah dimulai' })
-      return
+      return false
     }
 
     const index = this.slots.findIndex((s) => s.clientId === null)
     if (index === -1) {
       this.events.send(clientId, { type: 'error', message: 'Kamar penuh (maks 6 pemain)' })
-      return
+      return false
     }
 
     this.slots[index] = { clientId, name: trimmed, connected: true }
@@ -101,6 +101,7 @@ export class GameServer {
       code: this.code,
     })
     this.broadcast()
+    return true
   }
 
   start(clientId: ClientId): void {
@@ -186,10 +187,13 @@ export class GameServer {
   }
 
   disconnect(clientId: ClientId): void {
-    const slot = this.slots.find((s) => s.clientId === clientId)
-    if (slot) {
-      slot.connected = false
-      slot.clientId = null
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) return
+    const slot = this.slots[index]
+    slot.connected = false
+    slot.clientId = null
+    if (this.state.phase === GamePhase.Setup && index === this.hostSlotIndex) {
+      this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
     }
     this.broadcast()
     this.skipLeftPlayers()

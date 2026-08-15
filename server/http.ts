@@ -68,16 +68,14 @@ export function createServer(distDir = 'dist') {
         const msg = JSON.parse(raw.toString()) as ClientMessage
         if (msg.type === 'create') {
           const { code, game } = roomManager.create()
-          roomManager.addClient(code, clientId)
-          game.join(clientId, msg.name)
+          if (game.join(clientId, msg.name)) roomManager.addClient(code, clientId)
         } else if (msg.type === 'join') {
           const game = roomManager.get(msg.code)
           if (!game) {
             send(clientId, { type: 'error', message: 'Kamar tidak ditemukan' })
             return
           }
-          roomManager.addClient(msg.code, clientId)
-          game.join(clientId, msg.name)
+          if (game.join(clientId, msg.name)) roomManager.addClient(msg.code, clientId)
         } else if (msg.type === 'start') {
           roomManager.gameFor(clientId)?.start(clientId)
         } else if (msg.type === 'leave') {
