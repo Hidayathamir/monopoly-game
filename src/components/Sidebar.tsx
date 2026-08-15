@@ -45,7 +45,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
           </p>
         )}
         <EventLog log={state.eventLog} />
-        {onLeave && <RoomExit onLeave={onLeave} collapsed />}
+        {onLeave && <RoomExit onLeave={onLeave} />}
       </div>
     </div>
   )

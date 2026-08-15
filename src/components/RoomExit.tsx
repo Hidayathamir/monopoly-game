@@ -5,28 +5,26 @@ import Modal from './Modals/Modal'
 
 interface Props {
   onLeave: () => void
-  collapsed?: boolean
+  variant?: 'icon' | 'button'
 }
 
-export default function RoomExit({ onLeave, collapsed = false }: Props) {
+export default function RoomExit({ onLeave, variant = 'button' }: Props) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <div className="flex flex-col items-stretch gap-1.5 w-full">
-      {collapsed && (
+    <div className={variant === 'icon' ? 'flex flex-col items-center' : 'flex flex-col items-stretch gap-1.5 w-full'}>
+      {variant === 'icon' ? (
         <button
           type="button"
-          aria-label={t('confirm.leaveExpand')}
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-          className="flex items-center justify-center bg-bg-dark/80 border border-border-light rounded-lg px-2 py-1 text-xs text-text cursor-pointer hover:opacity-90"
+          aria-label={t('lobby.leaveRoom')}
+          title={t('lobby.leaveRoom')}
+          onClick={() => setConfirming(true)}
+          className="flex items-center justify-center bg-bg-dark/80 border border-border-light rounded-lg px-2 py-1 text-sm text-text cursor-pointer hover:opacity-90"
         >
-          <span aria-hidden>⚙</span>
+          <span aria-hidden>🚪</span>
         </button>
-      )}
-      {(!collapsed || open) && (
+      ) : (
         <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
           {t('lobby.leaveRoom')}
         </Button>

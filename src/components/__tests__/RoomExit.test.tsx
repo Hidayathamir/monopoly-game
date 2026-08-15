@@ -8,35 +8,30 @@ import { renderWithProviders } from '../../test/test-utils'
 afterEach(cleanup)
 
 describe('RoomExit', () => {
-  it('renders only the collapse toggle when collapsed (no leave button)', () => {
-    renderWithProviders(<RoomExit onLeave={() => {}} collapsed />)
-    expect(screen.getByRole('button', { name: 'Leave Room Options' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Leave Room' })).toBeNull()
-  })
-
-  it('expands to reveal the leave button when the toggle is clicked', () => {
-    renderWithProviders(<RoomExit onLeave={() => {}} collapsed />)
-    fireEvent.click(screen.getByRole('button', { name: 'Leave Room Options' }))
-    expect(screen.getByRole('button', { name: 'Leave Room' })).toBeVisible()
-  })
-
-  it('shows the leave button directly when not collapsed', () => {
+  it('shows the leave button directly for the default button variant', () => {
     renderWithProviders(<RoomExit onLeave={() => {}} />)
     expect(screen.getByRole('button', { name: 'Leave Room' })).toBeVisible()
   })
 
-  it('opens the confirmation modal and does not leave on cancel', () => {
+  it('renders a compact icon-only button for the icon variant', () => {
+    renderWithProviders(<RoomExit onLeave={() => {}} variant="icon" />)
+    const btn = screen.getByRole('button', { name: 'Leave Room' })
+    expect(btn).toBeVisible()
+    expect(btn.textContent?.trim()).toBe('🚪')
+  })
+
+  it('opens the confirmation modal and does not leave on cancel (icon variant)', () => {
     const onLeave = vi.fn()
-    renderWithProviders(<RoomExit onLeave={onLeave} />)
+    renderWithProviders(<RoomExit onLeave={onLeave} variant="icon" />)
     fireEvent.click(screen.getByRole('button', { name: 'Leave Room' }))
     expect(screen.getByText('Are you sure you want to leave this room?')).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onLeave).not.toHaveBeenCalled()
   })
 
-  it('calls onLeave only after confirming', () => {
+  it('calls onLeave only after confirming (icon variant)', () => {
     const onLeave = vi.fn()
-    renderWithProviders(<RoomExit onLeave={onLeave} />)
+    renderWithProviders(<RoomExit onLeave={onLeave} variant="icon" />)
     fireEvent.click(screen.getByRole('button', { name: 'Leave Room' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave' }))
     expect(onLeave).toHaveBeenCalledTimes(1)
