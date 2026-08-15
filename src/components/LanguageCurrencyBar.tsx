@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import type { Currency } from '../data/currency'
@@ -7,9 +7,28 @@ export default function LanguageCurrencyBar() {
   const { t, i18n } = useTranslation()
   const { currency, setCurrency } = useCurrency()
   const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handlePointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
 
   return (
-    <div className="fixed top-2 right-2 z-[200] flex flex-col items-end gap-1.5">
+    <div ref={containerRef} className="fixed top-2 right-2 z-[200] flex flex-col items-end gap-1.5">
       {open && (
         <div className="flex flex-col gap-2 bg-bg-dark/95 border border-border-light rounded-lg p-2.5 shadow-lg">
           <label className="flex items-center justify-between gap-3 text-xs text-muted">
@@ -17,7 +36,10 @@ export default function LanguageCurrencyBar() {
             <select
               aria-label={t('settings.language')}
               value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              onChange={(e) => {
+                i18n.changeLanguage(e.target.value)
+                setOpen(false)
+              }}
               className="bg-input-bg text-text text-xs rounded px-1 py-0.5 border border-border"
             >
               <option value="en">EN</option>
@@ -29,7 +51,10 @@ export default function LanguageCurrencyBar() {
             <select
               aria-label={t('settings.currency')}
               value={currency}
-              onChange={(e) => setCurrency(e.target.value as Currency)}
+              onChange={(e) => {
+                setCurrency(e.target.value as Currency)
+                setOpen(false)
+              }}
               className="bg-input-bg text-text text-xs rounded px-1 py-0.5 border border-border"
             >
               <option value="USD">USD</option>
