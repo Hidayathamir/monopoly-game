@@ -43,12 +43,20 @@ describe('GameClient', () => {
     client.connect()
     const ws = getInstance()!
     ws.readyState = 0
-    client.send({ type: 'join', name: 'Alice' })
+    client.send({ type: 'create', name: 'Alice' })
     expect(ws.sent).toHaveLength(0)
     ws.readyState = 1
     ws.onopen?.()
     expect(ws.sent).toHaveLength(1)
-    expect(JSON.parse(ws.sent[0])).toEqual({ type: 'join', name: 'Alice' })
+    expect(JSON.parse(ws.sent[0])).toEqual({ type: 'create', name: 'Alice' })
+  })
+
+  it('serializes leave messages', () => {
+    const { client, getInstance } = setup()
+    client.connect()
+    getInstance()!.readyState = 1
+    client.send({ type: 'leave' })
+    expect(JSON.parse(getInstance()!.sent[0])).toEqual({ type: 'leave' })
   })
 
   it('parses and forwards server messages', () => {

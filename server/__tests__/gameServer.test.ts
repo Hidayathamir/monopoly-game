@@ -3,7 +3,7 @@ import { GameServer } from '../gameServer'
 import { GamePhase } from '../../src/types/game'
 import type { ServerMessage } from '../../src/types/net'
 
-function setup(rng?: () => number) {
+function setup(opts?: { rng?: () => number; code?: string }) {
   const sent: ServerMessage[] = []
   const server = new GameServer(
     {
@@ -11,7 +11,7 @@ function setup(rng?: () => number) {
       broadcastLobby: () => {},
       send: (_id, msg) => sent.push(msg),
     },
-    rng ? { rng } : undefined,
+    opts,
   )
   return { server, sent }
 }
@@ -67,7 +67,7 @@ describe('GameServer', () => {
     vi.useFakeTimers()
     let n = 0
     const rng = () => ([0, 0.5][n++] ?? 0) // dice [1, 4], sum 5
-    const { server } = setup(rng)
+    const { server } = setup({ rng })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -97,7 +97,7 @@ describe('GameServer', () => {
     vi.useFakeTimers()
     let n = 0
     const rng = () => ([0, 0.5][n++] ?? 0) // dice [1, 4], sum 5
-    const { server } = setup(rng)
+    const { server } = setup({ rng })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -115,7 +115,7 @@ describe('GameServer', () => {
   it('auto-advances to roll again after doubles (no explicit end turn)', () => {
     vi.useFakeTimers()
     const rng = () => 0.5 // dice [4,4], doubles
-    const { server } = setup(rng)
+    const { server } = setup({ rng })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -142,5 +142,57 @@ describe('GameServer', () => {
     server.disconnect('c1')
     server.start('c0')
     expect(server.getState().phase).toBe(GamePhase.Setup)
+  })
+
+  it('includes the room code and hostPlayerId in welcome', () => {
+    const { server, sent } = setup({ code: 'ABC12' })
+    server.join('c0', 'Alice')
+    const welcome = sent.find((m) => m.type === 'welcome')
+    expect(welcome).toBeDefined()
+    if (welcome && welcome.type === 'welcome') {
+      expect(welcome.code).toBe('ABC12')
+      expect(welcome.hostPlayerId).toBe(0)
+    }
+  })
+
+  it('transfers host to the next player when the host leaves the lobby', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.join('c2', 'Charlie')
+    server.leave('c0')
+    expect(server.getHostPlayerId()).toBe(1)
+    server.start('c1')
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+  })
+
+  it('frees the seat when a player leaves the lobby', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.leave('c0')
+    expect(server.getPlayers()[0].name).toBeNull()
+    server.join('c2', 'Charlie')
+    expect(server.getPlayers()[0].name).toBe('Charlie')
+  })
+
+  it('skips the turn of a player who leaves mid-game', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    expect(server.getState().currentPlayer).toBe(0)
+    server.leave('c0')
+    expect(server.getState().currentPlayer).toBe(1)
+  })
+
+  it('lets a mid-game leaver reclaim their slot by name', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    server.leave('c0')
+    server.join('c9', 'Alice')
+    expect(server.getPlayers()[0].connected).toBe(true)
   })
 })

@@ -6,7 +6,7 @@ export type ClientId = string
 
 export interface GameServerEvents {
   broadcastState(state: GameState): void
-  broadcastLobby(players: LobbyPlayer[]): void
+  broadcastLobby(players: LobbyPlayer[], hostPlayerId: number): void
   send(clientId: ClientId, message: ServerMessage): void
 }
 
@@ -27,14 +27,25 @@ export class GameServer {
   }))
   private events: GameServerEvents
   private rng: () => number
+  private code: string
+  private hostSlotIndex = 0
 
-  constructor(events: GameServerEvents, opts?: { rng?: () => number }) {
+  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string }) {
     this.events = events
     this.rng = opts?.rng ?? Math.random
+    this.code = opts?.code ?? ''
   }
 
   getState(): GameState {
     return this.state
+  }
+
+  getCode(): string {
+    return this.code
+  }
+
+  getHostPlayerId(): number {
+    return this.hostSlotIndex
   }
 
   getPlayers(): LobbyPlayer[] {
@@ -55,8 +66,10 @@ export class GameServer {
       this.events.send(clientId, {
         type: 'welcome',
         playerId: this.slots.indexOf(disconnected),
+        hostPlayerId: this.hostSlotIndex,
         players: this.getPlayers(),
         state: this.state,
+        code: this.code,
       })
       this.broadcast()
       return
@@ -82,15 +95,17 @@ export class GameServer {
     this.events.send(clientId, {
       type: 'welcome',
       playerId: index,
+      hostPlayerId: this.hostSlotIndex,
       players: this.getPlayers(),
       state: this.state,
+      code: this.code,
     })
     this.broadcast()
   }
 
   start(clientId: ClientId): void {
     const slot = this.slots.find((s) => s.clientId === clientId)
-    if (!slot || this.slots.indexOf(slot) !== 0) {
+    if (!slot || this.slots.indexOf(slot) !== this.hostSlotIndex) {
       this.events.send(clientId, { type: 'error', message: 'Hanya host yang bisa memulai' })
       return
     }
@@ -107,6 +122,28 @@ export class GameServer {
       playerCount: joined.length,
       names: joined.map((s) => s.name ?? `Pemain`),
     })
+  }
+
+  leave(clientId: ClientId): void {
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) {
+      this.events.send(clientId, { type: 'left' })
+      return
+    }
+
+    if (this.state.phase === GamePhase.Setup) {
+      this.slots[index] = { clientId: null, name: null, connected: false }
+      if (index === this.hostSlotIndex) {
+        this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
+      }
+    } else {
+      this.slots[index].connected = false
+      this.slots[index].clientId = null
+    }
+
+    this.events.send(clientId, { type: 'left' })
+    this.broadcast()
+    this.skipLeftPlayers()
   }
 
   roll(clientId: ClientId): void {
@@ -155,6 +192,7 @@ export class GameServer {
       slot.clientId = null
     }
     this.broadcast()
+    this.skipLeftPlayers()
   }
 
   private isTurn(clientId: ClientId): boolean {
@@ -164,9 +202,44 @@ export class GameServer {
   }
 
   private dispatch(action: GameAction): void {
+    this.applyAction(action)
+    this.skipLeftPlayers()
+  }
+
+  private applyAction(action: GameAction): void {
     this.state = gameReducer(this.state, action)
     this.broadcast()
     this.scheduleAutoSteps()
+  }
+
+  private nextConnectedSlot(from: number): number {
+    for (let i = 1; i <= MAX_PLAYERS; i++) {
+      const idx = (from + i) % MAX_PLAYERS
+      if (this.slots[idx].connected) return idx
+    }
+    return from
+  }
+
+  private skipLeftPlayers(): void {
+    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
+    let guard = 0
+    while (guard++ < MAX_PLAYERS * 2) {
+      const slot = this.slots[this.state.currentPlayer]
+      if (!slot || slot.connected) return
+      const pending = this.state.pendingAction
+      if (pending) {
+        if (pending.type === 'buyProperty') this.applyAction({ type: 'DECLINE_BUY' })
+        else if (pending.type === 'payRent') this.applyAction({ type: 'PAY_RENT' })
+        else if (pending.type === 'bankruptcy') this.applyAction({ type: 'DECLARE_BANKRUPTCY' })
+        else if (pending.type === 'drawCard') this.applyAction({ type: 'DRAW_CARD' })
+        else if (pending.type === 'cardEffect') this.applyAction({ type: 'RESOLVE_CARD' })
+        else return
+      } else if (this.state.phase === GamePhase.Waiting) {
+        this.applyAction({ type: 'END_TURN' })
+      } else {
+        return
+      }
+    }
   }
 
   private scheduleAutoSteps(): void {
@@ -207,6 +280,6 @@ export class GameServer {
 
   private broadcast(): void {
     this.events.broadcastState(this.state)
-    this.events.broadcastLobby(this.getPlayers())
+    this.events.broadcastLobby(this.getPlayers(), this.hostSlotIndex)
   }
 }

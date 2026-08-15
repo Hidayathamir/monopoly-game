@@ -5,12 +5,15 @@ export type LobbyPlayer = { id: number; name: string | null; connected: boolean 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'
 
 export type ClientMessage =
-  | { type: 'join'; name: string }
+  | { type: 'create'; name: string }
+  | { type: 'join'; code: string; name: string }
   | { type: 'start' }
+  | { type: 'leave' }
   | { type: 'action'; action: GameAction }
 
 export type ServerMessage =
-  | { type: 'welcome'; playerId: number; players: LobbyPlayer[]; state: GameState }
-  | { type: 'lobby'; players: LobbyPlayer[] }
+  | { type: 'welcome'; playerId: number; hostPlayerId: number; players: LobbyPlayer[]; state: GameState; code: string }
+  | { type: 'lobby'; players: LobbyPlayer[]; hostPlayerId: number }
   | { type: 'state'; state: GameState }
+  | { type: 'left' }
   | { type: 'error'; message: string }
