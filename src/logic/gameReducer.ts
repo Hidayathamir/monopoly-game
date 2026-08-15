@@ -522,7 +522,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         chanceDeck: isChance ? deck : state.chanceDeck,
         communityDeck: isChance ? state.communityDeck : deck,
         pendingAction: { type: PendingActionType.CardEffect, card },
-        eventLog: [...state.eventLog, { key: 'event.drewCard', params: { name: state.players[state.currentPlayer].name, cardId: card.id } }],
+        eventLog: state.eventLog,
       };
     }
 

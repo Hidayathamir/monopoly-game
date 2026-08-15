@@ -14,16 +14,16 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
   switch (effect.action) {
     case CardActionType.Collect: {
       newState = updatePlayerMoney(newState, state.currentPlayer, effect.amount);
-      return { state: newState, log: [{ key: 'event.cardCollect', params: { name: player.name, amount: effect.amount } }] };
+      return { state: newState, log: [{ key: 'event.cardCollect', params: { name: player.name, cardId: card.id, amount: effect.amount } }] };
     }
     case CardActionType.Pay: {
       newState = addToFreeParking(newState, effect.amount);
       newState = updatePlayerMoney(newState, state.currentPlayer, -effect.amount);
-      return { state: newState, log: [{ key: 'event.cardPay', params: { name: player.name, amount: effect.amount } }] };
+      return { state: newState, log: [{ key: 'event.cardPay', params: { name: player.name, cardId: card.id, amount: effect.amount } }] };
     }
     case CardActionType.GoToJail: {
       newState = sendPlayerToJail(newState, state.currentPlayer);
-      return { state: newState, log: [{ key: 'event.toJail', params: { name: player.name } }] };
+      return { state: newState, log: [{ key: 'event.cardToJail', params: { name: player.name, cardId: card.id } }] };
     }
     case CardActionType.GetOutOfJailFree: {
       const newPlayers = [...newState.players];
@@ -31,14 +31,14 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
         ...newPlayers[state.currentPlayer],
         hasGetOutOfJailFree: true,
       };
-      return { state: { ...newState, players: newPlayers }, log: [{ key: 'event.gotJailCard', params: { name: player.name } }] };
+      return { state: { ...newState, players: newPlayers }, log: [{ key: 'event.gotJailCard', params: { name: player.name, cardId: card.id } }] };
     }
     case CardActionType.GoToSpace: {
       const isBackward = effect.spaceId < 0;
       const targetSpace = isBackward
         ? (player.position + effect.spaceId + 40) % 40
         : effect.spaceId;
-      return goToSpace(newState, state.currentPlayer, targetSpace, isBackward);
+      return goToSpace(newState, state.currentPlayer, targetSpace, isBackward, card.id);
     }
     case CardActionType.CollectFromPlayers: {
       const amount = effect.amount;
@@ -53,16 +53,20 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       };
       return {
         state: { ...newState, players: newPlayers },
-        log: [{ key: 'event.cardCollectPlayers', params: { name: player.name, amount: totalReceived } }],
+        log: [{ key: 'event.cardCollectPlayers', params: { name: player.name, cardId: card.id, amount: totalReceived, perPlayer: amount, playerCount: newState.players.length - 1 } }],
       };
     }
     case CardActionType.StreetRepairs: {
       let totalRepairs = 0;
+      let houseCount = 0;
+      let hotelCount = 0;
       for (const pid of player.properties) {
         const space = newState.board[pid];
         if (space.houses === 5) {
+          hotelCount += 1;
           totalRepairs += effect.perHotel;
         } else {
+          houseCount += space.houses;
           totalRepairs += space.houses * effect.perHouse;
         }
       }
@@ -70,7 +74,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       newState = updatePlayerMoney(newState, state.currentPlayer, -totalRepairs);
       return {
         state: newState,
-        log: [{ key: 'event.cardStreetRepairs', params: { name: player.name, amount: totalRepairs } }],
+        log: [{ key: 'event.cardStreetRepairs', params: { name: player.name, cardId: card.id, amount: totalRepairs, houseCount, hotelCount, perHouse: effect.perHouse, perHotel: effect.perHotel } }],
       };
     }
     default:
@@ -78,7 +82,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
   }
 }
 
-function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBackward: boolean): CardResolution {
+function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBackward: boolean, cardId: number): CardResolution {
   const player = state.players[playerIndex];
   let newState = { ...state };
   const log: LogEntry[] = [];
@@ -97,7 +101,7 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
 
-  log.push({ key: isBackward ? 'event.movedBack' : 'event.movedForward', params: { name: player.name, spaceId } });
+  log.push({ key: isBackward ? 'event.movedBack' : 'event.movedForward', params: { name: player.name, spaceId, cardId } });
 
   return { state: newState, log };
 }
