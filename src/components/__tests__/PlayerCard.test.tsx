@@ -35,7 +35,7 @@ describe('PlayerCard', () => {
     expect(negativeDiv.className).toContain('text-red-danger')
 
     renderWithProviders(<PlayerCard player={{ ...player, money: 15000 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
-    const positiveDiv = screen.getByText(/\$15,000/).closest('div')!
+    const positiveDiv = screen.getByText(/\$15K/).closest('div')!
     expect(positiveDiv.className).toContain('text-green-money')
   })
 })
