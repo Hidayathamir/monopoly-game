@@ -42,6 +42,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           jailTurns: 0,
           bankrupt: false,
           hasGetOutOfJailFree: false,
+          isBot: action.isBot?.[i] ?? false,
         });
       }
       return {

@@ -69,7 +69,7 @@ describe('useGame jailed player turn', () => {
     expect(s.phase).toBe(GamePhase.Waiting)
 
     vi.stubGlobal('localStorage', {
-      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 6 })),
+      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 7 })),
       setItem: vi.fn(),
       removeItem: vi.fn(),
     })

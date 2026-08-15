@@ -45,6 +45,16 @@ describe('gameReducer', () => {
       expect(state.phase).toBe(GamePhase.Waiting);
       expect(state.currentPlayer).toBe(0);
     });
+
+    it('stamps isBot flags from the action (default false)', () => {
+      const state = gameReducer(createInitialState(), {
+        type: GameActionType.StartGame,
+        playerCount: 3,
+        names: ['Alice', 'Bot', 'Charlie'],
+        isBot: [false, true, false],
+      });
+      expect(state.players.map((p) => p.isBot)).toEqual([false, true, false]);
+    });
   });
 
   describe('ROLL_DICE + DICE_ANIMATED', () => {

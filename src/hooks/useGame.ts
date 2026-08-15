@@ -3,7 +3,7 @@ import { GamePhase, PendingActionType, type GameAction, type TradeOffer } from '
 import { gameReducer, createInitialState } from '../logic/gameReducer'
 
 const STORAGE_KEY = 'monopoly-game-state'
-const STATE_VERSION = 6
+const STATE_VERSION = 7
 
 function loadState() {
   try {

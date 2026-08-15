@@ -7,7 +7,7 @@ import type { Player, Space } from '../../types/game'
 
 const player: Player = {
   id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false,
+  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false, isBot: false,
 }
 const board: Space[] = []
 

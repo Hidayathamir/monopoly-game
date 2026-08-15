@@ -91,6 +91,7 @@ export type Player = {
   jailTurns: number;
   bankrupt: boolean;
   hasGetOutOfJailFree: boolean;
+  isBot: boolean;
 };
 
 export type Space = {
@@ -156,7 +157,7 @@ export type TradeOffer = {
 };
 
 export type GameAction =
-  | { type: typeof GameActionType.StartGame; playerCount: number; names: string[] }
+  | { type: typeof GameActionType.StartGame; playerCount: number; names: string[]; isBot?: boolean[] }
   | { type: typeof GameActionType.RollDice }
   | { type: typeof GameActionType.DiceAnimated; dice: [number, number] }
   | { type: typeof GameActionType.MoveToken; spaces: number }
