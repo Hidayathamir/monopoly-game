@@ -48,6 +48,10 @@ async function handleTurn(page: Page) {
 
 test.describe('Monopoly Game E2E', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('monopoly-language', 'en')
+      localStorage.setItem('monopoly-currency', 'USD')
+    })
     await page.goto('/')
   })
 

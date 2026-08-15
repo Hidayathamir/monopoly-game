@@ -1,21 +1,21 @@
 import { test, expect } from '@playwright/test'
 
-test('defaults to English and toggles to Indonesian', async ({ page }) => {
+test('defaults to Indonesian and toggles to English', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('Start Game')).toBeVisible()
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByLabel('Language').selectOption('id')
   await expect(page.getByText('Mulai Permainan')).toBeVisible()
+  await page.getByRole('button', { name: 'Pengaturan' }).click()
+  await page.getByLabel('Bahasa').selectOption('en')
+  await expect(page.getByText('Start Game')).toBeVisible()
 })
 
-test('currency toggle switches money symbol', async ({ page }) => {
+test('currency defaults to IDR and toggles money symbol', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('player-count').selectOption('2')
-  await page.locator('input[placeholder^="Player"]').first().fill('Alpha')
-  await page.locator('input[placeholder^="Player"]').nth(1).fill('Beta')
-  await page.getByRole('button', { name: 'Start Game' }).click()
-  await expect(page.locator('[data-testid="player-card"]').first()).toContainText('$')
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByLabel('Currency').selectOption('IDR')
+  await page.locator('input[type="text"]').nth(0).fill('Alpha')
+  await page.locator('input[type="text"]').nth(1).fill('Beta')
+  await page.getByRole('button', { name: 'Mulai Permainan' }).click()
   await expect(page.locator('[data-testid="player-card"]').first()).toContainText('Rp')
+  await page.getByRole('button', { name: 'Pengaturan' }).click()
+  await page.getByLabel('Mata Uang').selectOption('USD')
+  await expect(page.locator('[data-testid="player-card"]').first()).toContainText('$')
 })

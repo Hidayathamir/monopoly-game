@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { formatMoney, CURRENCIES, DEFAULT_CURRENCY } from '../currency';
 
 describe('currency', () => {
-  it('defaults to USD', () => {
-    expect(DEFAULT_CURRENCY).toBe('USD');
+  it('defaults to IDR', () => {
+    expect(DEFAULT_CURRENCY).toBe('IDR');
   });
 
   it('defines USD and IDR', () => {

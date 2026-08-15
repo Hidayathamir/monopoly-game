@@ -40,8 +40,13 @@ test.afterAll(() => {
 })
 
 test('two clients create and join a room, then start a game', async ({ browser }) => {
-  const pageA = await browser.newPage()
-  const pageB = await browser.newPage()
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await context.newPage()
 
   await pageA.goto(`http://localhost:${PORT}/`)
   await pageA.click('button:has-text("Multiplayer")')
@@ -66,8 +71,13 @@ test('two clients create and join a room, then start a game', async ({ browser }
 })
 
 test('a player can leave the room mid-game and return to the menu', async ({ browser }) => {
-  const pageA = await browser.newPage()
-  const pageB = await browser.newPage()
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await context.newPage()
 
   await pageA.goto(`http://localhost:${PORT}/`)
   await pageA.click('button:has-text("Multiplayer")')
