@@ -151,6 +151,40 @@ test.describe('Monopoly Game E2E', () => {
 
     await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="player-card"]')).toHaveCount(2)
-    await expect(page.locator('[data-testid="player-card"]').nth(1)).toContainText('Byte')
+
+    // Play Alpha's turn(s) until the bot seat (Byte) becomes current.
+    const waitingFor = page.locator('[data-testid="waiting-for"]')
+    for (let i = 0; i < 10; i++) {
+      if (await waitingFor.isVisible({ timeout: 500 }).catch(() => false)) break
+
+      const roll = page.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
+      if (await roll.isVisible({ timeout: 500 }).catch(() => false)) {
+        await roll.click()
+        await page.waitForTimeout(2200)
+        continue
+      }
+
+      const buy = page.locator('button:has-text("Buy (")').first()
+      if (await buy.isVisible({ timeout: 500 }).catch(() => false)) { await buy.click(); continue }
+      const no = page.locator('button:has-text("No")').first()
+      if (await no.isVisible({ timeout: 500 }).catch(() => false)) { await no.click(); continue }
+      const draw = page.locator('button:has-text("Draw")').first()
+      if (await draw.isVisible({ timeout: 500 }).catch(() => false)) {
+        await draw.click()
+        await page.waitForTimeout(500)
+        const ok = page.locator('button:has-text("OK")').first()
+        if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
+        continue
+      }
+      const pay = page.locator('button:has-text("Pay")').first()
+      if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
+      const end = page.locator('button:has-text("End")').first()
+      if (await end.isVisible({ timeout: 500 }).catch(() => false)) { await end.click(); continue }
+      break
+    }
+
+    // The bot seat is now current and auto-plays; verify control returns to Alpha.
+    await expect(waitingFor).toContainText('Byte', { timeout: 10000 })
+    await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
   })
 })
