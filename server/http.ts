@@ -72,7 +72,7 @@ export function createServer(distDir = 'dist') {
         } else if (msg.type === 'join') {
           const game = roomManager.get(msg.code)
           if (!game) {
-            send(clientId, { type: 'error', message: 'Kamar tidak ditemukan' })
+            send(clientId, { type: 'error', message: 'Ruangan tidak ditemukan' })
             return
           }
           if (game.join(clientId, msg.name)) roomManager.addClient(msg.code, clientId)

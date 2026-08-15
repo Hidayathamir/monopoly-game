@@ -83,7 +83,7 @@ describe('http server', () => {
     ws.send(JSON.stringify({ type: 'join', code: 'ZZZZZ', name: 'Bob' }))
     const msg = await err
     expect(msg.type).toBe('error')
-    if (msg.type === 'error') expect(msg.message).toBe('Kamar tidak ditemukan')
+    if (msg.type === 'error') expect(msg.message).toBe('Ruangan tidak ditemukan')
     ws.close()
   })
 

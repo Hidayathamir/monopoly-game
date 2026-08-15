@@ -39,7 +39,7 @@ describe('GameServer', () => {
     const { server, sent } = setup()
     for (let i = 0; i < 6; i++) server.join(`c${i}`, `P${i}`)
     server.join('c6', 'Extra')
-    expect(sent.some((m) => m.type === 'error' && m.message === 'Kamar penuh (maks 6 pemain)')).toBe(true)
+    expect(sent.some((m) => m.type === 'error' && m.message === 'Ruangan penuh (maks 6 pemain)')).toBe(true)
   })
 
   it('only the host (slot 0) can start the game', () => {

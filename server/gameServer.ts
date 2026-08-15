@@ -87,7 +87,7 @@ export class GameServer {
 
     const index = this.slots.findIndex((s) => s.clientId === null)
     if (index === -1) {
-      this.events.send(clientId, { type: 'error', message: 'Kamar penuh (maks 6 pemain)' })
+      this.events.send(clientId, { type: 'error', message: 'Ruangan penuh (maks 6 pemain)' })
       return false
     }
 
