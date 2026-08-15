@@ -66,6 +66,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
           <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
           <strong className="truncate">{player.name}</strong>
           {player.inJail && <span>🔒</span>}
+          {player.hasGetOutOfJailFree && <span title="Kartu Bebas Penjara">🎴</span>}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">BANGKRUT</span>}
         </div>
         <div className="text-sm text-green-money font-semibold flex items-center relative">
