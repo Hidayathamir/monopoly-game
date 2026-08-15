@@ -180,7 +180,7 @@ test.describe('Monopoly Game E2E', () => {
       if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
       const end = page.locator('button:has-text("End")').first()
       if (await end.isVisible({ timeout: 500 }).catch(() => false)) { await end.click(); continue }
-      break
+      await page.waitForTimeout(500) // still animating — keep polling, never break early
     }
 
     // The bot seat is now current and auto-plays; verify control returns to Alpha.
