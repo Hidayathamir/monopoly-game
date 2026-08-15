@@ -15,7 +15,7 @@ function MoneyChange({ diff }: { diff: number }) {
   return (
     <span
       className={[
-        'ml-2 text-lg font-bold inline-block animate-money-float',
+        'absolute inset-x-0 bottom-full text-center text-lg font-bold whitespace-nowrap pointer-events-none animate-money-float',
         isGain ? 'text-green-money' : 'text-red-danger',
       ].join(' ')}
     >
@@ -54,7 +54,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
       <div
         data-testid="player-card"
         className={[
-          'px-2 py-1.5 rounded-lg bg-bg-dark/70 border border-border-light overflow-hidden flex-1 min-w-[130px]',
+          'px-2 py-1.5 rounded-lg bg-bg-dark/70 border border-border-light flex-1 min-w-[130px]',
           isCurrent ? 'ring-2 ring-gold/80 bg-[#1a4a7a]/70' : '',
           player.bankrupt ? 'opacity-50' : '',
         ].join(' ')}
@@ -68,8 +68,8 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
           {player.inJail && <span>🔒</span>}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">BANGKRUT</span>}
         </div>
-        <div className="text-sm text-green-money font-semibold flex items-center">
-          <span>{formatMoney(player.money)}</span>
+        <div className="text-sm text-green-money font-semibold flex items-center relative">
+          <span className="whitespace-nowrap">{formatMoney(player.money)}</span>
           {diff && <MoneyChange key={diff.key} diff={diff.diff} />}
         </div>
       </div>
