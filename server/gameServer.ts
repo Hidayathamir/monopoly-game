@@ -121,7 +121,7 @@ export class GameServer {
     this.dispatch({
       type: 'START_GAME',
       playerCount: joined.length,
-      names: joined.map((s) => s.name ?? `Pemain`),
+      names: joined.map((s, i) => s.name ?? `P${i + 1}`),
     })
   }
 

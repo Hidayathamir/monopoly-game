@@ -33,7 +33,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       for (let i = 0; i < action.playerCount; i++) {
         players.push({
           id: i,
-          name: action.names[i] || `Pemain ${i + 1}`,
+          name: action.names[i] ?? `P${i + 1}`,
           money: STARTING_MONEY,
           position: 0,
           properties: [],
