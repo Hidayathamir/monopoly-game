@@ -114,6 +114,20 @@ describe('resolveCardEffect', () => {
     expect(result.log).toEqual([{ key: 'event.cardCollectPlayers', params: { name: 'Alice', cardId: 9, amount: 10, perPlayer: 10, playerCount: 1 } }]);
   });
 
+  it('collect from players takes nothing from a player in debt', () => {
+    const state = makeState({
+      players: [
+        { ...makeState().players[0], money: 500 },
+        { ...makeState().players[1], money: -5 },
+      ],
+    });
+    const card: Card = { id: 9, type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10 } };
+    const result = resolveCardEffect(state, card);
+    expect(result.state.players[0].money).toBe(500);
+    expect(result.state.players[1].money).toBe(-5);
+    expect(result.log).toEqual([{ key: 'event.cardCollectPlayers', params: { name: 'Alice', cardId: 9, amount: 0, perPlayer: 10, playerCount: 0 } }]);
+  });
+
   it('collect from players only takes what opponents can afford', () => {
     const state = makeState({
       players: [

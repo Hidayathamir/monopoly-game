@@ -46,7 +46,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       let payingPlayers = 0;
       const newPlayers = newState.players.map((p, i) => {
         if (i === state.currentPlayer) return p;
-        const paid = Math.min(p.money, amount);
+        const paid = Math.min(Math.max(0, p.money), amount);
         if (paid > 0) payingPlayers += 1;
         actualReceived += paid;
         return { ...p, money: p.money - paid };
