@@ -19,7 +19,7 @@ describe('useGame doubles auto-advance', () => {
     vi.unstubAllGlobals()
   })
 
-  it('auto ends turn (keeps player) after rolling doubles', () => {
+  it('does not auto-advance after rolling doubles', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5) // dice [4,4]
     const { result } = renderHook(() => useGame())
     act(() => result.current.startGame(2, ['Alice', 'Bob']))
@@ -31,10 +31,11 @@ describe('useGame doubles auto-advance', () => {
 
     act(() => vi.advanceTimersByTime(500 + 8 * 150))
     expect(result.current.state.phase).toBe(GamePhase.Waiting)
+    expect(result.current.state.dice).toEqual([4, 4])
 
     act(() => vi.advanceTimersByTime(500))
-    expect(result.current.state.dice).toBeNull()
+    expect(result.current.state.dice).toEqual([4, 4])
     expect(result.current.state.currentPlayer).toBe(0)
-    expect(result.current.state.eventLog.some((e) => e.key === 'event.doublesAgain')).toBe(true)
+    expect(result.current.state.eventLog.some((e) => e.key === 'event.doublesAgain')).toBe(false)
   })
 })

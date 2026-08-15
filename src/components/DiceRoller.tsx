@@ -32,7 +32,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
       </div>
       {(canRoll || canRollJail) && isMyTurn && (
         <Button variant="primary" size="lg" onClick={handleRoll}>
-          {player.inJail ? t('dice.rollJail') : t('dice.roll')}
+          {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
       )}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (

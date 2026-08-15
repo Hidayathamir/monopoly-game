@@ -176,6 +176,7 @@
   "action.notEnough": "Uang tidak cukup",
   "action.orRollDoubles": "atau lempar dadu ganda ({{n}}x lagi)",
   "action.endTurn": "Akhiri Giliran",
+  "action.rollAgain": "Lempar Lagi",
   "action.trade": "🤝 Tukar",
   "action.negativeBalance": "Uang minus! Jual aset dulu sebelum akhiri giliran.",
   "action.hoverShort": "Hover properti di papan untuk jual/gadai",

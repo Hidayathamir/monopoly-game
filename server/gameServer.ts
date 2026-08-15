@@ -260,25 +260,6 @@ export class GameServer {
           this.dispatch({ type: 'DRAW_CARD' })
         }
       }, 300)
-    } else if (
-      s.phase === GamePhase.Waiting &&
-      !s.pendingAction &&
-      s.dice !== null &&
-      s.dice[0] === s.dice[1] &&
-      s.doublesCount > 0
-    ) {
-      setTimeout(() => {
-        const st = this.state
-        if (
-          st.phase === GamePhase.Waiting &&
-          !st.pendingAction &&
-          st.dice !== null &&
-          st.dice[0] === st.dice[1] &&
-          st.doublesCount > 0
-        ) {
-          this.dispatch({ type: 'END_TURN' })
-        }
-      }, 500)
     }
   }
 

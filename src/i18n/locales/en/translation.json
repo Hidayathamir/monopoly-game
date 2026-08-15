@@ -176,6 +176,7 @@
   "action.notEnough": "Not enough money",
   "action.orRollDoubles": "or roll doubles ({{n}} more)",
   "action.endTurn": "End Turn",
+  "action.rollAgain": "Roll Again",
   "action.trade": "🤝 Trade",
   "action.negativeBalance": "Negative balance! Sell assets before ending your turn.",
   "action.hoverShort": "Hover a property on the board to sell/mortgage",

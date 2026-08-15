@@ -72,4 +72,11 @@ describe('ActionSection', () => {
     renderWithProviders(<ActionSection state={s} {...actions} />)
     expect(screen.getByRole('button', { name: /Pay/ })).toBeVisible()
   })
+
+  it('labels the advance button Roll Again after rolling doubles', () => {
+    let s = makeState()
+    s = { ...s, dice: [3, 3], doublesCount: 1 }
+    renderWithProviders(<ActionSection state={s} {...actions} />)
+    expect(screen.getByRole('button', { name: /Roll Again/ })).toBeVisible()
+  })
 })

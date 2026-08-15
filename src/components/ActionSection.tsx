@@ -135,7 +135,7 @@ export default function ActionSection({
         <>
           {player.money >= 0 ? (
             <>
-              <Button variant="secondary" onClick={onEndTurn}>{t('action.endTurn')}</Button>
+              <Button variant="secondary" onClick={onEndTurn}>{t(state.doublesCount > 0 ? 'action.rollAgain' : 'action.endTurn')}</Button>
               <Button size="sm" onClick={onProposeTrade}>{t('action.trade')}</Button>
             </>
           ) : (

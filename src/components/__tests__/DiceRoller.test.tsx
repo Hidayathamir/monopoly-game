@@ -23,4 +23,11 @@ describe('DiceRoller', () => {
     renderWithProviders(<DiceRoller state={makeState()} onRoll={() => {}} isMyTurn={true} />)
     expect(screen.getByRole('button', { name: 'Roll Dice' })).toBeEnabled()
   })
+
+  it('labels the roll button Roll Again when a doubles roll is pending', () => {
+    const s = { ...makeState(), doublesCount: 1 } // dice stays null, so canRoll is true
+    renderWithProviders(<DiceRoller state={s} onRoll={() => {}} isMyTurn={true} />)
+    expect(screen.queryByRole('button', { name: 'Roll Dice' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Roll Again' })).toBeEnabled()
+  })
 })
