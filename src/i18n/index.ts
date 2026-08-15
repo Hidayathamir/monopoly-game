@@ -4,7 +4,7 @@ import en from './locales/en/translation.json'
 import id from './locales/id/translation.json'
 
 const STORAGE_KEY = 'monopoly-language'
-export const DEFAULT_LANGUAGE = 'id'
+export const DEFAULT_LANGUAGE = 'en'
 
 function readSavedLanguage(): string {
   try {
