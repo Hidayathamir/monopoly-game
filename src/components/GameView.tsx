@@ -9,6 +9,7 @@ import GameOverModal from './Modals/GameOverModal'
 
 export default function GameView({ game }: { game: GameApi }) {
   const { state } = game
+  const isMyTurn = game.myPlayerId === null || game.myPlayerId === state.currentPlayer
   const [showTrade, setShowTrade] = useState(false)
 
   return (
@@ -23,6 +24,7 @@ export default function GameView({ game }: { game: GameApi }) {
       >
         <Sidebar
           state={state}
+          isMyTurn={isMyTurn}
           onRoll={game.roll}
           onEndTurn={game.endTurn}
           onProposeTrade={() => setShowTrade(true)}

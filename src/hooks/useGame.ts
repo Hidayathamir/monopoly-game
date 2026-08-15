@@ -104,6 +104,7 @@ export function useGame() {
 
   return {
     state,
+    myPlayerId: null,
     dispatch,
     startGame,
     resetGame,

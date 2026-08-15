@@ -182,6 +182,7 @@ export type GameAction =
 
 export type GameApi = {
   state: GameState;
+  myPlayerId: number | null;
   roll: () => void;
   buyProperty: () => void;
   declineBuy: () => void;

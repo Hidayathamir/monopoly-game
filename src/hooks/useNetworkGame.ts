@@ -79,6 +79,7 @@ export function useNetworkGame(): NetworkGameApi {
 
   return {
     state,
+    myPlayerId: playerId,
     playerId,
     lobby,
     status,

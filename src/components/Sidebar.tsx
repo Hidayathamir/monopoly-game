@@ -19,9 +19,10 @@ interface Props {
   onSkipAction: () => void
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
+  isMyTurn: boolean
 }
 
-export default function Sidebar({ state, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, ...actions }: Props) {
   return (
     <div
       data-testid="sidebar"
@@ -29,9 +30,9 @@ export default function Sidebar({ state, ...actions }: Props) {
     >
       <div className="pointer-events-auto w-[min(380px,92%)] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl border border-panel-border bg-panel backdrop-blur-md shadow-2xl px-5 py-4 flex flex-col gap-4">
         <TurnHeader state={state} />
-        <DiceRoller state={state} onRoll={actions.onRoll} />
+        <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
         <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
-        <ActionSection state={state} {...actions} />
+        <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
         <EventLog log={state.eventLog} />
       </div>
     </div>

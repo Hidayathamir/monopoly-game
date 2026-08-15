@@ -6,9 +6,10 @@ import Button from './Button'
 interface Props {
   state: GameState
   onRoll: () => void
+  isMyTurn?: boolean
 }
 
-export default function DiceRoller({ state, onRoll }: Props) {
+export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const [rolling, setRolling] = useState(false)
   const player = state.players[state.currentPlayer]
 
@@ -28,7 +29,7 @@ export default function DiceRoller({ state, onRoll }: Props) {
         <Dice value={state.dice?.[1]} rolling={rolling} />
       </div>
       {(canRoll || canRollJail) && (
-        <Button variant="primary" size="lg" onClick={handleRoll}>
+        <Button variant="primary" size="lg" onClick={handleRoll} disabled={!isMyTurn}>
           {player.inJail ? 'Lempar Dadu (Penjara)' : 'Lempar Dadu'}
         </Button>
       )}

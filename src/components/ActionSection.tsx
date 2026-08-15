@@ -14,13 +14,16 @@ interface Props {
   onDeclareBankruptcy: () => void
   onPayJailFine: () => void
   onUseGetOutOfJailFree: () => void
+  isMyTurn?: boolean
 }
 
 export default function ActionSection({
   state, onEndTurn, onDrawCard, onProposeTrade, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
+  isMyTurn = true,
 }: Props) {
   const player = state.players[state.currentPlayer]
+  if (!isMyTurn) return null
   const pending = state.pendingAction
   const canAct = state.phase === GamePhase.Waiting && !pending
   const hasRolled = state.dice !== null
