@@ -28,7 +28,23 @@ describe('GameSetup', () => {
     fireEvent.change(screen.getAllByPlaceholderText(/Player/)[1], { target: { value: 'B' } })
     fireEvent.click(screen.getByText('Start Game'))
 
-    expect(onStartLocal).toHaveBeenCalledWith(2, ['A', 'B'])
+    expect(onStartLocal).toHaveBeenCalledWith([
+      { name: 'A', isBot: false },
+      { name: 'B', isBot: false },
+    ])
+  })
+
+  it('marks a seat as a bot and defaults its name to the bot pool', () => {
+    const onStartLocal = vi.fn()
+    renderWithProviders(<GameSetup onStartLocal={onStartLocal} onCreate={() => {}} onJoin={() => {}} />)
+
+    fireEvent.click(screen.getByLabelText('Bot seat 2'))
+    fireEvent.click(screen.getByText('Start Game'))
+
+    expect(onStartLocal).toHaveBeenCalledWith([
+      { name: 'Player 1', isBot: false },
+      { name: 'Byte', isBot: true },
+    ])
   })
 
   it('marks the active mode toggle with a gold ring', () => {

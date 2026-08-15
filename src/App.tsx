@@ -15,8 +15,8 @@ export default function App() {
   )
   const [joinInfo, setJoinInfo] = useState<JoinInfo>({ name: '', code: null })
 
-  function handleStartLocal(count: number, names: string[]) {
-    local.startGame(count, names)
+  function handleStartLocal(players: { name: string; isBot: boolean }[]) {
+    local.startGame(players)
     setMode('local')
   }
 

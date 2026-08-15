@@ -1,6 +1,7 @@
 import { useReducer, useCallback, useEffect } from 'react'
 import { GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
 import { gameReducer, createInitialState } from '../logic/gameReducer'
+import { decideBotAction } from '../logic/bot'
 
 const STORAGE_KEY = 'monopoly-game-state'
 const STATE_VERSION = 7
@@ -28,8 +29,13 @@ export function useGame() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, _version: STATE_VERSION }))
   }, [state])
 
-  const startGame = useCallback((playerCount: number, names: string[]) => {
-    dispatch({ type: 'START_GAME', playerCount, names })
+  const startGame = useCallback((players: { name: string; isBot: boolean }[]) => {
+    dispatch({
+      type: 'START_GAME',
+      playerCount: players.length,
+      names: players.map((p) => p.name),
+      isBot: players.map((p) => p.isBot),
+    })
   }, [])
 
   const resetGame = useCallback(() => {
@@ -50,6 +56,21 @@ export function useGame() {
   }, [])
 
   const send = useCallback((action: GameAction) => dispatch(action), [])
+
+  useEffect(() => {
+    const player = state.players[state.currentPlayer]
+    if (!player?.isBot) return
+    if (state.phase === GamePhase.GameOver) return
+    const action = decideBotAction(state)
+    if (!action) return
+    const timer = setTimeout(() => {
+      const current = state.players[state.currentPlayer]
+      if (!current?.isBot || state.phase === GamePhase.GameOver) return
+      if (action.type === 'ROLL_DICE') roll()
+      else send(action)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [state, roll, send])
 
   const buyProperty = useCallback(() => send({ type: 'BUY_PROPERTY' }), [send])
   const declineBuy = useCallback(() => send({ type: 'DECLINE_BUY' }), [send])

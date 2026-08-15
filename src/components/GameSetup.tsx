@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
 import { PLAYER_COLORS } from '../data/players'
+import { BOT_NAMES } from '../data/bots'
 
 interface Props {
-  onStartLocal: (playerCount: number, names: string[]) => void
+  onStartLocal: (players: { name: string; isBot: boolean }[]) => void
   onCreate: (name: string) => void
   onJoin: (name: string, code: string) => void
 }
@@ -13,7 +14,8 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
   const { t } = useTranslation()
   const [mode, setMode] = useState<'local' | 'multiplayer'>('local')
   const [playerCount, setPlayerCount] = useState(2)
-  const [names, setNames] = useState<string[]>(['', '', '', ''])
+  const [names, setNames] = useState<string[]>(['', '', '', '', '', ''])
+  const [isBot, setIsBot] = useState<boolean[]>(Array(6).fill(false))
   const [myName, setMyName] = useState('')
   const [roomCode, setRoomCode] = useState('')
   const [mpAction, setMpAction] = useState<'create' | 'join'>('create')
@@ -24,9 +26,18 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
     setNames(newNames)
   }
 
+  function handleBotChange(index: number, value: boolean) {
+    const next = [...isBot]
+    next[index] = value
+    setIsBot(next)
+  }
+
   function handleStart() {
-    const filledNames = names.slice(0, playerCount).map((n, i) => n.trim() || t('common.player', { n: i + 1 }))
-    onStartLocal(playerCount, filledNames)
+    const players = Array.from({ length: playerCount }, (_, i) => ({
+      name: names[i].trim() || (isBot[i] ? BOT_NAMES[i] ?? `Bot ${i + 1}` : t('common.player', { n: i + 1 })),
+      isBot: isBot[i],
+    }))
+    onStartLocal(players)
   }
 
   function handleSubmit() {
@@ -71,6 +82,8 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
                 <option value={2}>{t('setup.playerCount2')}</option>
                 <option value={3}>{t('setup.playerCount3')}</option>
                 <option value={4}>{t('setup.playerCount4')}</option>
+                <option value={5}>{t('setup.playerCount5')}</option>
+                <option value={6}>{t('setup.playerCount6')}</option>
               </select>
             </div>
             {Array.from({ length: playerCount }).map((_, i) => (
@@ -78,12 +91,21 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
                 <label className="text-base text-muted flex items-center gap-2">
                   <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ backgroundColor: PLAYER_COLORS[i] }} />
                   {t('setup.playerName', { n: i + 1 })}
+                  <span className="ml-auto flex items-center gap-1.5 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={isBot[i]}
+                      onChange={(e) => handleBotChange(i, e.target.checked)}
+                      aria-label={t('setup.isBot', { n: i + 1 })}
+                    />
+                    {t('setup.isBotLabel')}
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={names[i]}
                   onChange={(e) => handleNameChange(i, e.target.value)}
-                  placeholder={t('setup.playerPlaceholder', { n: i + 1 })}
+                  placeholder={isBot[i] ? BOT_NAMES[i] : t('setup.playerPlaceholder', { n: i + 1 })}
                   maxLength={12}
                   className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
                 />

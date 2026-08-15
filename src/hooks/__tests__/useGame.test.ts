@@ -23,7 +23,7 @@ describe('useGame doubles auto-advance', () => {
   it('does not auto-advance after rolling doubles', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5) // dice [4,4]
     const { result } = renderHook(() => useGame())
-    act(() => result.current.startGame(2, ['Alice', 'Bob']))
+    act(() => result.current.startGame([{ name: 'Alice', isBot: false }, { name: 'Bob', isBot: false }]))
 
     act(() => result.current.roll())
     act(() => vi.advanceTimersByTime(500))
@@ -81,5 +81,59 @@ describe('useGame jailed player turn', () => {
     act(() => vi.advanceTimersByTime(500))
     expect(result.current.state.currentPlayer).toBe(0)
     expect(result.current.state.players[0].inJail).toBe(true)
+  })
+})
+
+describe('useGame bot auto-play', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('auto-rolls and ends a bot turn in local mode', () => {
+    let s = gameReducer(createInitialState(), {
+      type: GameActionType.StartGame,
+      playerCount: 2,
+      names: ['Alice', 'Bot'],
+      isBot: [false, true],
+    })
+    s = { ...s, currentPlayer: 1 }
+
+    // Deterministic non-doubles: arm the spy AFTER the reducer's deck shuffle,
+    // so the first roll() call draws (1,4).
+    let n = 0
+    vi.spyOn(Math, 'random').mockImplementation(() => (n++ === 0 ? 0 : 0.5))
+
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 7 })),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useGame())
+    expect(result.current.state.players[1].isBot).toBe(true)
+    expect(result.current.state.currentPlayer).toBe(1)
+
+    act(() => vi.advanceTimersByTime(600)) // bot driver fires → roll()
+    expect(result.current.state.phase).toBe(GamePhase.Rolling)
+
+    act(() => vi.advanceTimersByTime(500)) // DICE_ANIMATED
+    expect(result.current.state.dice).toEqual([1, 4])
+
+    act(() => vi.advanceTimersByTime(500 + 5 * 150)) // RESOLVE_SPACE (space 5, unowned, not passed Go → Waiting)
+    expect(result.current.state.phase).toBe(GamePhase.Waiting)
+
+    act(() => vi.advanceTimersByTime(600)) // bot END_TURN
+    expect(result.current.state.currentPlayer).toBe(0)
+    expect(result.current.state.dice).toBeNull()
   })
 })

@@ -9,7 +9,9 @@ import GameOverModal from './Modals/GameOverModal'
 
 export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: () => void }) {
   const { state } = game
-  const isMyTurn = game.myPlayerId === null || game.myPlayerId === state.currentPlayer
+  const isMyTurn = game.myPlayerId === null
+    ? !state.players[state.currentPlayer]?.isBot
+    : game.myPlayerId === state.currentPlayer
   const [showTrade, setShowTrade] = useState(false)
 
   return (
