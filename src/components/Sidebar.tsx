@@ -2,8 +2,8 @@ import type { GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { PLAYER_COLORS } from '../data/players'
 import TurnHeader from './TurnHeader'
-import Button from './Button'
 import DiceRoller from './DiceRoller'
+import RoomExit from './RoomExit'
 import PlayerPanel from './PlayerPanel'
 import ActionSection from './ActionSection'
 import EventLog from './EventLog'
@@ -45,11 +45,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
           </p>
         )}
         <EventLog log={state.eventLog} />
-        {onLeave && (
-          <Button variant="danger" size="sm" onClick={onLeave}>
-            {t('lobby.leaveRoom')}
-          </Button>
-        )}
+        {onLeave && <RoomExit onLeave={onLeave} collapsed />}
       </div>
     </div>
   )

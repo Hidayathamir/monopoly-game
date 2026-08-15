@@ -3,6 +3,7 @@ import type { NetworkGameApi } from '../hooks/useNetworkGame'
 import { useTranslation } from 'react-i18next'
 import { PLAYER_COLORS } from '../data/players'
 import Button from './Button'
+import RoomExit from './RoomExit'
 
 interface Props {
   game: NetworkGameApi
@@ -51,9 +52,7 @@ export default function Lobby({ game }: Props) {
             {t('lobby.start', { n: lobby.filter((p) => p.name).length })}
           </Button>
         )}
-        <Button variant="secondary" onClick={leave}>
-          {t('lobby.leave')}
-        </Button>
+        <RoomExit onLeave={leave} />
       </div>
     </div>
   )
