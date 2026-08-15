@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { GameState } from '../types/game'
 import PropertyTooltip from './PropertyTooltip'
@@ -40,7 +40,6 @@ const TOOLTIP_MARGIN = 8
 interface TooltipPos {
   top: number
   left: number
-  transform: string
 }
 
 export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
@@ -48,38 +47,40 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const boardGridRef = useRef<HTMLDivElement | null>(null)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
 
   function handleEnter(id: number, e: React.MouseEvent<HTMLDivElement>) {
     if (timerRef.current) clearTimeout(timerRef.current)
     setHoveredId(id)
     const rect = e.currentTarget.getBoundingClientRect()
     const pos = getCellPosition(id)
+    const gap = TOOLTIP_MARGIN
+    const tipW = tooltipRef.current?.offsetWidth ?? 260
+    const tipH = tooltipRef.current?.offsetHeight ?? 300
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+
+    let top: number
+    let left: number
+
     if (pos?.gridColumn === 11) {
-      setTooltipPos({
-        top: rect.top + rect.height / 2,
-        left: rect.left - TOOLTIP_MARGIN,
-        transform: 'translate(-100%, -50%)',
-      })
+      top = rect.top + rect.height / 2 - tipH / 2
+      left = rect.left - gap - tipW
     } else if (pos?.gridColumn === 1) {
-      setTooltipPos({
-        top: rect.top + rect.height / 2,
-        left: rect.right + TOOLTIP_MARGIN,
-        transform: 'translate(0, -50%)',
-      })
+      top = rect.top + rect.height / 2 - tipH / 2
+      left = rect.right + gap
     } else if (pos?.gridRow === 1) {
-      setTooltipPos({
-        top: rect.bottom + TOOLTIP_MARGIN,
-        left: rect.left + rect.width / 2,
-        transform: 'translate(-50%, 0)',
-      })
+      top = rect.bottom + gap
+      left = rect.left + rect.width / 2 - tipW / 2
     } else {
-      setTooltipPos({
-        top: rect.top - TOOLTIP_MARGIN,
-        left: rect.left + rect.width / 2,
-        transform: 'translate(-50%, -100%)',
-      })
+      top = rect.top - gap - tipH
+      left = rect.left + rect.width / 2 - tipW / 2
     }
+
+    top = Math.max(0, Math.min(top, vh - tipH))
+    left = Math.max(0, Math.min(left, vw - tipW))
+
+    setTooltipPos({ top, left })
   }
 
   function handleLeave() {
@@ -94,18 +95,9 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
 
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
-
-  useEffect(() => {
-    if (boardGridRef.current) {
-      setPortalTarget(boardGridRef.current.closest('[data-game-board]') as HTMLElement | null)
-    }
-  }, [])
-
   return (
     <div
       className="grid grid-cols-11 grid-rows-11 w-full h-full overflow-hidden relative z-[1]"
-      ref={boardGridRef}
     >
       {board.map((space) => {
         const owner = space.owner !== null ? state.players[space.owner] : null
@@ -146,16 +138,16 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
         )
       })}
 
-      {hoveredId != null && portalTarget && tooltipPos &&
+      {hoveredId != null && tooltipPos &&
         createPortal(
           <div
+            ref={tooltipRef}
             onMouseEnter={handleTooltipEnter}
             onMouseLeave={handleTooltipLeave}
             style={{
               position: 'fixed',
               top: tooltipPos.top,
               left: tooltipPos.left,
-              transform: tooltipPos.transform,
               zIndex: 999,
             }}
           >
@@ -168,7 +160,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
               onSellProperty={onSellProperty}
             />
           </div>,
-          portalTarget,
+          document.body,
         )
       }
     </div>
