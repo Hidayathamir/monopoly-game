@@ -102,8 +102,7 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
   await pageA.click('button:has-text("Start")')
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-  await pageB.click('button[aria-label="Leave Room Options"]')
-  await pageB.click('button:has-text("Leave Room")')
+  await pageB.click('button[aria-label="Leave Room"]')
   await pageB.getByRole('button', { name: 'Leave', exact: true }).click()
   await expect(pageB.locator('button:has-text("Multiplayer")')).toBeVisible({ timeout: 5000 })
 })
