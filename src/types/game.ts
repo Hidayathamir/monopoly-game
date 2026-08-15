@@ -179,3 +179,25 @@ export type GameAction =
   | { type: typeof GameActionType.SkipAction }
   | { type: typeof GameActionType.PayJailFine }
   | { type: typeof GameActionType.UseGetOutOfJailFree };
+
+export type GameApi = {
+  state: GameState;
+  roll: () => void;
+  buyProperty: () => void;
+  declineBuy: () => void;
+  payRent: () => void;
+  buildHouse: (spaceId: number) => void;
+  sellHouse: (spaceId: number) => void;
+  mortgage: (spaceId: number) => void;
+  unmortgage: (spaceId: number) => void;
+  sellProperty: (spaceId: number) => void;
+  proposeTrade: (offer: TradeOffer) => void;
+  drawCard: () => void;
+  resolveCard: () => void;
+  endTurn: () => void;
+  declareBankruptcy: () => void;
+  skipAction: () => void;
+  payJailFine: () => void;
+  useGetOutOfJailFree: () => void;
+  resetGame: () => void;
+};
