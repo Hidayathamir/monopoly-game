@@ -346,7 +346,7 @@ export function decideBotAction(state: GameState): GameAction | null {
       }
       case PendingActionType.PayRent: {
         if (player.money >= pending.amount) return { type: 'PAY_RENT' };
-        return liquidationAction(state, pending.amount);
+        return liquidationAction(state);
       }
       case PendingActionType.DrawCard:
         return { type: 'DRAW_CARD' };
@@ -391,7 +391,7 @@ function buildAction(state: GameState): GameAction | null {
   return best ? { type: 'BUILD_HOUSE', spaceId: best.id } : null;
 }
 
-function liquidationAction(state: GameState, amount: number): GameAction {
+function liquidationAction(state: GameState): GameAction {
   const player = state.players[state.currentPlayer];
   for (const id of player.properties) {
     const space = state.board[id];
