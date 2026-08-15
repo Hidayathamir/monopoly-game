@@ -123,7 +123,7 @@ export class GameServer {
       this.events.send(clientId, { type: 'error', message: 'Bot hanya bisa ditambah sebelum permainan dimulai' })
       return
     }
-    const index = this.slots.findIndex((s) => s.clientId === null && !s.isBot)
+    const index = this.slots.findIndex((s) => s.clientId === null && !s.isBot && s.name === null)
     if (index === -1) {
       this.events.send(clientId, { type: 'error', message: 'Ruangan penuh (maks 6 pemain)' })
       return
@@ -150,8 +150,7 @@ export class GameServer {
   }
 
   start(clientId: ClientId): void {
-    const slot = this.slots.find((s) => s.clientId === clientId)
-    if (!slot || this.slots.indexOf(slot) !== this.hostSlotIndex) {
+    if (!this.isHost(clientId)) {
       this.events.send(clientId, { type: 'error', message: 'Hanya host yang bisa memulai' })
       return
     }

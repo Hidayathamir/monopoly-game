@@ -55,6 +55,15 @@ describe('gameReducer', () => {
       });
       expect(state.players.map((p) => p.isBot)).toEqual([false, true, false]);
     });
+
+    it('defaults every player isBot to false when isBot is omitted', () => {
+      const state = gameReducer(createInitialState(), {
+        type: GameActionType.StartGame,
+        playerCount: 2,
+        names: ['Alice', 'Bob'],
+      });
+      expect(state.players.map((p) => p.isBot)).toEqual([false, false]);
+    });
   });
 
   describe('ROLL_DICE + DICE_ANIMATED', () => {

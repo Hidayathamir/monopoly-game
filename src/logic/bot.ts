@@ -27,6 +27,8 @@ export function decideBotAction(state: GameState): GameAction | null {
         return { type: 'RESOLVE_CARD' };
       case PendingActionType.Bankruptcy:
         return { type: 'DECLARE_BANKRUPTCY' };
+      default:
+        return null;
     }
   }
 

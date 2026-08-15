@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useEffect } from 'react'
+import { useReducer, useCallback, useEffect, useRef } from 'react'
 import { GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
 import { gameReducer, createInitialState } from '../logic/gameReducer'
 import { decideBotAction } from '../logic/bot'
@@ -24,6 +24,10 @@ function loadState() {
 
 export function useGame() {
   const [state, dispatch] = useReducer(gameReducer, null, () => loadState() || createInitialState())
+  const stateRef = useRef(state)
+  useEffect(() => {
+    stateRef.current = state
+  })
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, _version: STATE_VERSION }))
@@ -61,11 +65,11 @@ export function useGame() {
     const player = state.players[state.currentPlayer]
     if (!player?.isBot) return
     if (state.phase === GamePhase.GameOver) return
-    const action = decideBotAction(state)
-    if (!action) return
     const timer = setTimeout(() => {
-      const current = state.players[state.currentPlayer]
-      if (!current?.isBot || state.phase === GamePhase.GameOver) return
+      const current = stateRef.current.players[stateRef.current.currentPlayer]
+      if (!current?.isBot || stateRef.current.phase === GamePhase.GameOver) return
+      const action = decideBotAction(stateRef.current)
+      if (!action) return
       if (action.type === 'ROLL_DICE') roll()
       else send(action)
     }, 600)

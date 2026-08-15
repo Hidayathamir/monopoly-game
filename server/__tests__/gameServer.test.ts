@@ -217,6 +217,19 @@ describe('GameServer', () => {
     expect(players[1].name).toBeTruthy()
   })
 
+  it('addBot does not overwrite a disconnected human seat', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.disconnect('c1')
+    server.addBot('c0')
+    const players = server.getPlayers()
+    expect(players[1].name).toBe('Bob')
+    expect(players[1].isBot).toBe(false)
+    expect(players[2].isBot).toBe(true)
+    expect(players.filter((p) => p.isBot)).toHaveLength(1)
+  })
+
   it('rejects addBot from a non-host', () => {
     const { server, sent } = setup()
     server.join('c0', 'Alice')
