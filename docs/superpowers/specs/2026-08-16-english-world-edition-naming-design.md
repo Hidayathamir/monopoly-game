@@ -10,7 +10,7 @@ Rename the English board space names to match the Monopoly World Edition board (
 
 ## Scope
 
-- Modify: `src/i18n/locales/en/translation.json` — the `board.space.*` keys (0–39) and three card texts referencing renamed spaces.
+- Modify: `src/i18n/locales/en/translation.json` — the `board.space.*` keys (0–39) and four card texts referencing renamed spaces.
 - Nothing else. Layout, prices, and `board-data.json` are untouched; names render through `t('board.space.' + space.id)` (BoardGrid, PropertyTooltip, PlayerCard, ActionSection, BuyPropertyModal, TradeModal, log.ts) so a translation-only change propagates everywhere.
 
 ## Space mapping
