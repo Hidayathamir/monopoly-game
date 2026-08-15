@@ -87,25 +87,37 @@ test.describe('Monopoly Game E2E', () => {
     expect(firstCardText).not.toBe('')
   })
 
-  test('center panel fits within board on small screens', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/')
-    await page.click('button:has-text("Mulai")')
-    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+  for (const viewport of [
+    { width: 375, height: 667 },
+    { width: 667, height: 375 },
+    { width: 812, height: 375 },
+  ]) {
+    test(`center panel fits on ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      await page.setViewportSize(viewport)
+      await page.goto('/')
+      await page.click('button:has-text("Mulai")')
+      await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-    const board = await page.locator('[data-game-board]').boundingBox()
-    const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
-    expect(board).not.toBeNull()
-    expect(sidebar).not.toBeNull()
-    if (!board || !sidebar) return
+      const board = await page.locator('[data-game-board]').boundingBox()
+      const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
+      expect(board).not.toBeNull()
+      expect(sidebar).not.toBeNull()
+      if (!board || !sidebar) return
 
-    const innerWidth = (board.width * 9) / 11
-    const innerLeft = board.x + board.width / 11
-    const innerRight = board.x + (board.width * 10) / 11
-    expect(sidebar.width).toBeLessThanOrEqual(innerWidth)
-    expect(sidebar.x).toBeGreaterThanOrEqual(innerLeft)
-    expect(sidebar.x + sidebar.width).toBeLessThanOrEqual(innerRight)
-  })
+      const innerW = (board.width * 9) / 11
+      const innerH = (board.height * 9) / 11
+      const innerLeft = board.x + board.width / 11
+      const innerRight = board.x + (board.width * 10) / 11
+      const innerTop = board.y + board.height / 11
+      const innerBottom = board.y + (board.height * 10) / 11
+      expect(sidebar.width).toBeLessThanOrEqual(innerW)
+      expect(sidebar.height).toBeLessThanOrEqual(innerH)
+      expect(sidebar.x).toBeGreaterThanOrEqual(innerLeft)
+      expect(sidebar.x + sidebar.width).toBeLessThanOrEqual(innerRight)
+      expect(sidebar.y).toBeGreaterThanOrEqual(innerTop)
+      expect(sidebar.y + sidebar.height).toBeLessThanOrEqual(innerBottom)
+    })
+  }
 
   test('4-player game survives many turns without crash', async ({ page }) => {
     await page.locator('select').selectOption('4')

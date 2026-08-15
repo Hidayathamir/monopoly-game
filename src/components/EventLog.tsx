@@ -15,7 +15,7 @@ export default function EventLog({ log }: Props) {
   const visible = expanded ? log : log.slice(-2)
 
   return (
-    <div className="w-full border-t border-border pt-2">
+    <div className="shrink w-full border-t border-border pt-2">
       <div
         data-testid="event-log"
         ref={ref}
