@@ -1,6 +1,6 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player } from '../types/game';
 import { formatMoney } from '../utils/format';
-import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE } from '../data/board';
+import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard } from './rent';
@@ -407,7 +407,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const space = state.board[action.spaceId];
       const player = state.players[state.currentPlayer];
       if (space.houses <= 0) return state;
-      const refund = Math.floor(getHouseCost(space, space.houses - 1) / 2);
+      const refund = Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE);
       const newBoard = [...state.board];
       newBoard[action.spaceId] = { ...space, houses: space.houses - 1 };
       const newPlayers = [...state.players];
@@ -459,10 +459,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const space = state.board[action.spaceId];
       const player = state.players[state.currentPlayer];
       if (space.owner !== state.currentPlayer) return state;
-      if (space.mortgaged || space.houses > 0) return state;
-      const sellValue = Math.floor((space.price ?? 0) / 2);
+      if (space.houses > 0) return state;
+      const sellValue = space.mortgaged
+        ? Math.floor((space.price ?? 0) * MORTGAGED_SELL_EXTRA)
+        : Math.floor((space.price ?? 0) * SELL_RATE);
       const newBoard = [...state.board];
-      newBoard[action.spaceId] = { ...space, owner: null };
+      newBoard[action.spaceId] = { ...space, owner: null, mortgaged: false };
       const newPlayers = [...state.players];
       newPlayers[state.currentPlayer] = {
         ...player,

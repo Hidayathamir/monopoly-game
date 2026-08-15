@@ -274,14 +274,14 @@ describe('gameReducer', () => {
   });
 
   describe('SELL_HOUSE', () => {
-    it('sells a house for half price', () => {
+    it('sells a house for 75% of its build cost', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
       state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 2 } : s)) };
 
       const s1 = gameReducer(state, { type: GameActionType.SellHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(1);
-      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 25000000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 37500000);
     });
   });
 
@@ -318,6 +318,40 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.Unmortgage, spaceId: 1 });
       expect(s1.board[1].mortgaged).toBe(false);
       expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 - cost);
+    });
+  });
+
+  describe('SELL_PROPERTY', () => {
+    it('sells an unmortgaged property for 75% of price', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 1);
+
+      const s1 = gameReducer(state, { type: GameActionType.SellProperty, spaceId: 1 });
+      expect(s1.board[1].owner).toBeNull();
+      expect(s1.board[1].mortgaged).toBe(false);
+      expect(s1.players[0].properties).not.toContain(1);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 45000000);
+    });
+
+    it('sells a mortgaged property for an extra 10% on top of mortgage', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 1);
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, mortgaged: true } : s)) };
+
+      const s1 = gameReducer(state, { type: GameActionType.SellProperty, spaceId: 1 });
+      expect(s1.board[1].owner).toBeNull();
+      expect(s1.board[1].mortgaged).toBe(false);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 60000000 + 6000000);
+    });
+
+    it('cannot sell a property that still has houses', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 1);
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 1 } : s)) };
+
+      const s1 = gameReducer(state, { type: GameActionType.SellProperty, spaceId: 1 });
+      expect(s1.board[1].owner).toBe(0);
+      expect(s1.players[0].properties).toContain(1);
     });
   });
 
