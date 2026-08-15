@@ -206,4 +206,92 @@ describe('GameServer', () => {
     server.join('c9', 'Alice')
     expect(server.getPlayers()[0].connected).toBe(true)
   })
+
+  it('host adds a bot to an empty seat', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    const players = server.getPlayers()
+    expect(players[1].isBot).toBe(true)
+    expect(players[1].connected).toBe(true)
+    expect(players[1].name).toBeTruthy()
+  })
+
+  it('rejects addBot from a non-host', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.addBot('c1')
+    expect(sent.some((m) => m.type === 'error')).toBe(true)
+    expect(server.getPlayers().filter((p) => p.isBot)).toHaveLength(0)
+  })
+
+  it('rejects addBot when the game has started', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+    server.addBot('c0')
+    expect(server.getPlayers().filter((p) => p.isBot)).toHaveLength(1)
+  })
+
+  it('removes a bot seat', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.removeBot('c0', 1)
+    expect(server.getPlayers()[1].isBot).toBe(false)
+    expect(server.getPlayers()[1].name).toBeNull()
+  })
+
+  it('a joining human replaces the newest bot when all seats are bots', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.addBot('c0')
+    server.addBot('c0')
+    server.addBot('c0')
+    server.addBot('c0')
+    server.join('c1', 'Bob')
+    const players = server.getPlayers()
+    expect(players[5].name).toBe('Bob')
+    expect(players[5].isBot).toBe(false)
+    expect(players.filter((p) => p.isBot)).toHaveLength(4)
+  })
+
+  it('starts the game including bot players with isBot stamped', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+    expect(server.getState().players.map((p) => p.isBot)).toEqual([false, true])
+    expect(server.getState().players.map((p) => p.name)).toEqual(['Alice', expect.any(String)])
+  })
+
+  it('auto-plays a full bot turn', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+
+    server.handleAction('c0', { type: 'END_TURN' })
+    expect(server.getState().currentPlayer).toBe(1)
+
+    vi.advanceTimersByTime(700) // bot roll triggered by driveBots
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    expect(server.getState().dice).toEqual([1, 4])
+
+    vi.advanceTimersByTime(500 + 5 * 150) // RESOLVE_SPACE (space 5, unowned, not passed Go → Waiting)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(700) // bot END_TURN
+    expect(server.getState().currentPlayer).toBe(0)
+    expect(server.getState().dice).toBeNull()
+    vi.useRealTimers()
+  })
 })

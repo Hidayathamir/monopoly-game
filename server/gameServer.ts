@@ -1,6 +1,8 @@
 import { gameReducer, createInitialState } from '../src/logic/gameReducer'
 import { GamePhase, type GameState, type GameAction } from '../src/types/game'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
+import { decideBotAction } from '../src/logic/bot'
+import { BOT_NAMES } from '../src/data/bots'
 
 export type ClientId = string
 
@@ -14,6 +16,7 @@ interface Slot {
   clientId: ClientId | null
   name: string | null
   connected: boolean
+  isBot: boolean
 }
 
 const MAX_PLAYERS = 6
@@ -24,11 +27,13 @@ export class GameServer {
     clientId: null,
     name: null,
     connected: false,
+    isBot: false,
   }))
   private events: GameServerEvents
   private rng: () => number
   private code: string
   private hostSlotIndex = 0
+  private botSteps = 0
 
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string }) {
     this.events = events
@@ -49,7 +54,7 @@ export class GameServer {
   }
 
   getPlayers(): LobbyPlayer[] {
-    return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected }))
+    return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected, isBot: s.isBot }))
   }
 
   join(clientId: ClientId, name: string): boolean {
@@ -85,13 +90,18 @@ export class GameServer {
       return false
     }
 
-    const index = this.slots.findIndex((s) => s.clientId === null)
+    let index = this.slots.findIndex((s) => s.clientId === null && !s.isBot)
+    if (index === -1) {
+      for (let i = this.slots.length - 1; i >= 0; i--) {
+        if (this.slots[i].isBot) { index = i; break }
+      }
+    }
     if (index === -1) {
       this.events.send(clientId, { type: 'error', message: 'Ruangan penuh (maks 6 pemain)' })
       return false
     }
 
-    this.slots[index] = { clientId, name: trimmed, connected: true }
+    this.slots[index] = { clientId, name: trimmed, connected: true, isBot: false }
     this.events.send(clientId, {
       type: 'welcome',
       playerId: index,
@@ -104,6 +114,41 @@ export class GameServer {
     return true
   }
 
+  addBot(clientId: ClientId): void {
+    if (!this.isHost(clientId)) {
+      this.events.send(clientId, { type: 'error', message: 'Hanya host yang bisa menambah bot' })
+      return
+    }
+    if (this.state.phase !== GamePhase.Setup) {
+      this.events.send(clientId, { type: 'error', message: 'Bot hanya bisa ditambah sebelum permainan dimulai' })
+      return
+    }
+    const index = this.slots.findIndex((s) => s.clientId === null && !s.isBot)
+    if (index === -1) {
+      this.events.send(clientId, { type: 'error', message: 'Ruangan penuh (maks 6 pemain)' })
+      return
+    }
+    const used = new Set(this.slots.map((s) => s.name).filter((n): n is string => n !== null))
+    const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${index + 1}`
+    this.slots[index] = { clientId: null, name, connected: true, isBot: true }
+    this.broadcast()
+  }
+
+  removeBot(clientId: ClientId, playerId: number): void {
+    if (!this.isHost(clientId)) {
+      this.events.send(clientId, { type: 'error', message: 'Hanya host yang bisa menghapus bot' })
+      return
+    }
+    if (this.state.phase !== GamePhase.Setup) {
+      this.events.send(clientId, { type: 'error', message: 'Bot hanya bisa dihapus sebelum permainan dimulai' })
+      return
+    }
+    const slot = this.slots[playerId]
+    if (!slot || !slot.isBot) return
+    this.slots[playerId] = { clientId: null, name: null, connected: false, isBot: false }
+    this.broadcast()
+  }
+
   start(clientId: ClientId): void {
     const slot = this.slots.find((s) => s.clientId === clientId)
     if (!slot || this.slots.indexOf(slot) !== this.hostSlotIndex) {
@@ -112,7 +157,7 @@ export class GameServer {
     }
     if (this.state.phase !== GamePhase.Setup) return
 
-    const joined = this.slots.filter((s) => s.clientId !== null)
+    const joined = this.slots.filter((s) => s.clientId !== null || s.isBot)
     if (joined.length < 2) {
       this.events.send(clientId, { type: 'error', message: 'Butuh minimal 2 pemain' })
       return
@@ -122,6 +167,7 @@ export class GameServer {
       type: 'START_GAME',
       playerCount: joined.length,
       names: joined.map((s, i) => s.name ?? `P${i + 1}`),
+      isBot: joined.map((s) => s.isBot),
     })
   }
 
@@ -133,9 +179,15 @@ export class GameServer {
     }
 
     if (this.state.phase === GamePhase.Setup) {
-      this.slots[index] = { clientId: null, name: null, connected: false }
+      this.slots[index] = { clientId: null, name: null, connected: false, isBot: false }
       if (index === this.hostSlotIndex) {
         this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
+      }
+      const hasHuman = this.slots.some((s) => s.clientId !== null || (s.name !== null && !s.isBot))
+      if (!hasHuman) {
+        this.slots.forEach((s, i) => {
+          if (s.isBot) this.slots[i] = { clientId: null, name: null, connected: false, isBot: false }
+        })
       }
     } else {
       this.slots[index].connected = false
@@ -156,7 +208,10 @@ export class GameServer {
       this.events.send(clientId, { type: 'error', message: 'Belum bisa melempar dadu' })
       return
     }
+    this.startRoll()
+  }
 
+  private startRoll(): void {
     this.dispatch({ type: 'ROLL_DICE' })
     const d1 = 1 + Math.floor(this.rng() * 6)
     const d2 = 1 + Math.floor(this.rng() * 6)
@@ -205,6 +260,11 @@ export class GameServer {
     return index !== -1 && index === this.state.currentPlayer
   }
 
+  private isHost(clientId: ClientId): boolean {
+    const slot = this.slots.find((s) => s.clientId === clientId)
+    return slot !== undefined && this.slots.indexOf(slot) === this.hostSlotIndex
+  }
+
   private dispatch(action: GameAction): void {
     this.applyAction(action)
     this.skipLeftPlayers()
@@ -214,12 +274,13 @@ export class GameServer {
     this.state = gameReducer(this.state, action)
     this.broadcast()
     this.scheduleAutoSteps()
+    this.driveBots()
   }
 
   private nextConnectedSlot(from: number): number {
     for (let i = 1; i <= MAX_PLAYERS; i++) {
       const idx = (from + i) % MAX_PLAYERS
-      if (this.slots[idx].connected) return idx
+      if (this.slots[idx].connected && !this.slots[idx].isBot) return idx
     }
     return from
   }
@@ -261,6 +322,30 @@ export class GameServer {
         }
       }, 300)
     }
+  }
+
+  private driveBots(): void {
+    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
+    const slot = this.slots[this.state.currentPlayer]
+    if (!slot?.isBot) {
+      this.botSteps = 0
+      return
+    }
+    const action = decideBotAction(this.state)
+    if (!action) {
+      this.botSteps = 0
+      return
+    }
+    if (this.botSteps >= 100) return
+    this.botSteps++
+    setTimeout(() => {
+      const current = this.slots[this.state.currentPlayer]
+      if (!current?.isBot) return
+      const actionNow = decideBotAction(this.state)
+      if (!actionNow) return
+      if (actionNow.type === 'ROLL_DICE') this.startRoll()
+      else this.dispatch(actionNow)
+    }, 700)
   }
 
   private broadcast(): void {

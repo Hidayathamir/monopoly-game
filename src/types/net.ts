@@ -1,6 +1,6 @@
 import type { GameState, GameAction } from './game'
 
-export type LobbyPlayer = { id: number; name: string | null; connected: boolean }
+export type LobbyPlayer = { id: number; name: string | null; connected: boolean; isBot: boolean }
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'
 
@@ -9,6 +9,8 @@ export type ClientMessage =
   | { type: 'join'; code: string; name: string }
   | { type: 'start' }
   | { type: 'leave' }
+  | { type: 'addBot' }
+  | { type: 'removeBot'; playerId: number }
   | { type: 'action'; action: GameAction }
 
 export type ServerMessage =

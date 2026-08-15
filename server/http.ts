@@ -81,6 +81,10 @@ export function createServer(distDir = 'dist') {
         } else if (msg.type === 'leave') {
           roomManager.gameFor(clientId)?.leave(clientId)
           roomManager.removeClient(clientId)
+        } else if (msg.type === 'addBot') {
+          roomManager.gameFor(clientId)?.addBot(clientId)
+        } else if (msg.type === 'removeBot') {
+          roomManager.gameFor(clientId)?.removeBot(clientId, msg.playerId)
         } else if (msg.type === 'action') {
           roomManager.gameFor(clientId)?.handleAction(clientId, msg.action)
         }
