@@ -3,7 +3,7 @@
   { "id": 1, "name": "Cirebon", "type": "property", "price": 60, "rent": [2, 10, 30, 90, 160, 250], "houseCost": [25, 50, 75, 100, 150], "color": "#8B4513" },
   { "id": 2, "name": "Dana Umum", "type": "community" },
   { "id": 3, "name": "Tegal", "type": "property", "price": 60, "rent": [4, 20, 60, 180, 320, 450], "houseCost": [25, 50, 75, 100, 150], "color": "#8B4513" },
-  { "id": 4, "name": "Pajak Penghasilan", "type": "tax", "price": 200 },
+  { "id": 4, "name": "Pajak Penghasilan", "type": "tax", "taxType": "income" },
   { "id": 5, "name": "St. Gambir", "type": "railroad", "price": 200, "rent": [25, 50, 100, 200] },
   { "id": 6, "name": "Pekalongan", "type": "property", "price": 100, "rent": [6, 30, 90, 270, 400, 550], "houseCost": [25, 50, 75, 100, 150], "color": "#87CEEB" },
   { "id": 7, "name": "Kesempatan", "type": "chance" },
@@ -37,6 +37,6 @@
   { "id": 35, "name": "St. Soetta", "type": "railroad", "price": 200, "rent": [25, 50, 100, 200] },
   { "id": 36, "name": "Kesempatan", "type": "chance" },
   { "id": 37, "name": "Jakarta", "type": "property", "price": 350, "rent": [35, 175, 500, 1100, 1300, 1500], "houseCost": [100, 200, 300, 400, 500], "color": "#00008B" },
-  { "id": 38, "name": "Pajak Mewah", "type": "tax", "price": 100 },
+  { "id": 38, "name": "Pajak Mewah", "type": "tax", "taxType": "luxury", "price": 100 },
   { "id": 39, "name": "Bali", "type": "property", "price": 400, "rent": [50, 200, 600, 1400, 1700, 2000], "houseCost": [100, 200, 300, 400, 500], "color": "#00008B" }
 ]

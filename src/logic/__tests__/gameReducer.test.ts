@@ -452,14 +452,26 @@ describe('gameReducer', () => {
   });
 
   describe('tax handling', () => {
-    it('pays income tax to free parking', () => {
+    it('pays income tax (10% of net worth) to free parking', () => {
       let state = makeStartedState();
       state = setPosition(state, 0, 4);
       state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
 
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
-      expect(s1.players[0].money).toBe(STARTING_MONEY - 200000000);
-      expect(s1.freeParkingPot).toBe(200000000);
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 150000000);
+      expect(s1.freeParkingPot).toBe(150000000);
+      expect(s1.eventLog.some((e) => e.includes('pajak penghasilan') && e.includes('10%'))).toBe(true);
+    });
+
+    it('pays flat luxury tax to free parking', () => {
+      let state = makeStartedState();
+      state = setPosition(state, 0, 38);
+      state = { ...state, phase: GamePhase.Resolving, dice: [2, 2] };
+
+      const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
+      expect(s1.players[0].money).toBe(STARTING_MONEY - 100000000);
+      expect(s1.freeParkingPot).toBe(100000000);
+      expect(s1.eventLog.some((e) => e.includes('pajak mewah'))).toBe(true);
     });
 
     it('collects free parking jackpot', () => {

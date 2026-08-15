@@ -77,3 +77,14 @@ export function getPlayerTotalAssets(player: Player, board: Space[]): number {
   }
   return total;
 }
+
+export function getPlayerNetWorth(player: Player, board: Space[]): number {
+  let total = player.money;
+  for (const pid of player.properties) {
+    const space = board[pid];
+    if (!space) continue;
+    total += space.price ?? 0;
+    total += getTotalHouseInvestment(space);
+  }
+  return total;
+}

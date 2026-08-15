@@ -1,9 +1,9 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player } from '../types/game';
 import { formatMoney } from '../utils/format';
-import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board';
+import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
-import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
+import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly, getPlayerNetWorth } from './rent';
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -260,18 +260,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case SpaceType.Tax: {
-          const taxAmount = space.price ?? 100000;
+          const isIncome = space.taxType === 'income';
+          const netWorth = isIncome ? getPlayerNetWorth(player, state.board) : 0;
+          const taxAmount = isIncome
+            ? Math.floor(netWorth * INCOME_TAX_RATE)
+            : (space.price ?? 0);
           const newPlayers = [...state.players];
           newPlayers[state.currentPlayer] = {
             ...newPlayers[state.currentPlayer],
             money: player.money - taxAmount,
           };
+          const message = isIncome
+            ? `${player.name} membayar pajak penghasilan ${formatMoney(taxAmount)} (10% dari total aset ${formatMoney(netWorth)})`
+            : `${player.name} membayar pajak mewah ${formatMoney(taxAmount)}`;
           return {
             ...state,
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: state.freeParkingPot + taxAmount,
-            eventLog: [...state.eventLog, `${player.name} membayar pajak ${formatMoney(taxAmount)}`],
+            eventLog: [...state.eventLog, message],
           };
         }
 

@@ -53,6 +53,7 @@ export function createInitialBoard(): Space[] {
     owner: null,
     houses: 0,
     mortgaged: false,
+    taxType: item.taxType as Space['taxType'] | undefined,
   }));
 }
 

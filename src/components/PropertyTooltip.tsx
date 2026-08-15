@@ -37,6 +37,13 @@ export default function PropertyTooltip({
       {space.type === 'freeParking' && (
         <div className="text-sm text-text-dim">Jackpot saat ini: <strong className="text-green-money">{formatMoney(state.freeParkingPot)}</strong></div>
       )}
+      {space.type === 'tax' && (
+        <div className="text-sm text-text-dim">
+          {space.taxType === 'income'
+            ? 'Bayar 10% dari total aset (uang + properti + rumah)'
+            : `Bayar ${formatMoney(space.price)} (pajak tetap)`}
+        </div>
+      )}
       {isBuyable && space.price && (
         <>
           <div className="text-sm text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>

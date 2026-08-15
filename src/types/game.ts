@@ -104,6 +104,7 @@ export type Space = {
   owner: number | null;
   houses: number;
   mortgaged: boolean;
+  taxType?: 'income' | 'luxury';
 };
 
 export type Card = {
