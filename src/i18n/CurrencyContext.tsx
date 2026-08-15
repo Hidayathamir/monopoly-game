@@ -41,6 +41,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCurrency(): CurrencyContextValue {
   const ctx = useContext(CurrencyContext)
   if (!ctx) throw new Error('useCurrency must be used within a CurrencyProvider')
