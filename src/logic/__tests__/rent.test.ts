@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePropertyRent } from '../rent';
+import { calculatePropertyRent, isMonopoly } from '../rent';
 import { SpaceType, type Space } from '../../types/game';
 
 function makeSpace(overrides: Partial<Space> = {}): Space {
@@ -72,5 +72,29 @@ describe('utility rent', () => {
   it('4x dice roll for 1 utility', () => {
     const pln = makeSpace({ type: SpaceType.Utility, name: 'PLN', price: 150000, rent: [0] });
     expect(calculatePropertyRent(pln, [3, 4])).toBe(28);
+  });
+});
+
+describe('isMonopoly', () => {
+  function boardWithColor(color: string, owner: number, count: number): Space[] {
+    return Array.from({ length: count }, (_, i) =>
+      makeSpace({ id: i, color, owner, type: SpaceType.Property })
+    );
+  }
+
+  it('is a monopoly when all properties of a color are owned', () => {
+    const board = boardWithColor('#8B4513', 0, 2);
+    expect(isMonopoly(0, board, board[0])).toBe(true);
+  });
+
+  it('is not a monopoly when a color group is split between owners', () => {
+    const board = boardWithColor('#8B4513', 0, 2);
+    board[1] = { ...board[1], owner: 1 };
+    expect(isMonopoly(0, board, board[0])).toBe(false);
+  });
+
+  it('is not a monopoly for non-property (railroad) spaces', () => {
+    const railroad = makeSpace({ type: SpaceType.Railroad, color: undefined });
+    expect(isMonopoly(0, [railroad], railroad)).toBe(false);
   });
 });

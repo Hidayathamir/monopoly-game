@@ -58,6 +58,12 @@ export function calculateUtilityRentFromBoard(ownerId: number, board: Space[], _
   return count === 2 ? total * 10 : total * 4;
 }
 
+export function isMonopoly(ownerId: number, board: Space[], space: Space): boolean {
+  if (space.type !== SpaceType.Property || space.color == null) return false;
+  const group = board.filter((s) => s.type === SpaceType.Property && s.color === space.color);
+  return group.length > 0 && group.every((s) => s.owner === ownerId);
+}
+
 export function getPlayerTotalAssets(player: Player, board: Space[]): number {
   let total = player.money;
   for (const pid of player.properties) {

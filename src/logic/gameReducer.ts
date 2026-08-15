@@ -3,7 +3,7 @@ import { formatMoney } from '../utils/format';
 import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
-import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard } from './rent';
+import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -280,12 +280,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case SpaceType.Utility: {
           if (space.owner !== null && space.owner !== state.currentPlayer && !space.mortgaged) {
             let rent: number;
+            let monopoly = false;
             if (space.type === SpaceType.Railroad) {
               rent = calculateRailroadRentFromBoard(space.owner, state.board, space.id);
             } else if (space.type === SpaceType.Utility) {
               rent = calculateUtilityRentFromBoard(space.owner, state.board, space.id, state.dice ?? [1, 1]);
             } else {
               rent = calculatePropertyRent(space);
+              monopoly = space.houses === 0 && isMonopoly(space.owner, state.board, space);
+              if (monopoly) rent *= 2;
             }
 
             const currentPlayer = state.players[state.currentPlayer];
@@ -298,6 +301,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               ...state,
               phase: GamePhase.Resolving,
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
+              eventLog: monopoly
+                ? [...state.eventLog, `${owner.name} memiliki komplek lengkap — sewa ${currentPlayer.name} jadi 2x!`]
+                : state.eventLog,
             };
           } else if (space.owner === null) {
             if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, `${player.name} harus mengelilingi papan 1x sebelum membeli properti`] }

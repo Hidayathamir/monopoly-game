@@ -28,4 +28,15 @@ describe('PropertyTooltip', () => {
     render(<PropertyTooltip space={mortgagedSpace} state={makeState(100000000)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
     expect(screen.getByRole('button', { name: /Tebus/ })).toBeEnabled()
   })
+
+  it('shows monopoly 2x notice when owner has full color group with no houses', () => {
+    const s = makeState(100000000)
+    const board = s.board.map((b) => {
+      if (b.color === '#8B4513' && b.type === 'property') return { ...b, owner: 0 }
+      return b
+    })
+    const space = { ...board[1], houses: 0, owner: 0 }
+    render(<PropertyTooltip space={space} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    expect(screen.getByText(/Komplek lengkap/)).toBeTruthy()
+  })
 })

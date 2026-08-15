@@ -2,6 +2,7 @@ import { type GameState, type Space } from '../types/game'
 import { formatMoney } from '../utils/format'
 import { getHouseCost } from '../data/board'
 import { GO_SALARY } from '../data/board'
+import { isMonopoly } from '../logic/rent'
 import Button from './Button'
 
 interface Props {
@@ -61,6 +62,11 @@ export default function PropertyTooltip({
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">1 Perusahaan: 4× Dadu</div>
               <div className="text-text-dim">2 Perusahaan: 10× Dadu</div>
+            </div>
+          )}
+          {space.type === 'property' && space.owner !== null && space.houses === 0 && isMonopoly(space.owner, state.board, space) && (
+            <div className="my-1 p-1 bg-bg-darker rounded text-sm text-gold font-semibold">
+              Komplek lengkap: sewa 2x ({formatMoney((space.rent?.[0] ?? 0) * 2)})
             </div>
           )}
           {space.houseCost && <div className="text-sm text-text-dim">Biaya rumah selanjutnya: {formatMoney(nextHouseCost)}</div>}
