@@ -43,10 +43,9 @@ export default function LanguageCurrencyBar() {
         aria-label={t('settings.toggle')}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 bg-bg-dark/80 border border-border-light rounded-lg px-2 py-1 text-xs text-text cursor-pointer hover:opacity-90"
+        className="flex items-center justify-center bg-bg-dark/80 border border-border-light rounded-lg px-2 py-1 text-xs text-text cursor-pointer hover:opacity-90"
       >
         <span aria-hidden>🌐</span>
-        <span>{i18n.language.toUpperCase()} · {currency}</span>
       </button>
     </div>
   )
