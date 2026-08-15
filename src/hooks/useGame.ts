@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useEffect, useRef } from 'react'
+import { useReducer, useCallback, useEffect } from 'react'
 import { GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
 import { gameReducer, createInitialState } from '../logic/gameReducer'
 
@@ -80,18 +80,6 @@ export function useGame() {
       return () => clearTimeout(t)
     }
   }, [state.pendingAction])
-
-  const wasInJailRef = useRef<Record<number, boolean>>({})
-  useEffect(() => {
-    const player = state.players[state.currentPlayer]
-    if (!player) return
-    const wasInJail = wasInJailRef.current[player.id] ?? false
-    wasInJailRef.current[player.id] = player.inJail
-    if (player.inJail && !wasInJail && state.phase === GamePhase.Waiting && !state.pendingAction) {
-      const t = setTimeout(() => dispatch({ type: 'END_TURN' }), 300)
-      return () => clearTimeout(t)
-    }
-  }, [state.players, state.phase, state.pendingAction, state.currentPlayer])
 
   return {
     state,

@@ -2,7 +2,8 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useGame } from '../useGame'
-import { GamePhase } from '../../types/game'
+import { GameActionType, GamePhase } from '../../types/game'
+import { gameReducer, createInitialState } from '../../logic/gameReducer'
 
 describe('useGame doubles auto-advance', () => {
   beforeEach(() => {
@@ -37,5 +38,48 @@ describe('useGame doubles auto-advance', () => {
     expect(result.current.state.dice).toEqual([4, 4])
     expect(result.current.state.currentPlayer).toBe(0)
     expect(result.current.state.eventLog.some((e) => e.key === 'event.doublesAgain')).toBe(false)
+  })
+})
+
+describe('useGame jailed player turn', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('does not auto-skip a jailed player\'s turn', () => {
+    // Drive Alice into jail via triple doubles, then let Bob end his turn so it is Alice's turn again.
+    let s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
+    s = gameReducer(s, { type: GameActionType.RollDice })
+    s = gameReducer(s, { type: GameActionType.DiceAnimated, dice: [6, 6] })
+    s = gameReducer(s, { type: GameActionType.ResolveSpace })
+    s = gameReducer(s, { type: GameActionType.RollDice })
+    s = gameReducer(s, { type: GameActionType.DiceAnimated, dice: [6, 6] })
+    s = gameReducer(s, { type: GameActionType.ResolveSpace })
+    s = gameReducer(s, { type: GameActionType.RollDice })
+    s = gameReducer(s, { type: GameActionType.DiceAnimated, dice: [6, 6] }) // triple doubles → jail, turn passes to Bob
+    s = gameReducer(s, { type: GameActionType.EndTurn }) // Bob ends → Alice (jailed) is current
+
+    expect(s.players[0].inJail).toBe(true)
+    expect(s.currentPlayer).toBe(0)
+    expect(s.phase).toBe(GamePhase.Waiting)
+
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 6 })),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useGame())
+    expect(result.current.state.currentPlayer).toBe(0)
+    expect(result.current.state.players[0].inJail).toBe(true)
+
+    act(() => vi.advanceTimersByTime(500))
+    expect(result.current.state.currentPlayer).toBe(0)
+    expect(result.current.state.players[0].inJail).toBe(true)
   })
 })
