@@ -1,8 +1,5 @@
 import { CardType, type Card, type CardEffect } from '../types/game';
-import config from './game-config.json';
 import cardsData from './cards-data.json';
-
-const m = config.priceMultiplier;
 
 type RawEffect = {
   action: string;
@@ -21,16 +18,8 @@ interface CardsData {
 
 const data = cardsData as unknown as CardsData;
 
-function scaleEffect(effect: RawEffect): CardEffect {
-  const scaled = { ...effect };
-  if ('amount' in scaled && scaled.amount !== undefined) scaled.amount *= m;
-  if ('perHouse' in scaled && scaled.perHouse !== undefined) scaled.perHouse *= m;
-  if ('perHotel' in scaled && scaled.perHotel !== undefined) scaled.perHotel *= m;
-  return scaled as unknown as CardEffect;
-}
-
 function toCards(raw: RawCard[], type: CardType): Card[] {
-  return raw.map((c) => ({ id: c.id, description: c.description, type, effect: scaleEffect(c.effect) }));
+  return raw.map((c) => ({ id: c.id, description: c.description, type, effect: c.effect as unknown as CardEffect }));
 }
 
 export const CHANCE_CARDS: Card[] = toCards(data.chance, CardType.Chance);

@@ -2,7 +2,6 @@
   "goSalary": 200,
   "jailFine": 50,
   "startingMoney": 1500,
-  "priceMultiplier": 1000000,
   "incomeTaxRate": 0.1,
   "sellRate": 0.75,
   "mortgagedSellExtra": 0.1,
