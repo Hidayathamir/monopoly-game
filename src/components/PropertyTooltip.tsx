@@ -4,14 +4,9 @@ import { getHouseCost } from '../data/board'
 import { GO_SALARY } from '../data/board'
 import Button from './Button'
 
-export type CellSide = 'top' | 'right' | 'bottom' | 'left' | 'corner'
-
 interface Props {
   space: Space
   state: GameState
-  rect: DOMRect
-  boardRect: DOMRect
-  side: CellSide
   onSell: (id: number) => void
   onMortgage: (id: number) => void
   onUnmortgage: (id: number) => void
@@ -20,7 +15,7 @@ interface Props {
 }
 
 export default function PropertyTooltip({
-  space, state, rect, boardRect, side, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty,
+  space, state, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty,
 }: Props) {
   const owner = space.owner !== null ? state.players[space.owner] : null
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
@@ -36,57 +31,9 @@ export default function PropertyTooltip({
   const nextHouseCost = getHouseCost(space, space.houses)
   const canAffordBuild = state.players[state.currentPlayer]?.money >= nextHouseCost
 
-  const gap = 6
-  const top = rect.top - boardRect.top
-  const left = rect.left - boardRect.left
-  const topCorner = space.id === 20 || space.id === 30
-
-  let tooltipStyle: React.CSSProperties
-  switch (side) {
-    case 'left':
-      tooltipStyle = {
-        position: 'absolute', top: top + rect.height + gap, left: left + rect.width / 2,
-        bottom: 'auto', right: 'auto', transform: 'translateX(-50%)',
-      }
-      break
-    case 'right':
-      tooltipStyle = {
-        position: 'absolute', top: top + rect.height / 2, left: left - gap,
-        bottom: 'auto', right: 'auto', transform: 'translate(-100%, -50%)',
-      }
-      break
-    case 'top':
-      tooltipStyle = {
-        position: 'absolute', top: top + rect.height / 2, left: left + rect.width + gap,
-        bottom: 'auto', right: 'auto', transform: 'translateY(-50%)',
-      }
-      break
-    case 'corner':
-      if (topCorner) {
-        tooltipStyle = {
-          position: 'absolute', top: top + rect.height + gap, left: left + rect.width / 2,
-          bottom: 'auto', right: 'auto', transform: 'translateX(-50%)',
-        }
-      } else {
-        tooltipStyle = {
-          position: 'absolute', top: top - gap, left: left + rect.width / 2,
-          bottom: 'auto', right: 'auto', transform: 'translate(-50%, -100%)',
-        }
-      }
-      break
-    case 'bottom':
-    default:
-      tooltipStyle = {
-        position: 'absolute', top: top - gap, left: left + rect.width / 2,
-        bottom: 'auto', right: 'auto', transform: 'translate(-50%, -100%)',
-      }
-      break
-  }
-
   return (
     <div
-      className="absolute bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[160px] z-[999] shadow-lg pointer-events-auto"
-      style={tooltipStyle}
+      className="bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[160px] shadow-lg pointer-events-auto"
     >
       <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
         <strong>{space.name}</strong>

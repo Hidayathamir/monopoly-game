@@ -16,7 +16,7 @@ interface Props {
 export default function GameBoard({ state, children, onSell, onMortgage, onUnmortgage, onBuild, onSellProperty }: Props) {
   return (
     <div className="flex items-center justify-center w-screen h-screen">
-      <div data-game-board className="relative w-[min(calc(100vw-16px),calc(100vh-16px))] aspect-square flex-shrink-0">
+      <div data-game-board className="relative w-[calc(100vw-16px)] h-[calc(100vh-16px)] flex-shrink-0 overflow-hidden">
         <BoardGrid
           state={state}
           playerColors={['#E74C3C', '#3498DB', '#2ECC71', '#F39C12']}

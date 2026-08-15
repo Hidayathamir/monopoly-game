@@ -3,20 +3,29 @@ import type { TradeOffer } from '../types/game';
 import { gameReducer, createInitialState } from '../logic/gameReducer';
 
 const STORAGE_KEY = 'monopoly-game-state';
+const STATE_VERSION = 4;
 
 function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch {}
-  return null;
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (parsed._version !== STATE_VERSION) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
 }
 
 export function useGame() {
   const [state, dispatch] = useReducer(gameReducer, null, () => loadState() || createInitialState());
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, _version: STATE_VERSION }));
   }, [state]);
 
   const startGame = useCallback((playerCount: number, names: string[]) => {
