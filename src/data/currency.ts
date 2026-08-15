@@ -12,7 +12,7 @@ export const CURRENCIES: Record<Currency, CurrencyDef> = {
   IDR: { code: 'IDR', multiplier: 1_000_000, locale: 'id-ID', currency: 'IDR' },
 }
 
-export const DEFAULT_CURRENCY: Currency = 'IDR'
+export const DEFAULT_CURRENCY: Currency = 'USD'
 
 export function formatMoney(amount: number | undefined, currency: Currency = DEFAULT_CURRENCY): string {
   if (amount === undefined) amount = 0
@@ -21,6 +21,7 @@ export function formatMoney(amount: number | undefined, currency: Currency = DEF
   return new Intl.NumberFormat(def.locale, {
     style: 'currency',
     currency: def.currency,
-    maximumFractionDigits: 0,
+    notation: 'compact',
+    maximumFractionDigits: 1,
   }).format(value)
 }
