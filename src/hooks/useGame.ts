@@ -81,6 +81,15 @@ export function useGame() {
     }
   }, [state.pendingAction])
 
+  useEffect(() => {
+    const dice = state.dice
+    const isDoubles = dice !== null && dice[0] === dice[1]
+    if (state.phase === GamePhase.Waiting && !state.pendingAction && isDoubles && state.doublesCount > 0) {
+      const t = setTimeout(() => dispatch({ type: 'END_TURN' }), 500)
+      return () => clearTimeout(t)
+    }
+  }, [state.phase, state.pendingAction, state.dice, state.doublesCount])
+
   const wasInJailRef = useRef<Record<number, boolean>>({})
   useEffect(() => {
     const player = state.players[state.currentPlayer]

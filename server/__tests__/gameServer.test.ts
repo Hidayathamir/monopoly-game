@@ -112,6 +112,29 @@ describe('GameServer', () => {
     expect(server.getState().dice).toBeNull()
   })
 
+  it('auto-advances to roll again after doubles (no explicit end turn)', () => {
+    vi.useFakeTimers()
+    const rng = () => 0.5 // dice [4,4], doubles
+    const { server } = setup(rng)
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.roll('c0')
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    expect(server.getState().dice).toEqual([4, 4])
+    expect(server.getState().doublesCount).toBe(1)
+
+    vi.advanceTimersByTime(500 + 8 * 150) // RESOLVE_SPACE (space 8 = Semarang, unowned)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(500) // auto END_TURN
+    expect(server.getState().dice).toBeNull()
+    expect(server.getState().currentPlayer).toBe(0)
+    expect(server.getState().eventLog.some((e) => e.includes('main lagi'))).toBe(true)
+    vi.useRealTimers()
+  })
+
   it('does not start with only one connected player after a disconnect', () => {
     const { server } = setup()
     server.join('c0', 'Alice')
