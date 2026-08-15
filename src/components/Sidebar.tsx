@@ -25,11 +25,11 @@ interface Props {
 
 export default function Sidebar({ state, isMyTurn, ...actions }: Props) {
   return (
-    <div
-      data-testid="sidebar"
-      className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
-    >
-      <div className="pointer-events-auto w-[min(380px,92%)] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl border border-panel-border bg-panel backdrop-blur-md shadow-2xl px-5 py-4 flex flex-col gap-4">
+    <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
+      <div
+        data-testid="sidebar"
+        className="pointer-events-auto w-[min(380px,calc((100vw-16px)*9/11-16px))] max-h-[calc((100vh-16px)*9/11-16px)] md:max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl border border-panel-border bg-panel backdrop-blur-md shadow-2xl px-5 py-4 flex flex-col gap-4"
+      >
         <TurnHeader state={state} />
         <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
         <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
