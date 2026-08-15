@@ -1,25 +1,12 @@
-import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type Card } from '../types/game';
+import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player } from '../types/game';
 import { formatMoney } from '../utils/format';
 import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard } from './rent';
-import config from '../data/game-config.json';
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
-}
-
-const m = config.priceMultiplier;
-
-function scaleCards(cards: Card[]): Card[] {
-  return cards.map((c) => {
-    const effect = { ...c.effect }
-    if ('amount' in effect) (effect as { amount: number }).amount *= m
-    if ('perHouse' in effect) (effect as { perHouse: number }).perHouse *= m
-    if ('perHotel' in effect) (effect as { perHotel: number }).perHotel *= m
-    return { ...c, effect } as Card
-  })
 }
 
 export function createInitialState(): GameState {
@@ -28,8 +15,8 @@ export function createInitialState(): GameState {
     players: [],
     currentPlayer: 0,
     board: createInitialBoard(),
-    chanceDeck: scaleCards(shuffle([...CHANCE_CARDS])),
-    communityDeck: scaleCards(shuffle([...COMMUNITY_CARDS])),
+    chanceDeck: shuffle([...CHANCE_CARDS]),
+    communityDeck: shuffle([...COMMUNITY_CARDS]),
     freeParkingPot: 0,
     dice: null,
     doublesCount: 0,

@@ -1,0 +1,26 @@
+{
+  "chance": [
+    { "id": 1, "description": "Majulah ke MULAI.", "effect": { "action": "goToSpace", "spaceId": 0 } },
+    { "id": 2, "description": "Majulah ke Jakarta.", "effect": { "action": "goToSpace", "spaceId": 37 } },
+    { "id": 3, "description": "Majulah ke Bali.", "effect": { "action": "goToSpace", "spaceId": 39 } },
+    { "id": 4, "description": "Majulah ke Stasiun Gambir.", "effect": { "action": "goToSpace", "spaceId": 5 } },
+    { "id": 5, "description": "Bank membayar dividen.", "effect": { "action": "collect", "amount": 50 } },
+    { "id": 6, "description": "Pergilah ke Masuk Penjara. Langsung menuju Penjara tanpa melewati MULAI.", "effect": { "action": "goToJail" } },
+    { "id": 7, "description": "Anda bebas dari Penjara. Simpan kartu ini sampai diperlukan.", "effect": { "action": "getOutOfJailFree" } },
+    { "id": 8, "description": "Bayar perbaikan jalan.", "effect": { "action": "streetRepairs", "perHouse": 25, "perHotel": 100 } },
+    { "id": 9, "description": "Anda berulang tahun! Dapatkan dari setiap pemain.", "effect": { "action": "collectFromPlayers", "amount": 10 } },
+    { "id": 10, "description": "Mundurlah 3 langkah.", "effect": { "action": "goToSpace", "spaceId": -3 } }
+  ],
+  "community": [
+    { "id": 101, "description": "Kesalahan bank! Dapatkan uang.", "effect": { "action": "collect", "amount": 200 } },
+    { "id": 102, "description": "Biaya rumah sakit.", "effect": { "action": "pay", "amount": 100 } },
+    { "id": 103, "description": "Biaya sekolah.", "effect": { "action": "pay", "amount": 50 } },
+    { "id": 104, "description": "Anda bebas dari Penjara. Simpan kartu ini sampai diperlukan.", "effect": { "action": "getOutOfJailFree" } },
+    { "id": 105, "description": "Pergilah ke Masuk Penjara. Langsung menuju Penjara tanpa melewati MULAI.", "effect": { "action": "goToJail" } },
+    { "id": 106, "description": "Dapatkan warisan.", "effect": { "action": "collect", "amount": 100 } },
+    { "id": 107, "description": "Asuransi jiwa jatuh tempo.", "effect": { "action": "collect", "amount": 100 } },
+    { "id": 108, "description": "Kontes kecantikan: Dapatkan hadiah.", "effect": { "action": "collect", "amount": 50 } },
+    { "id": 109, "description": "Bayar premi asuransi.", "effect": { "action": "pay", "amount": 50 } },
+    { "id": 110, "description": "Bayar denda parkir.", "effect": { "action": "pay", "amount": 25 } }
+  ]
+}
