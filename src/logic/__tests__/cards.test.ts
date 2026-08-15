@@ -18,6 +18,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     freeParkingPot: 0,
     dice: null,
     doublesCount: 0,
+    lastMoveSteps: null,
     eventLog: [],
     pendingAction: null,
     ...overrides,
@@ -63,6 +64,25 @@ describe('resolveCardEffect', () => {
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].position).toBe(7);
   });
+
+  it('a forward card that wraps sets passedGo and positive lastMoveSteps', () => {
+    const state = makeState({ players: [{ ...makeState().players[0], position: 7, passedGo: false }] })
+    const card: Card = { id: 4, description: 'Majulah ke Stasiun Gambir.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: 5 } }
+    const result = resolveCardEffect(state, card)
+    expect(result.state.players[0].passedGo).toBe(true)
+    expect(result.state.players[0].money).toBe(500000 + GO_SALARY)
+    expect(result.state.lastMoveSteps).toBe(38) // (5 - 7 + 40) % 40
+  })
+
+  it('a backward card sets negative lastMoveSteps and no passedGo', () => {
+    const state = makeState({ players: [{ ...makeState().players[0], position: 20, passedGo: false }] })
+    const card: Card = { id: 10, description: 'Mundurlah 3 langkah.', type: CardType.Chance, effect: { action: CardActionType.GoToSpace, spaceId: -3 } }
+    const result = resolveCardEffect(state, card)
+    expect(result.state.players[0].position).toBe(17)
+    expect(result.state.players[0].passedGo).toBe(false)
+    expect(result.state.players[0].money).toBe(500000) // no GO salary on a backward move
+    expect(result.state.lastMoveSteps).toBe(-3)
+  })
 
   it('get out of jail free card', () => {
     const state = makeState();

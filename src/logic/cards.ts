@@ -35,11 +35,11 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       return { state: { ...newState, players: newPlayers }, message: `${player.name} mendapat kartu Bebas Penjara!` };
     }
     case CardActionType.GoToSpace: {
-      let targetSpace = effect.spaceId;
-      if (targetSpace < 0) {
-        targetSpace = (player.position + targetSpace + 40) % 40;
-      }
-      return goToSpace(newState, state.currentPlayer, targetSpace);
+      const isBackward = effect.spaceId < 0;
+      const targetSpace = isBackward
+        ? (player.position + effect.spaceId + 40) % 40
+        : effect.spaceId;
+      return goToSpace(newState, state.currentPlayer, targetSpace, isBackward);
     }
     case CardActionType.CollectFromPlayers: {
       const amount = effect.amount;
@@ -79,24 +79,33 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
   }
 }
 
-function goToSpace(state: GameState, playerIndex: number, spaceId: number): CardResolution {
+function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBackward: boolean): CardResolution {
   const player = state.players[playerIndex];
   let newState = { ...state };
   let message = '';
 
-  if (spaceId < player.position) {
+  const passesGo = !isBackward && spaceId < player.position;
+  if (passesGo) {
     newState = updatePlayerMoney(newState, playerIndex, GO_SALARY);
+    newState = setPlayerPassedGo(newState, playerIndex);
     message += `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}. `;
   }
 
+  const steps = isBackward ? spaceId - player.position : (spaceId - player.position + 40) % 40;
   const newPlayers = [...newState.players];
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
-  newState = { ...newState, players: newPlayers };
+  newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
 
   const spaceName = state.board[spaceId].name;
-  message += `${player.name} maju ke ${spaceName}.`;
+  message += `${player.name} ${isBackward ? 'mundur' : 'maju'} ke ${spaceName}.`;
 
   return { state: newState, message };
+}
+
+function setPlayerPassedGo(state: GameState, playerIndex: number): GameState {
+  const newPlayers = [...state.players];
+  newPlayers[playerIndex] = { ...newPlayers[playerIndex], passedGo: true };
+  return { ...state, players: newPlayers };
 }
 
 function updatePlayerMoney(state: GameState, playerIndex: number, amount: number): GameState {
@@ -120,5 +129,5 @@ function sendPlayerToJail(state: GameState, playerIndex: number): GameState {
     inJail: true,
     jailTurns: 0,
   };
-  return { ...state, players: newPlayers };
+  return { ...state, players: newPlayers, lastMoveSteps: null };
 }

@@ -29,27 +29,14 @@ const POSITIONS: Record<number, { x: number; y: number }> = {
   36: c(11, 7), 37: c(11, 8), 38: c(11, 9), 39: c(11, 10),
 }
 
-function getPath(from: number, to: number): number[] {
+// eslint-disable-next-line react-refresh/only-export-components
+export function getPath(from: number, to: number, backward: boolean): number[] {
   if (from === to) return []
+  const steps = backward ? (from - to + 40) % 40 : (to - from + 40) % 40
   const path: number[] = []
   let current = from
-  if (to === 0 && from > 0) {
-    for (let i = 0; i < 40 - from; i++) {
-      current = (current + 1) % 40
-      path.push(current)
-    }
-    return path
-  }
-  if (to < from && from - to <= 12) {
-    for (let i = 0; i < from - to; i++) {
-      current = (current - 1 + 40) % 40
-      path.push(current)
-    }
-    return path
-  }
-  const steps = to > from ? to - from : 40 - from + to
   for (let i = 0; i < steps; i++) {
-    current = (current + 1) % 40
+    current = backward ? (current - 1 + 40) % 40 : (current + 1) % 40
     path.push(current)
   }
   return path
@@ -73,7 +60,8 @@ export default function PlayerTokens({ state, playerColors }: Props) {
         return
       }
       animating.current[player.id] = true
-      const path = getPath(displayPositions[player.id] ?? prevTarget, player.position)
+      const backward = (state.lastMoveSteps ?? 0) < 0
+      const path = getPath(displayPositions[player.id] ?? prevTarget, player.position, backward)
       function step(index: number) {
         if (index >= path.length) { animating.current[player.id] = false; return }
         setDisplayPositions((prev) => ({ ...prev, [player.id]: path[index] }))

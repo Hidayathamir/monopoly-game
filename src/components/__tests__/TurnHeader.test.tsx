@@ -20,6 +20,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     freeParkingPot: 0,
     dice: null,
     doublesCount: 0,
+    lastMoveSteps: null,
     eventLog: [],
     pendingAction: null,
     ...overrides,

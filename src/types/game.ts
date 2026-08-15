@@ -132,6 +132,7 @@ export type GameState = {
   freeParkingPot: number;
   dice: [number, number] | null;
   doublesCount: number;
+  lastMoveSteps: number | null;
   eventLog: string[];
   pendingAction: PendingAction | null;
 };

@@ -33,6 +33,7 @@ export function createInitialState(): GameState {
     freeParkingPot: 0,
     dice: null,
     doublesCount: 0,
+    lastMoveSteps: null,
     eventLog: [],
     pendingAction: null,
   };
@@ -106,6 +107,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             players: newPlayers,
             dice,
             doublesCount: 0,
+            lastMoveSteps: total,
             eventLog: newEventLog,
           };
         } else {
@@ -135,6 +137,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               players: newPlayers,
               dice,
               doublesCount: 0,
+              lastMoveSteps: total,
               eventLog: newEventLog,
             };
           }
@@ -151,6 +154,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             currentPlayer: nextPlayer,
             dice: null,
             doublesCount: 0,
+            lastMoveSteps: null,
             eventLog: [...state.eventLog, `${player.name} gagal keluar penjara (percobaan ke-${newTurns})`, `Giliran ${state.players[nextPlayer].name}`],
           };
         }
@@ -189,6 +193,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           currentPlayer: nextPlayer,
           dice: null,
           doublesCount: 0,
+          lastMoveSteps: null,
           eventLog: [...newEventLog, `3x ganda berturut-turut! ${player.name} masuk Penjara!`, `Giliran ${state.players[nextPlayer].name}`],
         };
       }
@@ -207,6 +212,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: movedPlayers,
         dice,
         doublesCount: newDoubles,
+        lastMoveSteps: total,
         eventLog: newEventLog,
       };
     }
@@ -238,6 +244,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               currentPlayer: next,
               dice: null,
               doublesCount: 0,
+              lastMoveSteps: null,
               eventLog: [...state.eventLog, `${player.name} masuk Penjara!`, `Giliran ${state.players[next].name}`],
             };
           }

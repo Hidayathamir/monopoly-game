@@ -58,6 +58,13 @@ describe('gameReducer', () => {
       expect(s2.phase).toBe(GamePhase.Moving);
     });
 
+    it('records forward lastMoveSteps on a dice move', () => {
+      const state = makeStartedState()
+      const s1 = gameReducer(state, { type: GameActionType.RollDice })
+      const s2 = gameReducer(s1, { type: GameActionType.DiceAnimated, dice: [3, 4] })
+      expect(s2.lastMoveSteps).toBe(7)
+    })
+
     it('collects Rp200000 when passing GO', () => {
       const state = setPosition(makeStartedState(), 0, 38);
       const s1 = gameReducer(state, { type: GameActionType.RollDice });
