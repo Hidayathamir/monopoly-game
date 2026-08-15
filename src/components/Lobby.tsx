@@ -11,7 +11,7 @@ interface Props {
 
 export default function Lobby({ game }: Props) {
   const { t } = useTranslation()
-  const { lobby, playerId, hostPlayerId, code, status, error, start, leave } = game
+  const { lobby, playerId, hostPlayerId, code, status, error, start, leave, addBot, removeBot } = game
   const isHost = playerId !== null && playerId === hostPlayerId
   const url = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -42,10 +42,25 @@ export default function Lobby({ game }: Props) {
                   {p?.name ?? '—'}
                   {p && !p.connected ? t('lobby.disconnectedSuffix') : ''}
                 </span>
+                {p?.isBot && isHost && (
+                  <button
+                    aria-label={t('lobby.removeBot', { name: p.name ?? '' })}
+                    onClick={() => removeBot(i)}
+                    className="ml-auto text-red-danger text-lg leading-none hover:opacity-70"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             )
           })}
         </div>
+
+        {isHost && (
+          <Button variant="secondary" size="sm" onClick={addBot} disabled={lobby.filter((p) => p.name).length >= 6}>
+            {t('lobby.addBot')}
+          </Button>
+        )}
 
         {isHost && (
           <Button variant="start" size="lg" onClick={start} disabled={lobby.filter((p) => p.name).length < 2}>

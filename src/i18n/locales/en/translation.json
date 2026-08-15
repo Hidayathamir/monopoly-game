@@ -144,6 +144,8 @@
   "lobby.start": "Start ({{n}}/6)",
   "lobby.leave": "Leave",
   "lobby.leaveRoom": "Leave Room",
+  "lobby.addBot": "Add Bot",
+  "lobby.removeBot": "Remove {{name}}",
 
   "confirm.leaveTitle": "Leave Room",
   "confirm.leaveMessage": "Are you sure you want to leave this room?",

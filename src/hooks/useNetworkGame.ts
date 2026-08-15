@@ -15,6 +15,8 @@ export type NetworkGameApi = GameApi & {
   join: (code: string, name: string) => void
   leave: () => void
   start: () => void
+  addBot: () => void
+  removeBot: (playerId: number) => void
 }
 
 export function useNetworkGame(onLeft: () => void): NetworkGameApi {
@@ -75,6 +77,8 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const join = useCallback((code: string, name: string) => send({ type: 'join', code, name }), [send])
   const leave = useCallback(() => send({ type: 'leave' }), [send])
   const start = useCallback(() => send({ type: 'start' }), [send])
+  const addBot = useCallback(() => send({ type: 'addBot' }), [send])
+  const removeBot = useCallback((playerId: number) => send({ type: 'removeBot', playerId }), [send])
 
   const roll = useCallback(() => sendAction({ type: 'ROLL_DICE' }), [sendAction])
   const buyProperty = useCallback(() => sendAction({ type: 'BUY_PROPERTY' }), [sendAction])
@@ -108,6 +112,8 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     join,
     leave,
     start,
+    addBot,
+    removeBot,
     roll,
     buyProperty,
     declineBuy,

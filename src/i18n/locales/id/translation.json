@@ -144,6 +144,8 @@
   "lobby.start": "Mulai ({{n}}/6)",
   "lobby.leave": "Keluar",
   "lobby.leaveRoom": "Keluar Ruangan",
+  "lobby.addBot": "Tambah Bot",
+  "lobby.removeBot": "Hapus {{name}}",
 
   "confirm.leaveTitle": "Keluar Ruangan",
   "confirm.leaveMessage": "Yakin ingin keluar dari ruangan ini?",
