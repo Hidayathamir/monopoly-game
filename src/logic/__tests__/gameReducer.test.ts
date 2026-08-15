@@ -140,6 +140,14 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.EndTurn });
       expect(s1.currentPlayer).toBe(0);
     });
+
+    it('advances to the next player when dice is null', () => {
+      const state = makeStartedState()
+      const s1 = gameReducer(state, { type: GameActionType.EndTurn })
+      expect(s1.currentPlayer).toBe(1)
+      expect(s1.dice).toBeNull()
+      expect(s1.eventLog).toContain('Giliran Bob')
+    });
   });
 
   describe('BUY_PROPERTY', () => {

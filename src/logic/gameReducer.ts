@@ -605,7 +605,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.EndTurn: {
-      const isDoubles = state.dice?.[0] === state.dice?.[1];
+      const isDoubles = state.dice !== null && state.dice[0] === state.dice[1];
       const nextPlayer = isDoubles ? state.currentPlayer : getNextPlayer(state);
 
       if (isDoubles) {
