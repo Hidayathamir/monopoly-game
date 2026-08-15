@@ -32,42 +32,59 @@ function connect(): Promise<WebSocket> {
   })
 }
 
-function nextMessage(ws: WebSocket): Promise<ServerMessage> {
+function waitFor(ws: WebSocket, type: ServerMessage['type']): Promise<ServerMessage> {
   return new Promise((resolve) => {
-    ws.on('message', (raw) => resolve(JSON.parse(raw.toString()) as ServerMessage))
+    const handler = (raw: unknown) => {
+      const msg = JSON.parse((raw as Buffer).toString()) as ServerMessage
+      if (msg.type === type) {
+        ws.off('message', handler)
+        resolve(msg)
+      }
+    }
+    ws.on('message', handler)
   })
 }
 
 describe('http server', () => {
-  it('welcomes a joining client with playerId 0', async () => {
+  it('creates a room and welcomes the host with a code', async () => {
     const ws = await connect()
-    const welcome = nextMessage(ws)
-    ws.send(JSON.stringify({ type: 'join', name: 'Alice' }))
+    const welcome = waitFor(ws, 'welcome')
+    ws.send(JSON.stringify({ type: 'create', name: 'Alice' }))
     const msg = await welcome
     expect(msg.type).toBe('welcome')
-    if (msg.type === 'welcome') expect(msg.playerId).toBe(0)
+    if (msg.type === 'welcome') {
+      expect(msg.playerId).toBe(0)
+      expect(msg.hostPlayerId).toBe(0)
+      expect(msg.code).toMatch(/^[A-Z0-9]{5}$/)
+    }
     ws.close()
   })
 
-  it('broadcasts lobby updates to all clients', async () => {
+  it('lets a second client join by code and broadcasts the lobby', async () => {
     const a = await connect()
-    a.on('message', () => {})
-    a.send(JSON.stringify({ type: 'join', name: 'Alice' }))
-    await new Promise((r) => setTimeout(r, 50))
+    const welcomeA = waitFor(a, 'welcome')
+    a.send(JSON.stringify({ type: 'create', name: 'Alice' }))
+    const wA = await welcomeA
+    const code = wA.type === 'welcome' ? wA.code : ''
 
     const b = await connect()
-    const lobby = new Promise<ServerMessage>((resolve) => {
-      a.on('message', (raw) => {
-        const msg = JSON.parse(raw.toString()) as ServerMessage
-        if (msg.type === 'lobby') resolve(msg)
-      })
-    })
-    b.send(JSON.stringify({ type: 'join', name: 'Bob' }))
-    const msg = await lobby
+    const lobbyA = waitFor(a, 'lobby')
+    b.send(JSON.stringify({ type: 'join', code, name: 'Bob' }))
+    const msg = await lobbyA
     expect(msg.type).toBe('lobby')
     if (msg.type === 'lobby') expect(msg.players.filter((p) => p.name)).toHaveLength(2)
     a.close()
     b.close()
+  })
+
+  it('rejects joining a nonexistent room', async () => {
+    const ws = await connect()
+    const err = waitFor(ws, 'error')
+    ws.send(JSON.stringify({ type: 'join', code: 'ZZZZZ', name: 'Bob' }))
+    const msg = await err
+    expect(msg.type).toBe('error')
+    if (msg.type === 'error') expect(msg.message).toBe('Kamar tidak ditemukan')
+    ws.close()
   })
 
   it('serves static files and rejects path traversal', async () => {

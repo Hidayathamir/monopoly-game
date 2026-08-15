@@ -2,7 +2,7 @@ import { createServer as createHttpServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { join, extname, resolve, relative, isAbsolute } from 'node:path'
 import { WebSocketServer, WebSocket } from 'ws'
-import { GameServer } from './gameServer'
+import { RoomManager } from './roomManager'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 
 const MIME: Record<string, string> = {
@@ -20,21 +20,12 @@ export function createServer(distDir = 'dist') {
   const sockets = new Map<string, WebSocket>()
   let nextId = 1
 
-  function broadcast(msg: ServerMessage): void {
-    const data = JSON.stringify(msg)
-    for (const ws of sockets.values()) {
-      if (ws.readyState === WebSocket.OPEN) ws.send(data)
-    }
+  function send(clientId: string, msg: ServerMessage): void {
+    const ws = sockets.get(clientId)
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg))
   }
 
-  const game = new GameServer({
-    broadcastState: (state) => broadcast({ type: 'state', state }),
-    broadcastLobby: (players) => broadcast({ type: 'lobby', players }),
-    send: (clientId, msg) => {
-      const ws = sockets.get(clientId)
-      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg))
-    },
-  })
+  const roomManager = new RoomManager({ send })
 
   const httpServer = createHttpServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost')
@@ -75,18 +66,36 @@ export function createServer(distDir = 'dist') {
     ws.on('message', (raw) => {
       try {
         const msg = JSON.parse(raw.toString()) as ClientMessage
-        if (msg.type === 'join') game.join(clientId, msg.name)
-        else if (msg.type === 'start') game.start(clientId)
-        else if (msg.type === 'action') game.handleAction(clientId, msg.action)
+        if (msg.type === 'create') {
+          const { code, game } = roomManager.create()
+          roomManager.addClient(code, clientId)
+          game.join(clientId, msg.name)
+        } else if (msg.type === 'join') {
+          const game = roomManager.get(msg.code)
+          if (!game) {
+            send(clientId, { type: 'error', message: 'Kamar tidak ditemukan' })
+            return
+          }
+          roomManager.addClient(msg.code, clientId)
+          game.join(clientId, msg.name)
+        } else if (msg.type === 'start') {
+          roomManager.gameFor(clientId)?.start(clientId)
+        } else if (msg.type === 'leave') {
+          roomManager.gameFor(clientId)?.leave(clientId)
+          roomManager.removeClient(clientId)
+        } else if (msg.type === 'action') {
+          roomManager.gameFor(clientId)?.handleAction(clientId, msg.action)
+        }
       } catch {
         // ignore malformed messages
       }
     })
     ws.on('close', () => {
       sockets.delete(clientId)
-      game.disconnect(clientId)
+      roomManager.gameFor(clientId)?.disconnect(clientId)
+      roomManager.removeClient(clientId)
     })
   })
 
-  return { httpServer, wss, game }
+  return { httpServer, wss, roomManager }
 }
