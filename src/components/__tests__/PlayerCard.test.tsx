@@ -21,11 +21,11 @@ describe('PlayerCard', () => {
 
   it('shows a free-jail badge when the player holds the card', () => {
     renderWithProviders(<PlayerCard player={{ ...player, hasGetOutOfJailFree: true }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
-    expect(screen.getByTitle('Kartu Bebas Penjara')).toBeTruthy()
+    expect(screen.getByTitle('Get Out of Jail Free')).toBeTruthy()
   })
 
   it('does not show the free-jail badge by default', () => {
     renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
-    expect(screen.queryByTitle('Kartu Bebas Penjara')).toBeNull()
+    expect(screen.queryByTitle('Get Out of Jail Free')).toBeNull()
   })
 })

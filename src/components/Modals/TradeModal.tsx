@@ -36,15 +36,15 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
 
   return (
     <Modal>
-      <h3 className="text-2xl text-gold m-0">🤝 Tukar</h3>
+      <h3 className="text-2xl text-gold m-0">{t('trade.title')}</h3>
       <div className="flex flex-col gap-1">
-        <label className="text-base text-text-dim">Dengan:</label>
+        <label className="text-base text-text-dim">{t('trade.with')}</label>
         <select
           value={targetPlayer ?? ''}
           onChange={(e) => setTargetPlayer(Number(e.target.value))}
           className="p-2 rounded-md border border-border bg-input-bg text-text"
         >
-          <option value="">Pilih pemain</option>
+          <option value="">{t('trade.selectPlayer')}</option>
           {state.players
             .filter((p) => p.id !== state.currentPlayer && !p.bankrupt)
             .map((p) => (
@@ -54,9 +54,9 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <h4 className="text-lg text-gold m-0">Anda tawarkan:</h4>
+          <h4 className="text-lg text-gold m-0">{t('trade.youOffer')}</h4>
           <label className="text-base flex items-center gap-1 text-text-dim">
-            Uang: <input type="number" value={offerCash} onChange={(e) => setOfferCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
+            {t('trade.money')}<input type="number" value={offerCash} onChange={(e) => setOfferCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
           {currentProps.map((s) => (
             <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
@@ -75,15 +75,15 @@ export default function TradeModal({ state, onPropose, onClose }: Props) {
           ))}
         </div>
         <div className="flex flex-col gap-1.5">
-          <h4 className="text-lg text-gold m-0">Anda minta:</h4>
+          <h4 className="text-lg text-gold m-0">{t('trade.youRequest')}</h4>
           <label className="text-base flex items-center gap-1 text-text-dim">
-            Uang: <input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
+            {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
         </div>
       </div>
       <Modal.Actions>
-        <Button variant="success" onClick={handlePropose}>Ajukan</Button>
-        <Button variant="secondary" onClick={onClose}>Batal</Button>
+        <Button variant="success" onClick={handlePropose}>{t('trade.propose')}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('trade.cancel')}</Button>
       </Modal.Actions>
     </Modal>
   )

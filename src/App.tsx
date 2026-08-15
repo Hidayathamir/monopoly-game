@@ -4,6 +4,7 @@ import { useGame } from './hooks/useGame'
 import GameSetup from './components/GameSetup'
 import GameView from './components/GameView'
 import MultiplayerGame, { type JoinInfo } from './components/MultiplayerGame'
+import LanguageCurrencyBar from './components/LanguageCurrencyBar'
 
 type Mode = 'local' | 'multiplayer' | null
 
@@ -30,16 +31,29 @@ export default function App() {
   }
 
   if (mode === 'multiplayer') {
-    return <MultiplayerGame joinInfo={joinInfo} onLeft={() => setMode(null)} />
+    return (
+      <>
+        <MultiplayerGame joinInfo={joinInfo} onLeft={() => setMode(null)} />
+        <LanguageCurrencyBar />
+      </>
+    )
   }
 
   if (mode === null || local.state.phase === GamePhase.Setup) {
     return (
-      <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
-        <GameSetup onStartLocal={handleStartLocal} onCreate={handleCreate} onJoin={handleJoin} />
-      </div>
+      <>
+        <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
+          <GameSetup onStartLocal={handleStartLocal} onCreate={handleCreate} onJoin={handleJoin} />
+        </div>
+        <LanguageCurrencyBar />
+      </>
     )
   }
 
-  return <GameView game={local} />
+  return (
+    <>
+      <GameView game={local} />
+      <LanguageCurrencyBar />
+    </>
+  )
 }

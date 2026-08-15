@@ -36,7 +36,7 @@ describe('ActionSection', () => {
     }
     const onBuild = vi.fn()
     renderWithProviders(<ActionSection state={s} {...actions} onBuild={onBuild} />)
-    const btn = screen.getByRole('button', { name: /Bangun/ })
+    const btn = screen.getByRole('button', { name: /Build/ })
     btn.click()
     expect(onBuild).toHaveBeenCalledWith(8)
   })
@@ -50,7 +50,7 @@ describe('ActionSection', () => {
       dice: null,
     }
     renderWithProviders(<ActionSection state={s} {...actions} onBuild={() => {}} />)
-    expect(screen.queryByRole('button', { name: /Bangun/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Build/ })).toBeNull()
   })
 
   it('hides build button on a just-bought property', () => {
@@ -63,13 +63,13 @@ describe('ActionSection', () => {
       justBoughtSpaceId: 8,
     }
     renderWithProviders(<ActionSection state={s} {...actions} onBuild={() => {}} />)
-    expect(screen.queryByRole('button', { name: /Bangun/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Build/ })).toBeNull()
   })
 
   it('shows the pay option on the first turn in jail', () => {
     let s = makeState()
     s = { ...s, players: s.players.map((p, i) => i === 0 ? { ...p, inJail: true, position: 10, jailTurns: 0 } : p) }
     renderWithProviders(<ActionSection state={s} {...actions} />)
-    expect(screen.getByRole('button', { name: /Bayar/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /Pay/ })).toBeVisible()
   })
 })

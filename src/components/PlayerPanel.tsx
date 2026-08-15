@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { GameState } from '../types/game'
 import PlayerCard from './PlayerCard'
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function PlayerPanel({ state, playerColors }: Props) {
+  const { t } = useTranslation()
   const { players, currentPlayer, board } = state
   const prevMoney = useRef<Record<number, number>>({})
   const [diffs, setDiffs] = useState<Record<number, { diff: number; key: number }>>({})
@@ -28,7 +30,7 @@ export default function PlayerPanel({ state, playerColors }: Props) {
 
   return (
     <div className="w-full">
-      <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">Pemain</div>
+      <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">{t('panel.players')}</div>
       <div className="flex flex-wrap gap-2 justify-center">
         {players.map((player) => {
           const isCurrent = player.id === currentPlayer

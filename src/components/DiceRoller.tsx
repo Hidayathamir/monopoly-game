@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GamePhase, type GameState } from '../types/game'
 import Dice from './Dice'
 import Button from './Button'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
+  const { t } = useTranslation()
   const [rolling, setRolling] = useState(false)
   const player = state.players[state.currentPlayer]
 
@@ -30,12 +32,12 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
       </div>
       {(canRoll || canRollJail) && (
         <Button variant="primary" size="lg" onClick={handleRoll} disabled={!isMyTurn}>
-          {player.inJail ? 'Lempar Dadu (Penjara)' : 'Lempar Dadu'}
+          {player.inJail ? t('dice.rollJail') : t('dice.roll')}
         </Button>
       )}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
         <p className="text-base text-muted text-center">
-          Ganda? {state.dice[0] === state.dice[1] ? 'Ya!' : 'Tidak'} — {3 - player.jailTurns}x lagi
+          {t('dice.doubles', { result: state.dice[0] === state.dice[1] ? t('common.yes') : t('action.no'), n: 3 - player.jailTurns })}
         </p>
       )}
     </div>

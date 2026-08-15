@@ -1,4 +1,5 @@
 import { PendingActionType, type GameState } from '../../types/game'
+import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../../i18n/CurrencyContext'
 import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props) {
+  const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const pending = state.pendingAction
   if (pending?.type !== PendingActionType.Bankruptcy) return null
@@ -29,17 +31,17 @@ export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props)
 
   return (
     <Modal>
-      <h3 className="text-2xl text-gold m-0">⚠️ Kebangkrutan</h3>
-      <p className="text-lg m-0">{player.name} tidak bisa membayar <strong>{formatMoney(amount)}</strong>.</p>
-      <p className="text-lg m-0">Uang saat ini: {formatMoney(player.money)}</p>
+      <h3 className="text-2xl text-gold m-0">{t('bankruptcy.title')}</h3>
+      <p className="text-lg m-0">{t('bankruptcy.cannotPay', { name: player.name, amount: formatMoney(amount) })}</p>
+      <p className="text-lg m-0">{t('bankruptcy.currentMoney')}{formatMoney(player.money)}</p>
       {canPayAfterLiquidation && (
-        <p className="text-muted text-base">Jual rumah / gadaikan properti untuk mendapatkan uang.</p>
+        <p className="text-muted text-base">{t('bankruptcy.hint')}</p>
       )}
       <Modal.Actions>
         {!canPayAfterLiquidation && (
-          <Button variant="danger" onClick={onBankruptcy}>Nyatakan Bangkrut</Button>
+          <Button variant="danger" onClick={onBankruptcy}>{t('bankruptcy.declare')}</Button>
         )}
-        <Button variant="secondary" onClick={onClose}>Tutup (Jual/Gadai lebih dulu)</Button>
+        <Button variant="secondary" onClick={onClose}>{t('bankruptcy.close')}</Button>
       </Modal.Actions>
     </Modal>
   )

@@ -1,4 +1,5 @@
 import type { GameState } from '../types/game'
+import { useTranslation } from 'react-i18next'
 import { PLAYER_COLORS } from '../data/players'
 import TurnHeader from './TurnHeader'
 import Button from './Button'
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props) {
+  const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
       <div
@@ -39,7 +41,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
         <EventLog log={state.eventLog} />
         {onLeave && (
           <Button variant="danger" size="sm" onClick={onLeave}>
-            Keluar Kamar
+            {t('lobby.leaveRoom')}
           </Button>
         )}
       </div>

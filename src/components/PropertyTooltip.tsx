@@ -32,63 +32,63 @@ export default function PropertyTooltip({
       <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={space.color ? { borderLeftColor: space.color } : {}}>
         <strong>{t('board.space.' + space.id)}</strong>
       </div>
-      {space.mortgaged && <div className="text-sm text-red-danger font-bold">Digadaikan</div>}
+      {space.mortgaged && <div className="text-sm text-red-danger font-bold">{t('tooltip.mortgaged')}</div>}
       {space.type === 'go' && (
-        <div className="text-sm text-text-dim">Dapat <strong className="text-green-money">{formatMoney(GO_SALARY)}</strong> setiap lewat MULAI</div>
+        <div className="text-sm text-text-dim">{t('tooltip.passGo', { amount: formatMoney(GO_SALARY) })}</div>
       )}
       {space.type === 'freeParking' && (
-        <div className="text-sm text-text-dim">Jackpot saat ini: <strong className="text-green-money">{formatMoney(state.freeParkingPot)}</strong></div>
+        <div className="text-sm text-text-dim">{t('tooltip.jackpot', { amount: formatMoney(state.freeParkingPot) })}</div>
       )}
       {space.type === 'tax' && (
         <div className="text-sm text-text-dim">
           {space.taxType === 'income'
-            ? 'Bayar 10% dari total aset (uang + properti + rumah)'
-            : `Bayar ${formatMoney(space.price)} (pajak tetap)`}
+            ? t('tooltip.incomeTax')
+            : t('tooltip.flatTax', { amount: formatMoney(space.price) })}
         </div>
       )}
       {isBuyable && space.price && (
         <>
-          <div className="text-sm text-text-dim m-0.5">Harga: <strong className="text-green-money">{formatMoney(space.price)}</strong></div>
+          <div className="text-sm text-text-dim m-0.5">{t('tooltip.price')}<strong className="text-green-money">{formatMoney(space.price)}</strong></div>
           {space.rent && space.type === 'property' && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
-              <div className="text-text-dim">Sewa dasar: {formatMoney(space.rent[0])}</div>
-              <div className="text-text-dim">1 🏠 : {formatMoney(space.rent[1])}</div>
-              <div className="text-text-dim">2 🏠 : {formatMoney(space.rent[2])}</div>
-              <div className="text-text-dim">3 🏠 : {formatMoney(space.rent[3])}</div>
-              <div className="text-text-dim">4 🏠 : {formatMoney(space.rent[4])}</div>
-              <div className="text-text-dim">🏨 : {formatMoney(space.rent[space.rent.length - 1])}</div>
+              <div className="text-text-dim">{t('tooltip.baseRent')}{formatMoney(space.rent[0])}</div>
+              <div className="text-text-dim">1 {t('tooltip.house')}: {formatMoney(space.rent[1])}</div>
+              <div className="text-text-dim">2 {t('tooltip.house')}: {formatMoney(space.rent[2])}</div>
+              <div className="text-text-dim">3 {t('tooltip.house')}: {formatMoney(space.rent[3])}</div>
+              <div className="text-text-dim">4 {t('tooltip.house')}: {formatMoney(space.rent[4])}</div>
+              <div className="text-text-dim">{t('tooltip.hotelWord')}: {formatMoney(space.rent[space.rent.length - 1])}</div>
             </div>
           )}
           {space.rent && space.type === 'railroad' && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
-              <div className="text-text-dim">1 Stasiun: {formatMoney(space.rent[0])}</div>
-              <div className="text-text-dim">2 Stasiun: {formatMoney(space.rent[1])}</div>
-              <div className="text-text-dim">3 Stasiun: {formatMoney(space.rent[2])}</div>
-              <div className="text-text-dim">4 Stasiun: {formatMoney(space.rent[3])}</div>
+              <div className="text-text-dim">{t('tooltip.railroad1')}{formatMoney(space.rent[0])}</div>
+              <div className="text-text-dim">{t('tooltip.railroad2')}{formatMoney(space.rent[1])}</div>
+              <div className="text-text-dim">{t('tooltip.railroad3')}{formatMoney(space.rent[2])}</div>
+              <div className="text-text-dim">{t('tooltip.railroad4')}{formatMoney(space.rent[3])}</div>
             </div>
           )}
           {space.type === 'utility' && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
-              <div className="text-text-dim">1 Perusahaan: 4× Dadu</div>
-              <div className="text-text-dim">2 Perusahaan: 10× Dadu</div>
+              <div className="text-text-dim">{t('tooltip.utility1')}</div>
+              <div className="text-text-dim">{t('tooltip.utility2')}</div>
             </div>
           )}
           {space.type === 'property' && space.owner !== null && space.houses === 0 && isMonopoly(space.owner, state.board, space) && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm text-gold font-semibold">
-              Komplek lengkap: sewa 2x ({formatMoney((space.rent?.[0] ?? 0) * 2)})
+              {t('tooltip.monopoly', { amount: formatMoney((space.rent?.[0] ?? 0) * 2) })}
             </div>
           )}
-          {space.houseCost && <div className="text-sm text-text-dim">Biaya rumah selanjutnya: {formatMoney(nextHouseCost)}</div>}
+          {space.houseCost && <div className="text-sm text-text-dim">{t('tooltip.nextHouse')}{formatMoney(nextHouseCost)}</div>}
           {space.houses > 0 && (
             <div className="text-sm text-text-dim">
-              Level: {space.houses === 5 ? '🏨 Hotel' : '🏠'.repeat(space.houses)}
+              {t('tooltip.level')}{space.houses === 5 ? t('tooltip.hotel') : '🏠'.repeat(space.houses)}
             </div>
           )}
         </>
       )}
       {owner && (
         <div className="text-sm text-text-dim">
-          Pemilik: <span className="text-gold">{owner.name}</span>
+          {t('tooltip.owner')}<span className="text-gold">{owner.name}</span>
         </div>
       )}
       {isOwned && (
@@ -99,12 +99,12 @@ export default function PropertyTooltip({
               variant="secondary"
               onClick={(e) => { e.stopPropagation(); onSell(space.id) }}
             >
-              Jual {space.houses === 5 ? 'Hotel' : 'Rumah'} (+{formatMoney(Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE))})
+              {t(space.houses === 5 ? 'tooltip.sellHotel' : 'tooltip.sellHouse', { amount: formatMoney(Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE)) })}
             </Button>
           )}
           {!space.mortgaged && space.houses === 0 && isOwned && (
             <Button size="sm" onClick={(e) => { e.stopPropagation(); onMortgage(space.id) }}>
-              Gadai (+{formatMoney(Math.floor((space.price ?? 0) / 2))})
+              {t('tooltip.mortgage', { amount: formatMoney(Math.floor((space.price ?? 0) / 2)) })}
             </Button>
           )}
           {!space.mortgaged && space.houses === 0 && isOwned && (
@@ -113,7 +113,7 @@ export default function PropertyTooltip({
               variant="danger"
               onClick={(e) => { e.stopPropagation(); onSellProperty(space.id) }}
             >
-              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) * SELL_RATE))})
+              {t('tooltip.sellToBank', { amount: formatMoney(Math.floor((space.price ?? 0) * SELL_RATE)) })}
             </Button>
           )}
           {space.mortgaged && (
@@ -122,7 +122,7 @@ export default function PropertyTooltip({
               disabled={state.players[state.currentPlayer]?.money < unmortgageCost}
               onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}
             >
-              Tebus (-{formatMoney(unmortgageCost)}){state.players[state.currentPlayer]?.money < unmortgageCost ? ' - uang kurang' : ''}
+              {t('tooltip.redeem', { amount: formatMoney(unmortgageCost) })}{state.players[state.currentPlayer]?.money < unmortgageCost ? t('action.notEnoughSuffix') : ''}
             </Button>
           )}
           {space.mortgaged && (
@@ -131,7 +131,7 @@ export default function PropertyTooltip({
               variant="danger"
               onClick={(e) => { e.stopPropagation(); onSellProperty(space.id) }}
             >
-              Jual ke Bank (+{formatMoney(Math.floor((space.price ?? 0) * MORTGAGED_SELL_EXTRA))})
+              {t('tooltip.sellToBank', { amount: formatMoney(Math.floor((space.price ?? 0) * MORTGAGED_SELL_EXTRA)) })}
             </Button>
           )}
         </div>

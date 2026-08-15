@@ -37,12 +37,12 @@ export default function ActionSection({
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-base my-[3px] text-center">Beli <strong>{t('board.space.' + space.id)}</strong>?</p>
-          <p className="text-base my-[3px] text-center">Harga: <strong>{formatMoney(space.price)}</strong></p>
+          <p className="text-base my-[3px] text-center">{t('action.buyPrompt', { name: t('board.space.' + space.id) })}</p>
+          <p className="text-base my-[3px] text-center">{t('action.price', { amount: formatMoney(space.price) })}</p>
           <Button variant="success" onClick={onBuyProperty} disabled={player.money < (space.price ?? 0)}>
-            Beli ({formatMoney(space.price)}){player.money < (space.price ?? 0) ? ' - uang kurang' : ''}
+            {t('action.buy', { amount: formatMoney(space.price) })}{player.money < (space.price ?? 0) ? t('action.notEnoughSuffix') : ''}
           </Button>
-          <Button variant="secondary" onClick={onDeclineBuy}>Tidak</Button>
+          <Button variant="secondary" onClick={onDeclineBuy}>{t('action.no')}</Button>
         </div>
       </div>
     )
@@ -51,20 +51,20 @@ export default function ActionSection({
   if (pending?.type === PendingActionType.PayRent || pending?.type === PendingActionType.Bankruptcy) {
     const amount = pending.amount
     const canAffordNow = player.money >= amount
-    const label = pending.type === PendingActionType.PayRent ? 'Bayar sewa' : 'Uang tidak cukup!'
+    const label = pending.type === PendingActionType.PayRent ? t('action.payRentLabel') : t('action.notEnoughMoney')
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
           <p className="text-base my-[3px] text-center">{label} <strong>{formatMoney(amount)}</strong></p>
           {!canAffordNow && (
             <p className="text-base text-muted text-center font-bold" style={{ color: '#f39c12' }}>
-              Hover properti di papan untuk jual/gadai/tebus aset
+              {t('action.hoverHint')}
             </p>
           )}
           <Button variant="success" onClick={onPayRent} disabled={!canAffordNow}>
-            {canAffordNow ? 'Bayar Sewa' : 'Uang Masih Kurang'}
+            {canAffordNow ? t('action.payRent') : t('action.stillNotEnough')}
           </Button>
-          <Button variant="danger" onClick={onDeclareBankruptcy}>Nyatakan Bangkrut</Button>
+          <Button variant="danger" onClick={onDeclareBankruptcy}>{t('action.declareBankruptcy')}</Button>
         </div>
       </div>
     )
@@ -73,7 +73,7 @@ export default function ActionSection({
   if (pending?.type === PendingActionType.DrawCard) {
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
-        <Button variant="primary" onClick={onDrawCard}>Ambil Kartu</Button>
+        <Button variant="primary" onClick={onDrawCard}>{t('action.drawCard')}</Button>
       </div>
     )
   }
@@ -83,7 +83,7 @@ export default function ActionSection({
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
           <p className="text-base my-[3px] text-center">{t('card.' + (pending.card.id >= 100 ? 'community' : 'chance') + '.' + pending.card.id)}</p>
-          <p className="text-base text-muted text-center">Klik tombol untuk melanjutkan</p>
+          <p className="text-base text-muted text-center">{t('action.clickToContinue')}</p>
         </div>
       </div>
     )
@@ -109,45 +109,45 @@ export default function ActionSection({
           onClick={() => onBuild?.(space.id)}
           disabled={player.money < getHouseCost(space, space.houses)}
         >
-          Bangun ({formatMoney(getHouseCost(space, space.houses))})
-          {player.money < getHouseCost(space, space.houses) ? ' - uang kurang' : ''}
+          {t('action.build', { amount: formatMoney(getHouseCost(space, space.houses)) })}
+          {player.money < getHouseCost(space, space.houses) ? t('action.notEnoughSuffix') : ''}
         </Button>
       )}
       {player.inJail ? (
         <>
-          <p className="text-base text-muted text-center mt-1">Di Penjara — pilih:</p>
+          <p className="text-base text-muted text-center mt-1">{t('action.inJailPrompt')}</p>
           {player.hasGetOutOfJailFree && (
             <Button variant="success" size="sm" onClick={onUseGetOutOfJailFree}>
-              🎴 Gunakan Kartu Bebas Penjara
+              {t('action.useJailCard')}
             </Button>
           )}
           <Button variant="success" size="sm" onClick={onPayJailFine} disabled={player.money < JAIL_FINE}>
-            Bayar {formatMoney(JAIL_FINE)}
+            {t('action.pay', { amount: formatMoney(JAIL_FINE) })}
           </Button>
           {player.money < JAIL_FINE && (
-            <p className="text-base text-muted text-center mt-1">Uang tidak cukup</p>
+            <p className="text-base text-muted text-center mt-1">{t('action.notEnough')}</p>
           )}
           <p className="text-base text-muted text-center mt-1">
-            atau lempar dadu ganda ({3 - player.jailTurns}x lagi)
+            {t('action.orRollDoubles', { n: 3 - player.jailTurns })}
           </p>
         </>
       ) : hasRolled ? (
         <>
           {player.money >= 0 ? (
             <>
-              <Button variant="secondary" onClick={onEndTurn}>Akhiri Giliran</Button>
-              <Button size="sm" onClick={onProposeTrade}>🤝 Tukar</Button>
+              <Button variant="secondary" onClick={onEndTurn}>{t('action.endTurn')}</Button>
+              <Button size="sm" onClick={onProposeTrade}>{t('action.trade')}</Button>
             </>
           ) : (
             <p className="text-base text-muted text-center mt-1" style={{ color: '#e74c3c' }}>
-              Uang minus! Jual aset dulu sebelum akhiri giliran.
+              {t('action.negativeBalance')}
             </p>
           )}
         </>
       ) : null}
       {(hasRolled && !player.inJail) || player.money < 0 ? (
         <p className="text-base text-muted text-center" style={{ fontSize: '16px' }}>
-          Hover properti di papan untuk jual/gadai
+          {t('action.hoverShort')}
         </p>
       ) : null}
     </div>

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen, cleanup } from '@testing-library/react'
+import { screen, cleanup } from '@testing-library/react'
 import { afterEach, describe, it, expect } from 'vitest'
 import TurnHeader from '../TurnHeader'
 import { GamePhase, type GameState } from '../../types/game'
+import { renderWithProviders } from '../../test/test-utils'
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -32,17 +33,17 @@ afterEach(cleanup)
 
 describe('TurnHeader', () => {
   it('shows the current player name', () => {
-    render(<TurnHeader state={makeState()} />)
+    renderWithProviders(<TurnHeader state={makeState()} />)
     expect(screen.getByText('Alpha')).toBeTruthy()
   })
 
   it('shows a roll prompt before the roll', () => {
-    render(<TurnHeader state={makeState()} />)
-    expect(screen.getByText('Lempar dadu')).toBeTruthy()
+    renderWithProviders(<TurnHeader state={makeState()} />)
+    expect(screen.getByText('Roll dice')).toBeTruthy()
   })
 
   it('shows the dice total after the roll', () => {
-    render(<TurnHeader state={makeState({ dice: [3, 4] })} />)
-    expect(screen.getByText('Dadu 3 + 4 = 7')).toBeTruthy()
+    renderWithProviders(<TurnHeader state={makeState({ dice: [3, 4] })} />)
+    expect(screen.getByText('Dice 3 + 4 = 7')).toBeTruthy()
   })
 })

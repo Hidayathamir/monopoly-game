@@ -20,14 +20,14 @@ const mortgagedSpace: Space = {
 }
 
 describe('PropertyTooltip', () => {
-  it('disables Tebus when money is insufficient', () => {
+  it('disables Redeem when money is insufficient', () => {
     renderWithProviders(<PropertyTooltip space={mortgagedSpace} state={makeState(1)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByRole('button', { name: /Tebus/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Redeem/ })).toBeDisabled()
   })
 
-  it('enables Tebus when money is sufficient', () => {
+  it('enables Redeem when money is sufficient', () => {
     renderWithProviders(<PropertyTooltip space={mortgagedSpace} state={makeState(100)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByRole('button', { name: /Tebus/ })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Redeem/ })).toBeEnabled()
   })
 
   it('shows monopoly 2x notice when owner has full color group with no houses', () => {
@@ -38,23 +38,23 @@ describe('PropertyTooltip', () => {
     })
     const space = { ...board[1], houses: 0, owner: 0 }
     renderWithProviders(<PropertyTooltip space={space} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByText(/Komplek lengkap/)).toBeTruthy()
+    expect(screen.getByText(/Complete group/)).toBeTruthy()
   })
 
-  it('shows 75% payout on unmortgaged Jual ke Bank button', () => {
+  it('shows 75% payout on unmortgaged Sell to Bank button', () => {
     const space: Space = { ...mortgagedSpace, mortgaged: false }
     renderWithProviders(<PropertyTooltip space={space} state={makeState(100)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByRole('button', { name: /Jual ke Bank/ }).textContent).toContain('75')
+    expect(screen.getByRole('button', { name: /Sell to Bank/ }).textContent).toContain('75')
   })
 
-  it('renders Jual ke Bank button on mortgaged property with 10% payout', () => {
+  it('renders Sell to Bank button on mortgaged property with 10% payout', () => {
     renderWithProviders(<PropertyTooltip space={mortgagedSpace} state={makeState(100)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByRole('button', { name: /Jual ke Bank/ }).textContent).toContain('10')
+    expect(screen.getByRole('button', { name: /Sell to Bank/ }).textContent).toContain('10')
   })
 
   it('shows 75% payout on house sell button', () => {
     const space: Space = { ...mortgagedSpace, mortgaged: false, houses: 2, houseCost: [25, 50] }
     renderWithProviders(<PropertyTooltip space={space} state={makeState(100)} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
-    expect(screen.getByRole('button', { name: /Jual Rumah/ }).textContent).toContain('37')
+    expect(screen.getByRole('button', { name: /Sell House/ }).textContent).toContain('37')
   })
 })

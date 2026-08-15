@@ -655,7 +655,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           board: newBoard,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, { key: `${player.name} bangkrut! ${activePlayers[0]?.name ?? ''} menang!` }],
+          eventLog: [...state.eventLog, { key: 'event.bankruptcyWin', params: { name: player.name, winner: activePlayers[0]?.name ?? '' } }],
         };
       }
       const winnerIdx = newPlayers.indexOf(activePlayers[0]);
@@ -666,7 +666,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         currentPlayer: winnerIdx,
         pendingAction: null,
-        eventLog: [...state.eventLog, { key: `${player.name} bangkrut!` }],
+        eventLog: [...state.eventLog, { key: 'event.bankruptcy', params: { name: player.name } }],
       };
     }
 

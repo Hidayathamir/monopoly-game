@@ -35,6 +35,7 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player, isCurrent, color, diff, board }: PlayerCardProps) {
+  const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -69,8 +70,8 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
           <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
           <strong className="truncate">{player.name}</strong>
           {player.inJail && <span>🔒</span>}
-          {player.hasGetOutOfJailFree && <span title="Kartu Bebas Penjara">🎴</span>}
-          {player.bankrupt && <span className="text-xs font-bold text-red-danger">BANGKRUT</span>}
+          {player.hasGetOutOfJailFree && <span title={t('card.jailFreeTitle')}>🎴</span>}
+          {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
         </div>
         <div className="text-sm text-green-money font-semibold flex items-center relative">
           <span className="whitespace-nowrap">{formatMoney(player.money)}</span>
@@ -119,14 +120,14 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
         <strong>{player.name}</strong>
       </div>
       <div className="text-sm text-green-money mb-1.5">
-        Uang: <strong>{formatMoney(player.money)}</strong>
+        {t('card.money')}<strong>{formatMoney(player.money)}</strong>
       </div>
       {player.hasGetOutOfJailFree && (
-        <div className="text-sm text-gold mb-1.5">Kartu Bebas Penjara 🎴</div>
+        <div className="text-sm text-gold mb-1.5">{t('card.jailFree')}</div>
       )}
       {owned.length > 0 && (
         <>
-          <div className="text-xs text-text-dim mb-1">Properti:</div>
+          <div className="text-xs text-text-dim mb-1">{t('card.properties')}</div>
           <div className="flex flex-col gap-0.5">
             {owned.map((s) => (
               <div key={s.id} className="text-sm text-text-dim flex items-center gap-1">
@@ -135,14 +136,14 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
                   style={{ backgroundColor: s.color || color }}
                 />
                 <span className={s.mortgaged ? 'line-through opacity-50' : ''}>{t('board.space.' + s.id)}</span>
-                {s.mortgaged && <span className="text-red-danger text-xs font-bold">Gadai</span>}
+                {s.mortgaged && <span className="text-red-danger text-xs font-bold">{t('card.mortgaged')}</span>}
               </div>
             ))}
           </div>
         </>
       )}
       {owned.length === 0 && (
-        <div className="text-sm text-muted italic">Belum punya properti</div>
+        <div className="text-sm text-muted italic">{t('card.noProperties')}</div>
       )}
     </div>
   )

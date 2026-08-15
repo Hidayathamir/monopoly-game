@@ -21,17 +21,17 @@ export default function BuyPropertyModal({ state, onBuy, onDecline }: Props) {
   return (
     <Modal>
       <h3 className="text-2xl text-gold m-0">{t('board.space.' + space.id)}</h3>
-      <p className="text-lg m-0">Harga: <strong>{formatMoney(space.price)}</strong></p>
+      <p className="text-lg m-0">{t('buymodal.price')}<strong>{formatMoney(space.price)}</strong></p>
       {space.rent && (
         <div className="bg-bg-dark rounded-lg px-3 py-2 text-base">
-          <p className="my-0.5">Sewa: {space.rent[0]}</p>
-          <p className="my-0.5">Sewa 1🏠: {space.rent[1]}</p>
-          <p className="my-0.5">Hotel: {space.rent[space.rent.length - 1]}</p>
+          <p className="my-0.5">{t('buymodal.rent')}{space.rent[0]}</p>
+          <p className="my-0.5">{t('buymodal.rent1')}{space.rent[1]}</p>
+          <p className="my-0.5">{t('buymodal.hotel')}{space.rent[space.rent.length - 1]}</p>
         </div>
       )}
       <Modal.Actions>
-        <Button variant="success" onClick={onBuy}>Beli ({formatMoney(space.price)})</Button>
-        <Button variant="secondary" onClick={onDecline}>Tidak</Button>
+        <Button variant="success" onClick={onBuy}>{t('buymodal.buy', { amount: formatMoney(space.price) })}</Button>
+        <Button variant="secondary" onClick={onDecline}>{t('action.no')}</Button>
       </Modal.Actions>
     </Modal>
   )
