@@ -42,18 +42,22 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
     }
     case CardActionType.CollectFromPlayers: {
       const amount = effect.amount;
+      let actualReceived = 0;
+      let payingPlayers = 0;
       const newPlayers = newState.players.map((p, i) => {
         if (i === state.currentPlayer) return p;
-        return { ...p, money: Math.max(0, p.money - amount) };
+        const paid = Math.min(p.money, amount);
+        if (paid > 0) payingPlayers += 1;
+        actualReceived += paid;
+        return { ...p, money: p.money - paid };
       });
-      const totalReceived = (newState.players.length - 1) * amount;
       newPlayers[state.currentPlayer] = {
         ...newPlayers[state.currentPlayer],
-        money: newPlayers[state.currentPlayer].money + totalReceived,
+        money: newPlayers[state.currentPlayer].money + actualReceived,
       };
       return {
         state: { ...newState, players: newPlayers },
-        log: [{ key: 'event.cardCollectPlayers', params: { name: player.name, cardId: card.id, amount: totalReceived, perPlayer: amount, playerCount: newState.players.length - 1 } }],
+        log: [{ key: 'event.cardCollectPlayers', params: { name: player.name, cardId: card.id, amount: actualReceived, perPlayer: amount, playerCount: payingPlayers } }],
       };
     }
     case CardActionType.StreetRepairs: {

@@ -114,6 +114,20 @@ describe('resolveCardEffect', () => {
     expect(result.log).toEqual([{ key: 'event.cardCollectPlayers', params: { name: 'Alice', cardId: 9, amount: 10, perPlayer: 10, playerCount: 1 } }]);
   });
 
+  it('collect from players only takes what opponents can afford', () => {
+    const state = makeState({
+      players: [
+        { ...makeState().players[0], money: 500 },
+        { ...makeState().players[1], money: 4 },
+      ],
+    });
+    const card: Card = { id: 9, type: CardType.Chance, effect: { action: CardActionType.CollectFromPlayers, amount: 10 } };
+    const result = resolveCardEffect(state, card);
+    expect(result.state.players[0].money).toBe(504);
+    expect(result.state.players[1].money).toBe(0);
+    expect(result.log).toEqual([{ key: 'event.cardCollectPlayers', params: { name: 'Alice', cardId: 9, amount: 4, perPlayer: 10, playerCount: 1 } }]);
+  });
+
   it('street repairs logs the house/hotel breakdown', () => {
     const board = createInitialBoard();
     board[1].owner = 0;
