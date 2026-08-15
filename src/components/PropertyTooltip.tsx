@@ -20,6 +20,7 @@ export default function PropertyTooltip({
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
   const isOwned = space.owner === state.currentPlayer
   const nextHouseCost = getHouseCost(space, space.houses)
+  const unmortgageCost = Math.floor((space.price ?? 0) / 2 * 1.1)
 
   return (
     <div
@@ -101,8 +102,12 @@ export default function PropertyTooltip({
             </Button>
           )}
           {space.mortgaged && (
-            <Button size="sm" onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}>
-              Tebus (-{formatMoney(Math.floor((space.price ?? 0) / 2 * 1.1))})
+            <Button
+              size="sm"
+              disabled={state.players[state.currentPlayer]?.money < unmortgageCost}
+              onClick={(e) => { e.stopPropagation(); onUnmortgage(space.id) }}
+            >
+              Tebus (-{formatMoney(unmortgageCost)}){state.players[state.currentPlayer]?.money < unmortgageCost ? ' - uang kurang' : ''}
             </Button>
           )}
         </div>
