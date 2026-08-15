@@ -71,11 +71,12 @@ Because the IDR multiplier (1e6) is applied before formatting, IDR values stay i
 | `src/i18n/index.ts` | `DEFAULT_LANGUAGE = 'en'` |
 | `src/data/currency.ts` | `DEFAULT_CURRENCY = 'USD'`; `formatMoney` → `notation: 'compact'`, `maximumFractionDigits: 1` |
 | `src/data/__tests__/currency.test.ts` | Update expectations: default USD; compact formats (`$1.5K`, `$2K`); IDR compact (`Rp 1,5 M`); undefined → `$0` |
+| `e2e/i18n.spec.ts` | Flip default assertions to English/USD; toggle to Indonesian/IDR |
 
 ## Testing
 
 - Unit: update `src/data/__tests__/currency.test.ts` — `DEFAULT_CURRENCY` is `USD`; USD compact (`$1.5K`, `$2K`); IDR compact (`Rp 1,5 M` for 1500 units); `undefined` → `$0`.
-- E2E: `e2e/*.spec.ts` set `monopoly-language=en` + `monopoly-currency=USD` in `addInitScript` already; they pin the preference so behavior is unchanged. No e2e updates expected, but run the suite to confirm nothing asserts full-precision money strings.
+- E2E: `e2e/i18n.spec.ts` currently asserts Indonesian/IDR defaults — flip both tests to assert **English/USD** as the default and toggle to Indonesian/IDR. `monopoly.spec.ts`/`multiplayer.spec.ts` pin `en`+`USD` via `addInitScript` so they're unaffected; run the suite to confirm nothing else asserts full-precision money strings (1500 → `$1.5K`, so `toContainText('$')` still passes).
 
 ## Out of scope
 
