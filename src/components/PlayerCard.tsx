@@ -73,7 +73,10 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
           {player.hasGetOutOfJailFree && <span title={t('card.jailFreeTitle')}>🎴</span>}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
         </div>
-        <div className="text-sm text-green-money font-semibold flex items-center relative">
+        <div className={[
+          'text-sm font-semibold flex items-center relative',
+          player.money < 0 ? 'text-red-danger' : 'text-green-money',
+        ].join(' ')}>
           <span className="whitespace-nowrap">{formatMoney(player.money)}</span>
           {diff && <MoneyChange key={diff.key} diff={diff.diff} />}
         </div>
@@ -119,7 +122,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
       <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={{ borderLeftColor: color }}>
         <strong>{player.name}</strong>
       </div>
-      <div className="text-sm text-green-money mb-1.5">
+      <div className={player.money < 0 ? 'text-sm text-red-danger mb-1.5' : 'text-sm text-green-money mb-1.5'}>
         {t('card.money')}<strong>{formatMoney(player.money)}</strong>
       </div>
       {player.hasGetOutOfJailFree && (
