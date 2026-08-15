@@ -1,5 +1,8 @@
 import { useRef, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { LogEntry } from '../types/game'
+import { useCurrency } from '../i18n/CurrencyContext'
+import { resolveLogEntry } from '../i18n/log'
 
 interface Props {
   log: LogEntry[]
@@ -8,6 +11,8 @@ interface Props {
 export default function EventLog({ log }: Props) {
   const [expanded, setExpanded] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
 
   useEffect(() => {
     if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
@@ -28,10 +33,10 @@ export default function EventLog({ log }: Props) {
             data-testid="event-entry"
             className="text-xs text-muted leading-snug py-0.5"
           >
-            {entry.key}
+            {resolveLogEntry(entry, t, formatMoney)}
           </div>
         ))}
-        {log.length === 0 && <div className="text-xs text-muted">Belum ada kejadian</div>}
+        {log.length === 0 && <div className="text-xs text-muted">{t('eventlog.empty')}</div>}
       </div>
       {log.length > 2 && (
         <button
@@ -39,7 +44,7 @@ export default function EventLog({ log }: Props) {
           onClick={() => setExpanded(!expanded)}
           className="text-xs text-gold mt-1 hover:opacity-80"
         >
-          {expanded ? 'Tutup ▴' : 'Riwayat penuh ▾'}
+          {expanded ? t('eventlog.collapse') : t('eventlog.expand')}
         </button>
       )}
     </div>

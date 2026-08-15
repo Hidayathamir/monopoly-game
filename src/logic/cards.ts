@@ -1,10 +1,9 @@
-import { CardActionType, type Card, type GameState } from '../types/game';
-import { formatMoney } from '../utils/format';
+import { CardActionType, type Card, type GameState, type LogEntry } from '../types/game';
 import { GO_SALARY } from '../data/board';
 
 export interface CardResolution {
   state: GameState;
-  message: string;
+  log: LogEntry[];
 }
 
 export function resolveCardEffect(state: GameState, card: Card): CardResolution {
@@ -15,16 +14,16 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
   switch (effect.action) {
     case CardActionType.Collect: {
       newState = updatePlayerMoney(newState, state.currentPlayer, effect.amount);
-      return { state: newState, message: `${player.name} mendapatkan ${formatMoney(effect.amount)}` };
+      return { state: newState, log: [{ key: 'event.cardCollect', params: { name: player.name, amount: effect.amount } }] };
     }
     case CardActionType.Pay: {
       newState = addToFreeParking(newState, effect.amount);
       newState = updatePlayerMoney(newState, state.currentPlayer, -effect.amount);
-      return { state: newState, message: `${player.name} membayar ${formatMoney(effect.amount)} ke Parkir Gratis` };
+      return { state: newState, log: [{ key: 'event.cardPay', params: { name: player.name, amount: effect.amount } }] };
     }
     case CardActionType.GoToJail: {
       newState = sendPlayerToJail(newState, state.currentPlayer);
-      return { state: newState, message: `${player.name} masuk penjara!` };
+      return { state: newState, log: [{ key: 'event.toJail', params: { name: player.name } }] };
     }
     case CardActionType.GetOutOfJailFree: {
       const newPlayers = [...newState.players];
@@ -32,7 +31,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
         ...newPlayers[state.currentPlayer],
         hasGetOutOfJailFree: true,
       };
-      return { state: { ...newState, players: newPlayers }, message: `${player.name} mendapat kartu Bebas Penjara!` };
+      return { state: { ...newState, players: newPlayers }, log: [{ key: 'event.gotJailCard', params: { name: player.name } }] };
     }
     case CardActionType.GoToSpace: {
       const isBackward = effect.spaceId < 0;
@@ -54,7 +53,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       };
       return {
         state: { ...newState, players: newPlayers },
-        message: `${player.name} menerima ${formatMoney(totalReceived)} dari semua pemain`,
+        log: [{ key: 'event.cardCollectPlayers', params: { name: player.name, amount: totalReceived } }],
       };
     }
     case CardActionType.StreetRepairs: {
@@ -71,24 +70,24 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       newState = updatePlayerMoney(newState, state.currentPlayer, -totalRepairs);
       return {
         state: newState,
-        message: `${player.name} membayar perbaikan ${formatMoney(totalRepairs)} ke Parkir Gratis`,
+        log: [{ key: 'event.cardStreetRepairs', params: { name: player.name, amount: totalRepairs } }],
       };
     }
     default:
-      return { state: newState, message: '' };
+      return { state: newState, log: [] };
   }
 }
 
 function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBackward: boolean): CardResolution {
   const player = state.players[playerIndex];
   let newState = { ...state };
-  let message = '';
+  const log: LogEntry[] = [];
 
   const passesGo = !isBackward && spaceId < player.position;
   if (passesGo) {
     newState = updatePlayerMoney(newState, playerIndex, GO_SALARY);
     newState = setPlayerPassedGo(newState, playerIndex);
-    message += `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}. `;
+    log.push({ key: 'event.passedGo', params: { name: player.name, amount: GO_SALARY } });
   }
 
   const steps = isBackward
@@ -98,10 +97,9 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
 
-  const spaceName = String(state.board[spaceId].id);
-  message += `${player.name} ${isBackward ? 'mundur' : 'maju'} ke ${spaceName}.`;
+  log.push({ key: isBackward ? 'event.movedBack' : 'event.movedForward', params: { name: player.name, spaceId } });
 
-  return { state: newState, message };
+  return { state: newState, log };
 }
 
 function setPlayerPassedGo(state: GameState, playerIndex: number): GameState {

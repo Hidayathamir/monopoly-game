@@ -1,5 +1,4 @@
-import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player } from '../types/game';
-import { formatMoney } from '../utils/format';
+import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type LogEntry } from '../types/game';
 import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
@@ -50,7 +49,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: GamePhase.Waiting,
         players,
         currentPlayer: 0,
-        eventLog: [{ key: 'Permainan dimulai!' }],
+        eventLog: [{ key: 'event.gameStarted' }],
       };
     }
 
@@ -78,11 +77,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const total = dice[0] + dice[1];
           const newPos = (player.position + total) % 40;
           let newMoney = player.money;
-          const newEventLog = [...state.eventLog, { key: `${player.name} keluar dari penjara! (dadu ganda)` }];
+          const newEventLog = [...state.eventLog, { key: 'event.jailBreakDoubles', params: { name: player.name } }];
           const passedGo = newPos < player.position
           if (passedGo) {
             newMoney += GO_SALARY;
-            newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
+            newEventLog.push({ key: 'event.passedGo', params: { name: player.name, amount: GO_SALARY } });
           }
           newPlayers[state.currentPlayer] = {
             ...newPlayers[state.currentPlayer],
@@ -106,11 +105,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const total = dice[0] + dice[1];
             const newPos = (player.position + total) % 40;
             let newMoney = player.money;
-            const newEventLog = [...state.eventLog, { key: `${player.name} sudah 3 kali gagal, dipaksa keluar penjara` }];
+            const newEventLog = [...state.eventLog, { key: 'event.jailForcedOut', params: { name: player.name } }];
             const forcedPassedGo = newPos < player.position
             if (forcedPassedGo) {
               newMoney += GO_SALARY;
-              newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
+              newEventLog.push({ key: 'event.passedGo', params: { name: player.name, amount: GO_SALARY } });
             }
             newPlayers[state.currentPlayer] = {
               ...newPlayers[state.currentPlayer],
@@ -144,7 +143,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             dice: null,
             doublesCount: 0,
             lastMoveSteps: null,
-            eventLog: [...state.eventLog, { key: `${player.name} gagal keluar penjara (percobaan ke-${newTurns})` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
+            eventLog: [...state.eventLog, { key: 'event.jailFailed', params: { name: player.name, attempt: newTurns } }, { key: 'event.turn', params: { name: state.players[nextPlayer].name } }],
           };
         }
       }
@@ -152,14 +151,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const total = dice[0] + dice[1];
       const newPos = (player.position + total) % 40;
       let newMoney = player.money;
-      const newEventLog = [...state.eventLog, { key: `${player.name} melempar ${dice[0]}+${dice[1]}=${total}` }];
+      const newEventLog = [...state.eventLog, { key: 'event.rolled', params: { name: player.name, d1: dice[0], d2: dice[1], total } }];
 
       let passedGo = false
       if (newPos < player.position || newPos === 0) {
         if (player.position !== 0) {
           passedGo = true
           newMoney += GO_SALARY;
-          newEventLog.push({ key: `${player.name} melewati MULAI, dapat ${formatMoney(GO_SALARY)}` });
+          newEventLog.push({ key: 'event.passedGo', params: { name: player.name, amount: GO_SALARY } });
         }
       }
 
@@ -183,7 +182,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           dice: null,
           doublesCount: 0,
           lastMoveSteps: null,
-          eventLog: [...newEventLog, { key: `3x ganda berturut-turut! ${player.name} masuk Penjara!` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
+          eventLog: [...newEventLog, { key: 'event.tripleDoubles', params: { name: player.name } }, { key: 'event.turn', params: { name: state.players[nextPlayer].name } }],
         };
       }
 
@@ -234,7 +233,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               dice: null,
               doublesCount: 0,
               lastMoveSteps: null,
-              eventLog: [...state.eventLog, { key: `${player.name} masuk Penjara!` }, { key: `Giliran ${state.players[next].name}` }],
+              eventLog: [...state.eventLog, { key: 'event.toJail', params: { name: player.name } }, { key: 'event.turn', params: { name: state.players[next].name } }],
             };
           }
           return { ...state, phase: GamePhase.Waiting };
@@ -255,7 +254,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: 0,
-            eventLog: [...state.eventLog, { key: `${player.name} mendapat jackpot Parkir Gratis ${formatMoney(pot)}!` }],
+            eventLog: [...state.eventLog, { key: 'event.freeParkingJackpot', params: { name: player.name, amount: pot } }],
           };
         }
 
@@ -270,15 +269,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             ...newPlayers[state.currentPlayer],
             money: player.money - taxAmount,
           };
-          const message = isIncome
-            ? `${player.name} membayar pajak penghasilan ${formatMoney(taxAmount)} (10% dari total aset ${formatMoney(netWorth)})`
-            : `${player.name} membayar pajak mewah ${formatMoney(taxAmount)}`;
+          const message: LogEntry = isIncome
+            ? { key: 'event.incomeTax', params: { name: player.name, amount: taxAmount, netWorth } }
+            : { key: 'event.luxuryTax', params: { name: player.name, amount: taxAmount } };
           return {
             ...state,
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: state.freeParkingPot + taxAmount,
-            eventLog: [...state.eventLog, { key: message }],
+            eventLog: [...state.eventLog, message],
           };
         }
 
@@ -301,7 +300,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const currentPlayer = state.players[state.currentPlayer];
             const owner = state.players[space.owner];
             if (owner.inJail) {
-              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: `${owner.name} di penjara — tidak mendapat sewa dari ${currentPlayer.name}` }] };
+              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: 'event.ownerInJail', params: { owner: owner.name, name: currentPlayer.name } }] };
             }
 
             return {
@@ -309,11 +308,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               phase: GamePhase.Resolving,
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
               eventLog: monopoly
-                ? [...state.eventLog, { key: `${owner.name} memiliki komplek lengkap — sewa ${currentPlayer.name} jadi 2x!` }]
+                ? [...state.eventLog, { key: 'event.monopolyRent', params: { owner: owner.name, name: currentPlayer.name } }]
                 : state.eventLog,
             };
           } else if (space.owner === null) {
-            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: `${player.name} harus mengelilingi papan 1x sebelum membeli properti` }] }
+            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: 'event.mustCircleBoard', params: { name: player.name } }] }
             return {
               ...state,
               phase: GamePhase.Buying,
@@ -360,7 +359,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         pendingAction: null,
         justBoughtSpaceId: pending.spaceId,
-        eventLog: [...state.eventLog, { key: `${player.name} membeli ${space.id} seharga ${formatMoney(space.price)}` }],
+        eventLog: [...state.eventLog, { key: 'event.bought', params: { name: player.name, spaceId: space.id, amount: space.price ?? 0 } }],
       };
     }
 
@@ -384,7 +383,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, { key: `${player.name} membayar sewa ${formatMoney(pending.amount)} ke ${state.players[space.owner!].name}` }],
+          eventLog: [...state.eventLog, { key: 'event.paidRent', params: { name: player.name, amount: pending.amount, owner: state.players[space.owner!].name } }],
         };
       }
       return {
@@ -404,7 +403,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newBoard[action.spaceId] = { ...space, houses: newHouses };
       const newPlayers = [...state.players];
       newPlayers[state.currentPlayer] = { ...player, money: newMoney };
-      const houseOrHotel = space.houses === 4 ? 'Hotel' : 'Rumah';
 
       return {
         ...state,
@@ -412,7 +410,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         board: newBoard,
         players: newPlayers,
         pendingAction: null,
-        eventLog: [...state.eventLog, { key: `${player.name} membangun ${houseOrHotel} di ${space.id} seharga ${formatMoney(cost)}` }],
+        eventLog: [...state.eventLog, { key: space.houses === 4 ? 'event.builtHotel' : 'event.builtHouse', params: { name: player.name, spaceId: space.id, amount: cost } }],
       };
     }
 
@@ -429,7 +427,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, { key: `${player.name} menjual rumah di ${space.id}, mendapat ${formatMoney(refund)}` }],
+        eventLog: [...state.eventLog, { key: 'event.soldHouse', params: { name: player.name, spaceId: space.id, amount: refund } }],
       };
     }
 
@@ -446,7 +444,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, { key: `${player.name} menggadaikan ${space.id} seharga ${formatMoney(mortgageValue)}` }],
+        eventLog: [...state.eventLog, { key: 'event.mortgaged', params: { name: player.name, spaceId: space.id, amount: mortgageValue } }],
       };
     }
 
@@ -464,7 +462,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, { key: `${player.name} menebus ${space.id} seharga ${formatMoney(unmortgageCost)}` }],
+        eventLog: [...state.eventLog, { key: 'event.unmortgaged', params: { name: player.name, spaceId: space.id, amount: unmortgageCost } }],
       };
     }
 
@@ -488,7 +486,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, { key: `${player.name} menjual ${space.id} ke bank seharga ${formatMoney(sellValue)}` }],
+        eventLog: [...state.eventLog, { key: 'event.soldToBank', params: { name: player.name, spaceId: space.id, amount: sellValue } }],
       };
     }
 
@@ -496,7 +494,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         pendingAction: { type: PendingActionType.DrawCard, cardType: CardType.Chance },
-        eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} mengajukan tawaran pertukaran ke ${state.players[action.offer.toId].name}` }],
+        eventLog: [...state.eventLog, { key: 'event.tradeProposed', params: { from: state.players[state.currentPlayer].name, to: state.players[action.offer.toId].name } }],
       };
     }
 
@@ -525,7 +523,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         chanceDeck: isChance ? deck : state.chanceDeck,
         communityDeck: isChance ? state.communityDeck : deck,
         pendingAction: { type: PendingActionType.CardEffect, card },
-        eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} mengambil kartu: ${card.id}` }],
+        eventLog: [...state.eventLog, { key: 'event.drewCard', params: { name: state.players[state.currentPlayer].name, cardId: card.id } }],
       };
     }
 
@@ -544,7 +542,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         pendingAction: null,
         currentPlayer: wentToJail ? getNextPlayer(result.state) : result.state.currentPlayer,
         dice: wentToJail ? null : result.state.dice,
-        eventLog: [...result.state.eventLog, { key: result.message }, ...(wentToJail ? [{ key: `Giliran ${result.state.players[getNextPlayer(result.state)].name}` }] : [])],
+        eventLog: [
+          ...result.state.eventLog,
+          ...result.log,
+          ...(wentToJail ? [{ key: 'event.turn', params: { name: result.state.players[getNextPlayer(result.state)].name } }] : []),
+        ],
       };
     }
 
@@ -557,7 +559,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         players: newPlayers,
         freeParkingPot: 0,
-        eventLog: [...state.eventLog, { key: `${player.name} mendapat jackpot ${formatMoney(pot)}!` }],
+        eventLog: [...state.eventLog, { key: 'event.freeParkingJackpot', params: { name: player.name, amount: pot } }],
       };
     }
 
@@ -578,7 +580,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayer: nextPlayer,
         freeParkingPot: state.freeParkingPot + JAIL_FINE,
         dice: null,
-        eventLog: [...state.eventLog, { key: `${player.name} membayar ${formatMoney(JAIL_FINE)} untuk keluar dari penjara` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
+        eventLog: [...state.eventLog, { key: 'event.paidJailFine', params: { name: player.name, amount: JAIL_FINE } }, { key: 'event.turn', params: { name: state.players[nextPlayer].name } }],
       };
     }
 
@@ -598,7 +600,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         currentPlayer: nextPlayer,
         dice: null,
-        eventLog: [...state.eventLog, { key: `${player.name} menggunakan Kartu Bebas Penjara!` }, { key: `Giliran ${state.players[nextPlayer].name}` }],
+        eventLog: [...state.eventLog, { key: 'event.usedJailCard', params: { name: player.name } }, { key: 'event.turn', params: { name: state.players[nextPlayer].name } }],
       };
     }
 
@@ -616,7 +618,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           dice: null,
           doublesCount: state.dice?.[0] === state.dice?.[1] ? state.doublesCount : 0,
-          eventLog: [...state.eventLog, { key: `${state.players[state.currentPlayer].name} main lagi (dadu ganda)!` }],
+          eventLog: [...state.eventLog, { key: 'event.doublesAgain', params: { name: state.players[state.currentPlayer].name } }],
         };
       }
 
@@ -626,7 +628,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayer: nextPlayer,
         dice: null,
         doublesCount: 0,
-        eventLog: [...state.eventLog, { key: `Giliran ${state.players[nextPlayer].name}` }],
+        eventLog: [...state.eventLog, { key: 'event.turn', params: { name: state.players[nextPlayer].name } }],
       };
     }
 

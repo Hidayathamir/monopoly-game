@@ -131,7 +131,7 @@ describe('GameServer', () => {
     vi.advanceTimersByTime(500) // auto END_TURN
     expect(server.getState().dice).toBeNull()
     expect(server.getState().currentPlayer).toBe(0)
-    expect(server.getState().eventLog.some((e) => e.key.includes('main lagi'))).toBe(true)
+    expect(server.getState().eventLog.some((e) => e.key === 'event.doublesAgain')).toBe(true)
     vi.useRealTimers()
   })
 

@@ -32,7 +32,7 @@ describe('resolveCardEffect', () => {
     const card: Card = { id: 1, type: CardType.Chance, effect: { action: CardActionType.Collect, amount: 200 } };
     const result = resolveCardEffect(state, card);
     expect(result.state.players[0].money).toBe(700);
-    expect(result.message).toContain('Rp 200');
+    expect(result.log).toEqual([{ key: 'event.cardCollect', params: { name: 'Alice', amount: 200 } }])
   });
 
   it('pay money adds to free parking', () => {
