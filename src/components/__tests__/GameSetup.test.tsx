@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
-import { screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { cleanup, screen, fireEvent } from '@testing-library/react'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import GameSetup from '../GameSetup'
 import { renderWithProviders } from '../../test/test-utils'
+
+afterEach(cleanup)
 
 describe('GameSetup', () => {
   it('switches to multiplayer form and calls onJoin', () => {
@@ -27,5 +29,13 @@ describe('GameSetup', () => {
     fireEvent.click(screen.getByText('Start Game'))
 
     expect(onStartLocal).toHaveBeenCalledWith(2, ['A', 'B'])
+  })
+
+  it('marks the active mode toggle with a gold ring', () => {
+    renderWithProviders(<GameSetup onStartLocal={() => {}} onCreate={() => {}} onJoin={() => {}} />)
+    const single = screen.getByText('Single Device').closest('button')!
+    const multiplayer = screen.getByText('Multiplayer (LAN)').closest('button')!
+    expect(single.className).toContain('ring-gold')
+    expect(multiplayer.className).toContain('opacity-60')
   })
 })

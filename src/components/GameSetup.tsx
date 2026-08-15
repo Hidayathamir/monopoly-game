@@ -40,10 +40,20 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
       <h1 className="text-[80px] text-gold m-0">{t('setup.title')}</h1>
       <div className="bg-bg-card px-10 py-[30px] rounded-xl flex flex-col gap-4 min-w-[360px]">
         <div className="flex gap-2">
-          <Button variant={mode === 'local' ? 'primary' : 'secondary'} size="sm" onClick={() => setMode('local')}>
+          <Button
+            variant={mode === 'local' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setMode('local')}
+            className={mode === 'local' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+          >
             {t('setup.singleDevice')}
           </Button>
-          <Button variant={mode === 'multiplayer' ? 'primary' : 'secondary'} size="sm" onClick={() => setMode('multiplayer')}>
+          <Button
+            variant={mode === 'multiplayer' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setMode('multiplayer')}
+            className={mode === 'multiplayer' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+          >
             {t('setup.multiplayer')}
           </Button>
         </div>
@@ -97,10 +107,20 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
               />
             </div>
             <div className="flex gap-2">
-              <Button variant={mpAction === 'create' ? 'primary' : 'secondary'} size="sm" onClick={() => setMpAction('create')}>
+              <Button
+                variant={mpAction === 'create' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setMpAction('create')}
+                className={mpAction === 'create' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+              >
                 {t('setup.createRoom')}
               </Button>
-              <Button variant={mpAction === 'join' ? 'primary' : 'secondary'} size="sm" onClick={() => setMpAction('join')}>
+              <Button
+                variant={mpAction === 'join' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setMpAction('join')}
+                className={mpAction === 'join' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+              >
                 {t('setup.joinRoom')}
               </Button>
             </div>
