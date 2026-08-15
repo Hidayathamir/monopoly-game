@@ -1327,7 +1327,7 @@ git commit -m "feat: add bot controls to multiplayer lobby"
 
 - [ ] **Step 1: Add a local-mode bot test**
 
-Append to `e2e/monopoly.spec.ts` inside `test.describe('Monopoly Game E2E')`:
+Append to `e2e/monopoly.spec.ts` inside `test.describe('Monopoly Game E2E')`. The loop drives Alpha's turn(s) — rolling, drawing cards, buying, paying rent, re-rolling on doubles — until control passes to the bot (sidebar shows `waiting-for`), then verifies the bot auto-plays and returns the turn to Alpha. This genuinely exercises the bot's auto-play (not just rendering):
 
 ```ts
   test('local game with a bot seat auto-plays the bot turn', async ({ page }) => {
@@ -1337,13 +1337,49 @@ Append to `e2e/monopoly.spec.ts` inside `test.describe('Monopoly Game E2E')`:
 
     await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
     await expect(page.locator('[data-testid="player-card"]')).toHaveCount(2)
-    await expect(page.locator('[data-testid="player-card"]').nth(1)).toContainText('Droid')
+
+    // Play Alpha's turn(s) until the bot seat (Byte) becomes current.
+    const waitingFor = page.locator('[data-testid="waiting-for"]')
+    for (let i = 0; i < 10; i++) {
+      if (await waitingFor.isVisible({ timeout: 500 }).catch(() => false)) break
+
+      const roll = page.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
+      if (await roll.isVisible({ timeout: 500 }).catch(() => false)) {
+        await roll.click()
+        await page.waitForTimeout(2200)
+        continue
+      }
+
+      const buy = page.locator('button:has-text("Buy (")').first()
+      if (await buy.isVisible({ timeout: 500 }).catch(() => false)) { await buy.click(); continue }
+      const no = page.locator('button:has-text("No")').first()
+      if (await no.isVisible({ timeout: 500 }).catch(() => false)) { await no.click(); continue }
+      const draw = page.locator('button:has-text("Draw")').first()
+      if (await draw.isVisible({ timeout: 500 }).catch(() => false)) {
+        await draw.click()
+        await page.waitForTimeout(500)
+        const ok = page.locator('button:has-text("OK")').first()
+        if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
+        continue
+      }
+      const pay = page.locator('button:has-text("Pay")').first()
+      if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
+      const end = page.locator('button:has-text("End")').first()
+      if (await end.isVisible({ timeout: 500 }).catch(() => false)) { await end.click(); continue }
+      break
+    }
+
+    // The bot seat is now current and auto-plays; verify control returns to Alpha.
+    await expect(waitingFor).toContainText('Byte', { timeout: 10000 })
+    await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
   })
 ```
 
+Note: seat 2 (index 1) is named `Byte` (`BOT_NAMES[1]`), not `Droid`.
+
 - [ ] **Step 2: Add a multiplayer bot test**
 
-Append to `e2e/multiplayer.spec.ts`:
+Append to `e2e/multiplayer.spec.ts`. The loop plays the host's turn(s) robustly — handling the Chance/Community card draw (spaces 2/7), buy/decline prompts, rent payment, and doubles ("Roll Again") — until the turn passes to the bot, then verifies the bot auto-plays and returns the turn to the host. Asserting `waiting-for` shows the bot's name first eliminates the false-positive where a "Roll Again" (doubles) button matches a naive `has-text("Roll")` check:
 
 ```ts
 test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
@@ -1367,15 +1403,39 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
   await page.click('button:has-text("Start (")')
   await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-  // Host rolls and ends turn; the bot then auto-plays its turn and returns to the host.
-  const rollBtn = page.locator('button:has-text("Roll")').first()
-  await expect(rollBtn).toBeVisible({ timeout: 5000 })
-  await rollBtn.click()
-  await page.waitForTimeout(2500)
-  const endBtn = page.locator('button:has-text("End")').first()
-  if (await endBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await endBtn.click()
+  // Play the host's turn(s) until the bot seat (Droid) becomes current.
+  const waitingFor = page.locator('[data-testid="waiting-for"]')
+  for (let i = 0; i < 10; i++) {
+    if (await waitingFor.isVisible({ timeout: 500 }).catch(() => false)) break
+
+    const roll = page.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
+    if (await roll.isVisible({ timeout: 500 }).catch(() => false)) {
+      await roll.click()
+      await page.waitForTimeout(2500)
+      continue
+    }
+
+    const buy = page.locator('button:has-text("Buy (")').first()
+    if (await buy.isVisible({ timeout: 500 }).catch(() => false)) { await buy.click(); continue }
+    const no = page.locator('button:has-text("No")').first()
+    if (await no.isVisible({ timeout: 500 }).catch(() => false)) { await no.click(); continue }
+    const draw = page.locator('button:has-text("Draw")').first()
+    if (await draw.isVisible({ timeout: 500 }).catch(() => false)) {
+      await draw.click()
+      await page.waitForTimeout(500)
+      const ok = page.locator('button:has-text("OK")').first()
+      if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
+      continue
+    }
+    const pay = page.locator('button:has-text("Pay")').first()
+    if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
+    const end = page.locator('button:has-text("End")').first()
+    if (await end.isVisible({ timeout: 500 }).catch(() => false)) { await end.click(); continue }
+    break
   }
+
+  // The bot seat is now current and auto-plays; verify control returns to the host.
+  await expect(waitingFor).toContainText('Droid', { timeout: 10000 })
   await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
 })
 ```
