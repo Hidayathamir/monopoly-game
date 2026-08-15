@@ -1,5 +1,5 @@
 import { PendingActionType, type GameState } from '../../types/game'
-import { formatMoney } from '../../utils/format'
+import { useCurrency } from '../../i18n/CurrencyContext'
 import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
 import Button from '../Button'
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export default function BankruptcyModal({ state, onClose, onBankruptcy }: Props) {
+  const { formatMoney } = useCurrency()
   const pending = state.pendingAction
   if (pending?.type !== PendingActionType.Bankruptcy) return null
   const player = state.players[state.currentPlayer]

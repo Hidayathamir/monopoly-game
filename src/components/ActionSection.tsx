@@ -1,6 +1,6 @@
 import { GamePhase, PendingActionType, type GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
-import { formatMoney } from '../utils/format'
+import { useCurrency } from '../i18n/CurrencyContext'
 import { JAIL_FINE, getHouseCost } from '../data/board'
 import Button from './Button'
 
@@ -25,6 +25,7 @@ export default function ActionSection({
   onBuild, isMyTurn = true,
 }: Props) {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   const player = state.players[state.currentPlayer]
   if (!isMyTurn) return null
   const pending = state.pendingAction

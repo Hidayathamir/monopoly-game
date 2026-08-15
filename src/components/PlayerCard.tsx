@@ -2,9 +2,10 @@ import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Player, Space } from '../types/game'
-import { formatMoney } from '../utils/format'
+import { useCurrency } from '../i18n/CurrencyContext'
 
 function MoneyChange({ diff }: { diff: number }) {
+  const { formatMoney } = useCurrency()
   const [visible, setVisible] = useState(true)
   useEffect(() => {
     const t = setTimeout(() => setVisible(false), 1200)
@@ -34,6 +35,7 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player, isCurrent, color, diff, board }: PlayerCardProps) {
+  const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
@@ -102,6 +104,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
   onLeave: () => void
 }) {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   return (
     <div
       className="fixed bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[180px] max-w-[260px] max-h-[60vh] overflow-y-auto z-[999] shadow-lg"

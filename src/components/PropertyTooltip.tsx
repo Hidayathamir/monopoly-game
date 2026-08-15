@@ -1,6 +1,6 @@
 import { type GameState, type Space } from '../types/game'
 import { useTranslation } from 'react-i18next'
-import { formatMoney } from '../utils/format'
+import { useCurrency } from '../i18n/CurrencyContext'
 import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
 import { isMonopoly } from '../logic/rent'
 import Button from './Button'
@@ -18,6 +18,7 @@ export default function PropertyTooltip({
   space, state, onSell, onMortgage, onUnmortgage, onSellProperty,
 }: Props) {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   const owner = space.owner !== null ? state.players[space.owner] : null
   const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
   const isOwned = space.owner === state.currentPlayer

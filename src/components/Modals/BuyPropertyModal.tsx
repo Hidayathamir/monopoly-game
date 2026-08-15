@@ -1,6 +1,6 @@
 import { PendingActionType, type GameState } from '../../types/game'
 import { useTranslation } from 'react-i18next'
-import { formatMoney } from '../../utils/format'
+import { useCurrency } from '../../i18n/CurrencyContext'
 import Modal from './Modal'
 import Button from '../Button'
 
@@ -12,6 +12,7 @@ interface Props {
 
 export default function BuyPropertyModal({ state, onBuy, onDecline }: Props) {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   const pending = state.pendingAction
   if (pending?.type !== PendingActionType.BuyProperty) return null
   const space = state.board[pending.spaceId]

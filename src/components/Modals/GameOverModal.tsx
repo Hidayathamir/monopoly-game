@@ -1,5 +1,5 @@
 import { GamePhase, type GameState } from '../../types/game'
-import { formatMoney } from '../../utils/format'
+import { useCurrency } from '../../i18n/CurrencyContext'
 import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
 import Button from '../Button'
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function GameOverModal({ state, onReset }: Props) {
+  const { formatMoney } = useCurrency()
   if (state.phase !== GamePhase.GameOver) return null
   const winner = state.players.find((p) => !p.bankrupt)
   if (!winner) return null
