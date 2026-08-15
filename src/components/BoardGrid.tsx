@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { GameState } from '../types/game'
 import PropertyTooltip from './PropertyTooltip'
@@ -42,45 +42,53 @@ interface TooltipPos {
   left: number
 }
 
+function computeTooltipPosition(
+  rect: DOMRect,
+  pos: { gridColumn: number; gridRow: number } | null,
+  tipW: number,
+  tipH: number,
+): TooltipPos {
+  const gap = TOOLTIP_MARGIN
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+
+  let top: number
+  let left: number
+
+  if (pos?.gridColumn === 11) {
+    top = rect.top + rect.height / 2 - tipH / 2
+    left = rect.left - gap - tipW
+  } else if (pos?.gridColumn === 1) {
+    top = rect.top + rect.height / 2 - tipH / 2
+    left = rect.right + gap
+  } else if (pos?.gridRow === 1) {
+    top = rect.bottom + gap
+    left = rect.left + rect.width / 2 - tipW / 2
+  } else {
+    top = rect.top - gap - tipH
+    left = rect.left + rect.width / 2 - tipW / 2
+  }
+
+  top = Math.max(0, Math.min(top, vh - tipH))
+  left = Math.max(0, Math.min(left, vw - tipW))
+
+  return { top, left }
+}
+
 export default function BoardGrid({ state, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const cellRectRef = useRef<DOMRect | null>(null)
 
   function handleEnter(id: number, e: React.MouseEvent<HTMLDivElement>) {
     if (timerRef.current) clearTimeout(timerRef.current)
     setHoveredId(id)
     const rect = e.currentTarget.getBoundingClientRect()
-    const pos = getCellPosition(id)
-    const gap = TOOLTIP_MARGIN
-    const tipW = tooltipRef.current?.offsetWidth ?? 260
-    const tipH = tooltipRef.current?.offsetHeight ?? 300
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-
-    let top: number
-    let left: number
-
-    if (pos?.gridColumn === 11) {
-      top = rect.top + rect.height / 2 - tipH / 2
-      left = rect.left - gap - tipW
-    } else if (pos?.gridColumn === 1) {
-      top = rect.top + rect.height / 2 - tipH / 2
-      left = rect.right + gap
-    } else if (pos?.gridRow === 1) {
-      top = rect.bottom + gap
-      left = rect.left + rect.width / 2 - tipW / 2
-    } else {
-      top = rect.top - gap - tipH
-      left = rect.left + rect.width / 2 - tipW / 2
-    }
-
-    top = Math.max(0, Math.min(top, vh - tipH))
-    left = Math.max(0, Math.min(left, vw - tipW))
-
-    setTooltipPos({ top, left })
+    cellRectRef.current = rect
+    setTooltipPos(computeTooltipPosition(rect, getCellPosition(id), 260, 300))
   }
 
   function handleLeave() {
@@ -94,6 +102,13 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
   function handleTooltipLeave() {
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
+
+  useLayoutEffect(() => {
+    if (hoveredId == null || !tooltipRef.current || !cellRectRef.current) return
+    const tipW = tooltipRef.current.offsetWidth
+    const tipH = tooltipRef.current.offsetHeight
+    setTooltipPos(computeTooltipPosition(cellRectRef.current, getCellPosition(hoveredId), tipW, tipH))
+  }, [hoveredId])
 
   return (
     <div
