@@ -160,10 +160,11 @@ git commit -m "feat: default app language to English"
 
 **Files:**
 - Modify: `e2e/i18n.spec.ts`
+- Modify: `src/components/__tests__/PlayerCard.test.tsx:38` (stale `$15,000` assertion — compact formatting renders `$15K`)
 
 **Interfaces:**
-- Consumes: default language `en`, default currency `USD`, compact money display (1500 units → `$1.5K`, IDR `Rp 1,5 M`).
-- Produces: e2e coverage that the app defaults to English/USD and toggles correctly.
+- Consumes: default language `en`, default currency `USD`, compact money display (1500 units → `$1.5K`, IDR `Rp 1,5 M`, 15000 units → `$15K`).
+- Produces: e2e coverage that the app defaults to English/USD and toggles correctly; full suite green.
 
 - [ ] **Step 1: Rewrite the two tests to assert English/USD defaults**
 
@@ -193,19 +194,30 @@ test('currency defaults to USD and toggles money symbol', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2: Run the i18n e2e spec**
+- [ ] **Step 2: Fix the stale PlayerCard unit test assertion**
+
+In `src/components/__tests__/PlayerCard.test.tsx:38`, the money display for 15000 is now `$15K` (compact), not `$15,000`:
+
+```ts
+    const positiveDiv = screen.getByText(/\$15K/).closest('div')!
+```
+
+Run: `npm run test:unit -- src/components/__tests__/PlayerCard.test.tsx`
+Expected: PASS (all 4 tests).
+
+- [ ] **Step 3: Run the i18n e2e spec**
 
 Run: `npm run build && npx playwright test e2e/i18n.spec.ts`
 Expected: PASS (build first — `multiplayer.spec.ts` and this spec serve `dist/`).
 
-- [ ] **Step 3: Run the full test suite**
+- [ ] **Step 4: Run the full test suite**
 
 Run: `npm run build && npm run test`
 Expected: PASS — unit, and all e2e specs. `monopoly.spec.ts`/`multiplayer.spec.ts` pin `en`+`USD` via `addInitScript`, so `$`-containing assertions still hold with compact formatting.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add e2e/i18n.spec.ts
+git add e2e/i18n.spec.ts src/components/__tests__/PlayerCard.test.tsx
 git commit -m "test: e2e asserts English and USD defaults with compact money"
 ```
