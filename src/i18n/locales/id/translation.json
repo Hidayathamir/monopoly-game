@@ -149,6 +149,7 @@
   "turn.cardEffect": "Efek kartu",
   "turn.inJail": "Di penjara",
   "turn.dice": "Dadu {{a}} + {{b}} = {{total}}",
+  "turn.waitingFor": "Menunggu {{name}}…",
   "turn.roll": "Lempar dadu",
 
   "dice.rollJail": "Lempar Dadu (Penjara)",

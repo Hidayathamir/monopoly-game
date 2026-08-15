@@ -30,8 +30,8 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
         <Dice value={state.dice?.[0]} rolling={rolling} />
         <Dice value={state.dice?.[1]} rolling={rolling} />
       </div>
-      {(canRoll || canRollJail) && (
-        <Button variant="primary" size="lg" onClick={handleRoll} disabled={!isMyTurn}>
+      {(canRoll || canRollJail) && isMyTurn && (
+        <Button variant="primary" size="lg" onClick={handleRoll}>
           {player.inJail ? t('dice.rollJail') : t('dice.roll')}
         </Button>
       )}

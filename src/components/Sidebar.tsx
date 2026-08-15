@@ -37,7 +37,13 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
         <TurnHeader state={state} />
         <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
         <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
-        <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
+        {isMyTurn ? (
+          <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
+        ) : (
+          <p className="text-base text-muted text-center" data-testid="waiting-for">
+            {t('turn.waitingFor', { name: state.players[state.currentPlayer].name })}
+          </p>
+        )}
         <EventLog log={state.eventLog} />
         {onLeave && (
           <Button variant="danger" size="sm" onClick={onLeave}>

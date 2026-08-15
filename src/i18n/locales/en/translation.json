@@ -149,6 +149,7 @@
   "turn.cardEffect": "Card effect",
   "turn.inJail": "In jail",
   "turn.dice": "Dice {{a}} + {{b}} = {{total}}",
+  "turn.waitingFor": "Waiting for {{name}}…",
   "turn.roll": "Roll dice",
 
   "dice.rollJail": "Roll Dice (Jail)",

@@ -14,9 +14,9 @@ function makeState(): GameState {
 afterEach(cleanup)
 
 describe('DiceRoller', () => {
-  it('disables the roll button when it is not the current player turn', () => {
+  it('hides the roll button when it is not the current player turn', () => {
     renderWithProviders(<DiceRoller state={makeState()} onRoll={() => {}} isMyTurn={false} />)
-    expect(screen.getByRole('button', { name: 'Roll Dice' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Roll Dice' })).toBeNull()
   })
 
   it('enables the roll button on the current player turn', () => {
