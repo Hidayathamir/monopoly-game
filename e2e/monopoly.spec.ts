@@ -1,25 +1,25 @@
 import { test, expect, Page } from '@playwright/test'
 
 async function handleTurn(page: Page) {
-  const rollBtn = page.locator('button:has-text("Lempar")').first()
+  const rollBtn = page.locator('button:has-text("Roll")').first()
   if (!await rollBtn.isVisible({ timeout: 500 }).catch(() => false)) return false
 
   await rollBtn.click()
   await page.waitForTimeout(2000)
 
-  const buyBtn = page.locator('button:has-text("Beli (")').first()
+  const buyBtn = page.locator('button:has-text("Buy (")').first()
   if (await buyBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await buyBtn.click()
     await page.waitForTimeout(200)
   }
 
-  const noBtn = page.locator('button:has-text("Tidak")').first()
+  const noBtn = page.locator('button:has-text("No")').first()
   if (await noBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await noBtn.click()
     await page.waitForTimeout(200)
   }
 
-  const cardBtn = page.locator('button:has-text("Ambil")').first()
+  const cardBtn = page.locator('button:has-text("Draw")').first()
   if (await cardBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await cardBtn.click()
     await page.waitForTimeout(500)
@@ -31,13 +31,13 @@ async function handleTurn(page: Page) {
     }
   }
 
-  const payBtn = page.locator('button:has-text("Bayar")').first()
+  const payBtn = page.locator('button:has-text("Pay")').first()
   if (await payBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await payBtn.click()
     await page.waitForTimeout(200)
   }
 
-  const endBtn = page.locator('button:has-text("Akhiri")').first()
+  const endBtn = page.locator('button:has-text("End")').first()
   if (await endBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await endBtn.click()
     await page.waitForTimeout(200)
@@ -52,30 +52,30 @@ test.describe('Monopoly Game E2E', () => {
   })
 
   test('setup screen renders correctly', async ({ page }) => {
-    await expect(page.locator('h1')).toHaveText('Monopoli Indonesia')
-    await expect(page.locator('button:has-text("Mulai")')).toBeVisible()
-    await expect(page.locator('select')).toBeVisible()
+    await expect(page.locator('h1')).toHaveText('Indonesia Monopoly')
+    await expect(page.locator('button:has-text("Start")')).toBeVisible()
+    await expect(page.getByLabel('player-count')).toBeVisible()
   })
 
   test('start game with 2 players', async ({ page }) => {
     await page.locator('input[type="text"]').first().fill('Alpha')
     await page.locator('input[type="text"]').nth(1).fill('Beta')
-    await page.click('button:has-text("Mulai")')
+    await page.click('button:has-text("Start")')
 
     await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('button:has-text("Lempar")')).toBeVisible()
+    await expect(page.locator('button:has-text("Roll")')).toBeVisible()
 
     const panel = page.locator('[data-testid="player-card"]')
     await expect(panel).toHaveCount(2)
     await expect(panel.first()).toContainText('Alpha')
     await expect(panel.nth(1)).toContainText('Beta')
-    await expect(panel.first()).toContainText('Rp')
+    await expect(panel.first()).toContainText('$')
   })
 
   test('buy property and see it in panel', async ({ page }) => {
     await page.locator('input[type="text"]').first().fill('Buyer')
     await page.locator('input[type="text"]').nth(1).fill('Other')
-    await page.click('button:has-text("Mulai")')
+    await page.click('button:has-text("Start")')
 
     for (let i = 0; i < 15; i++) {
       await handleTurn(page)
@@ -95,7 +95,7 @@ test.describe('Monopoly Game E2E', () => {
     test(`center panel fits on ${viewport.width}x${viewport.height}`, async ({ page }) => {
       await page.setViewportSize(viewport)
       await page.goto('/')
-      await page.click('button:has-text("Mulai")')
+      await page.click('button:has-text("Start")')
       await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
       const board = await page.locator('[data-game-board]').boundingBox()
@@ -120,15 +120,15 @@ test.describe('Monopoly Game E2E', () => {
   }
 
   test('4-player game survives many turns without crash', async ({ page }) => {
-    await page.locator('select').selectOption('4')
+    await page.getByLabel('player-count').selectOption('4')
     await page.locator('input[type="text"]').nth(0).fill('P1')
     await page.locator('input[type="text"]').nth(1).fill('P2')
     await page.locator('input[type="text"]').nth(2).fill('P3')
     await page.locator('input[type="text"]').nth(3).fill('P4')
-    await page.click('button:has-text("Mulai")')
+    await page.click('button:has-text("Start")')
 
     await expect(page.locator('[data-testid="player-card"]')).toHaveCount(4)
-    await expect(page.locator('button:has-text("Lempar")')).toBeVisible()
+    await expect(page.locator('button:has-text("Roll")')).toBeVisible()
 
     for (let t = 0; t < 12; t++) {
       const played = await handleTurn(page)

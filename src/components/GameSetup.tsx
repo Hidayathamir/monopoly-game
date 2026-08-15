@@ -53,6 +53,7 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
             <div className="flex flex-col gap-1.5">
               <label className="text-base text-muted">{t('setup.playerCount')}</label>
               <select
+                aria-label="player-count"
                 value={playerCount}
                 onChange={(e) => setPlayerCount(Number(e.target.value))}
                 className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
