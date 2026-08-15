@@ -38,4 +38,16 @@ describe('ActionSection', () => {
     btn.click()
     expect(onBuild).toHaveBeenCalledWith(8)
   })
+
+  it('hides build button on a just-bought property', () => {
+    let s = makeState()
+    s = {
+      ...s,
+      players: s.players.map((p, i) => i === 0 ? { ...p, position: 8, properties: [8], passedGo: true } : p),
+      board: s.board.map((b) => b.id === 8 ? { ...b, owner: 0 } : b),
+      justBoughtSpaceId: 8,
+    }
+    render(<ActionSection state={s} {...actions} onBuild={() => {}} />)
+    expect(screen.queryByRole('button', { name: /Bangun/ })).toBeNull()
+  })
 })

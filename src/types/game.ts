@@ -135,6 +135,7 @@ export type GameState = {
   lastMoveSteps: number | null;
   eventLog: string[];
   pendingAction: PendingAction | null;
+  justBoughtSpaceId: number | null;
 };
 
 export type PendingAction =

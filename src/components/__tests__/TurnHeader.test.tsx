@@ -23,6 +23,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     lastMoveSteps: null,
     eventLog: [],
     pendingAction: null,
+    justBoughtSpaceId: null,
     ...overrides,
   }
 }

@@ -93,7 +93,8 @@ export default function ActionSection({
     space?.type === 'property' &&
     space.owner === state.currentPlayer &&
     space.houses < 5 &&
-    !space.mortgaged
+    !space.mortgaged &&
+    space.id !== state.justBoughtSpaceId
 
   return (
     <div className="flex flex-col gap-1.5 w-full items-stretch">

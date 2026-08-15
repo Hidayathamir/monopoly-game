@@ -36,6 +36,7 @@ export function createInitialState(): GameState {
     lastMoveSteps: null,
     eventLog: [],
     pendingAction: null,
+    justBoughtSpaceId: null,
   };
 }
 
@@ -70,6 +71,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         phase: GamePhase.Rolling,
+        justBoughtSpaceId: null,
       };
     }
 
@@ -357,6 +359,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         board: newBoard,
         players: newPlayers,
         pendingAction: null,
+        justBoughtSpaceId: pending.spaceId,
         eventLog: [...state.eventLog, `${player.name} membeli ${space.name} seharga ${formatMoney(space.price)}`],
       };
     }

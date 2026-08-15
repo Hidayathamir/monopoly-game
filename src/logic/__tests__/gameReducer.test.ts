@@ -158,6 +158,16 @@ describe('gameReducer', () => {
       expect(s1.players[0].properties).toContain(1);
       expect(s1.pendingAction).toBeNull();
     });
+
+    it('tracks justBoughtSpaceId between buy and next roll', () => {
+      let state = makeStartedState()
+      state = setPosition(state, 0, 1)
+      state = { ...state, phase: GamePhase.Buying, pendingAction: { type: PendingActionType.BuyProperty, spaceId: 1 } }
+      const bought = gameReducer(state, { type: GameActionType.BuyProperty })
+      expect(bought.justBoughtSpaceId).toBe(1)
+      const rolled = gameReducer(bought, { type: GameActionType.RollDice })
+      expect(rolled.justBoughtSpaceId).toBeNull()
+    })
   });
 
   describe('DECLINE_BUY', () => {
