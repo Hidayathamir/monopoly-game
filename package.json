@@ -10,6 +10,9 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "server": "tsx server/main.ts",
+    "start": "npm run build && npm run server",
+    "tunnel": "cloudflared tunnel run --url http://localhost:3001 monopoly",
+    "live": "npm run build && concurrently -k \"npm run server\" \"npm run tunnel\"",
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
@@ -32,6 +35,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.5",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
