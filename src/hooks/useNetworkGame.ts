@@ -6,20 +6,28 @@ import type { ConnectionStatus, LobbyPlayer } from '../types/net'
 
 export type NetworkGameApi = GameApi & {
   playerId: number | null
+  hostPlayerId: number | null
+  code: string | null
   lobby: LobbyPlayer[]
   status: ConnectionStatus
   error: string | null
-  join: (name: string) => void
+  create: (name: string) => void
+  join: (code: string, name: string) => void
+  leave: () => void
   start: () => void
 }
 
-export function useNetworkGame(): NetworkGameApi {
+export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const [state, setState] = useState<GameState>(() => createInitialState())
   const [playerId, setPlayerId] = useState<number | null>(null)
+  const [hostPlayerId, setHostPlayerId] = useState<number | null>(null)
+  const [code, setCode] = useState<string | null>(null)
   const [lobby, setLobby] = useState<LobbyPlayer[]>([])
   const [status, setStatus] = useState<ConnectionStatus>('connecting')
   const [error, setError] = useState<string | null>(null)
   const clientRef = useRef<GameClient | null>(null)
+  const onLeftRef = useRef(onLeft)
+  onLeftRef.current = onLeft
 
   useEffect(() => {
     const client = new GameClient({
@@ -28,14 +36,19 @@ export function useNetworkGame(): NetworkGameApi {
       onMessage: (message) => {
         if (message.type === 'welcome') {
           setPlayerId(message.playerId)
+          setHostPlayerId(message.hostPlayerId)
+          setCode(message.code)
           setLobby(message.players)
           setState(message.state)
           setStatus('connected')
           setError(null)
         } else if (message.type === 'lobby') {
           setLobby(message.players)
+          setHostPlayerId(message.hostPlayerId)
         } else if (message.type === 'state') {
           setState(message.state)
+        } else if (message.type === 'left') {
+          onLeftRef.current()
         } else if (message.type === 'error') {
           setError(message.message)
         }
@@ -55,7 +68,9 @@ export function useNetworkGame(): NetworkGameApi {
     [send],
   )
 
-  const join = useCallback((name: string) => send({ type: 'join', name }), [send])
+  const create = useCallback((name: string) => send({ type: 'create', name }), [send])
+  const join = useCallback((code: string, name: string) => send({ type: 'join', code, name }), [send])
+  const leave = useCallback(() => send({ type: 'leave' }), [send])
   const start = useCallback(() => send({ type: 'start' }), [send])
 
   const roll = useCallback(() => sendAction({ type: 'ROLL_DICE' }), [sendAction])
@@ -81,10 +96,14 @@ export function useNetworkGame(): NetworkGameApi {
     state,
     myPlayerId: playerId,
     playerId,
+    hostPlayerId,
+    code,
     lobby,
     status,
     error,
+    create,
     join,
+    leave,
     start,
     roll,
     buyProperty,
