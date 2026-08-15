@@ -243,5 +243,6 @@
   "trade.cancel": "Batal",
 
   "settings.language": "Bahasa",
-  "settings.currency": "Mata Uang"
+  "settings.currency": "Mata Uang",
+  "settings.toggle": "Pengaturan"
 }

@@ -243,5 +243,6 @@
   "trade.cancel": "Cancel",
 
   "settings.language": "Language",
-  "settings.currency": "Currency"
+  "settings.currency": "Currency",
+  "settings.toggle": "Settings"
 }

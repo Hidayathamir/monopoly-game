@@ -114,7 +114,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
 
   return (
     <div
-      className="grid grid-cols-11 grid-rows-11 w-full h-full overflow-hidden relative z-[1]"
+      className="grid grid-cols-11 grid-rows-11 w-full h-full overflow-hidden relative z-[1] select-none"
     >
       {board.map((space) => {
         const owner = space.owner !== null ? state.players[space.owner] : null
@@ -124,7 +124,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
           <div
             key={space.id}
             className={[
-              'border border-border text-sm flex flex-col items-center justify-center relative overflow-hidden p-0.5',
+              'border border-border text-sm flex flex-col items-center justify-center relative overflow-hidden p-0.5 select-none',
               'hover:bg-bg-cell-hover hover:z-[2]',
               TYPE_BG[space.type] ?? 'bg-bg-cell',
               space.type === 'chance' ? '[&_.cell-name]:text-gold' : '',
@@ -133,6 +133,7 @@ export default function BoardGrid({ state, playerColors, onSell, onMortgage, onU
             style={{
               ...(pos ? { gridColumn: pos.gridColumn, gridRow: pos.gridRow } : {}),
               ...(space.color ? { background: `${space.color}30` } : {}),
+              WebkitTouchCallout: 'none',
             }}
             onMouseEnter={(e) => handleEnter(space.id, e)}
             onMouseLeave={handleLeave}
