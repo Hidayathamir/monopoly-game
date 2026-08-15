@@ -34,9 +34,15 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
         data-testid="sidebar"
         className="pointer-events-auto w-[min(380px,calc((100vw-16px)*9/11-16px))] min-h-0 max-h-[calc((100vh-16px)*9/11-16px)] overflow-y-auto rounded-2xl border border-panel-border bg-panel backdrop-blur-md shadow-2xl px-5 py-4 flex flex-col gap-4"
       >
-        <TurnHeader state={state} />
+        <div className="relative">
+          <TurnHeader state={state} />
+          {onLeave && (
+            <div className="absolute top-0 right-0">
+              <RoomExit onLeave={onLeave} variant="icon" />
+            </div>
+          )}
+        </div>
         <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
-        <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
         {isMyTurn ? (
           <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
         ) : (
@@ -44,8 +50,8 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
             {t('turn.waitingFor', { name: state.players[state.currentPlayer].name })}
           </p>
         )}
+        <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
         <EventLog log={state.eventLog} />
-        {onLeave && <RoomExit onLeave={onLeave} />}
       </div>
     </div>
   )
