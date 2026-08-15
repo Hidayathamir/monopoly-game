@@ -50,4 +50,11 @@ describe('ActionSection', () => {
     render(<ActionSection state={s} {...actions} onBuild={() => {}} />)
     expect(screen.queryByRole('button', { name: /Bangun/ })).toBeNull()
   })
+
+  it('shows the pay option on the first turn in jail', () => {
+    let s = makeState()
+    s = { ...s, players: s.players.map((p, i) => i === 0 ? { ...p, inJail: true, position: 10, jailTurns: 0 } : p) }
+    render(<ActionSection state={s} {...actions} />)
+    expect(screen.getByRole('button', { name: /Bayar/ })).toBeVisible()
+  })
 })

@@ -117,24 +117,15 @@ export default function ActionSection({
               🎴 Gunakan Kartu Bebas Penjara
             </Button>
           )}
-          {player.jailTurns > 0 && (
-            <>
-              <Button variant="success" size="sm" onClick={onPayJailFine} disabled={player.money < JAIL_FINE}>
-                Bayar {formatMoney(JAIL_FINE)}
-              </Button>
-              {player.money < JAIL_FINE && (
-                <p className="text-base text-muted text-center mt-1">Uang tidak cukup</p>
-              )}
-              <p className="text-base text-muted text-center mt-1">
-                atau lempar dadu ganda ({3 - player.jailTurns}x lagi)
-              </p>
-            </>
+          <Button variant="success" size="sm" onClick={onPayJailFine} disabled={player.money < JAIL_FINE}>
+            Bayar {formatMoney(JAIL_FINE)}
+          </Button>
+          {player.money < JAIL_FINE && (
+            <p className="text-base text-muted text-center mt-1">Uang tidak cukup</p>
           )}
-          {player.jailTurns === 0 && (
-            <p className="text-base text-muted text-center mt-1">
-              Lempar dadu ganda untuk keluar. Bayar bisa mulai putaran depan.
-            </p>
-          )}
+          <p className="text-base text-muted text-center mt-1">
+            atau lempar dadu ganda ({3 - player.jailTurns}x lagi)
+          </p>
         </>
       ) : hasRolled ? (
         <>
