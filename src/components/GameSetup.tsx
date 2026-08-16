@@ -4,6 +4,18 @@ import Button from './Button'
 import { PLAYER_COLORS } from '../data/players'
 import { BOT_NAMES } from '../data/bots'
 
+const SetupMode = {
+  Local: 'local',
+  Multiplayer: 'multiplayer',
+} as const
+type SetupMode = (typeof SetupMode)[keyof typeof SetupMode]
+
+const MpAction = {
+  Create: 'create',
+  Join: 'join',
+} as const
+type MpAction = (typeof MpAction)[keyof typeof MpAction]
+
 interface Props {
   onStartLocal: (players: { name: string; isBot: boolean }[]) => void
   onCreate: (name: string) => void
@@ -12,13 +24,13 @@ interface Props {
 
 export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
   const { t } = useTranslation()
-  const [mode, setMode] = useState<'local' | 'multiplayer'>('local')
+  const [mode, setMode] = useState<SetupMode>(SetupMode.Local)
   const [playerCount, setPlayerCount] = useState(2)
   const [names, setNames] = useState<string[]>(['', '', '', '', '', ''])
   const [isBot, setIsBot] = useState<boolean[]>(Array(6).fill(false))
   const [myName, setMyName] = useState('')
   const [roomCode, setRoomCode] = useState('')
-  const [mpAction, setMpAction] = useState<'create' | 'join'>('create')
+  const [mpAction, setMpAction] = useState<MpAction>(MpAction.Create)
 
   function handleNameChange(index: number, value: string) {
     const newNames = [...names]
@@ -42,7 +54,7 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
 
   function handleSubmit() {
     const name = myName.trim() || t('lobby.player')
-    if (mpAction === 'create') onCreate(name)
+    if (mpAction === MpAction.Create) onCreate(name)
     else onJoin(name, roomCode.trim().toUpperCase())
   }
 
@@ -52,24 +64,24 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
       <div className="bg-bg-card px-10 py-[30px] rounded-xl flex flex-col gap-4 min-w-[360px]">
         <div className="flex gap-2">
           <Button
-            variant={mode === 'local' ? 'primary' : 'secondary'}
+            variant={mode === SetupMode.Local ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setMode('local')}
-            className={mode === 'local' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+            onClick={() => setMode(SetupMode.Local)}
+            className={mode === SetupMode.Local ? 'ring-2 ring-gold/80' : 'opacity-60'}
           >
             {t('setup.singleDevice')}
           </Button>
           <Button
-            variant={mode === 'multiplayer' ? 'primary' : 'secondary'}
+            variant={mode === SetupMode.Multiplayer ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => setMode('multiplayer')}
-            className={mode === 'multiplayer' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+            onClick={() => setMode(SetupMode.Multiplayer)}
+            className={mode === SetupMode.Multiplayer ? 'ring-2 ring-gold/80' : 'opacity-60'}
           >
             {t('setup.multiplayer')}
           </Button>
         </div>
 
-        {mode === 'local' ? (
+        {mode === SetupMode.Local ? (
           <>
             <div className="flex flex-col gap-1.5">
               <label className="text-base text-muted">{t('setup.playerCount')}</label>
@@ -130,23 +142,23 @@ export default function GameSetup({ onStartLocal, onCreate, onJoin }: Props) {
             </div>
             <div className="flex gap-2">
               <Button
-                variant={mpAction === 'create' ? 'primary' : 'secondary'}
+                variant={mpAction === MpAction.Create ? 'primary' : 'secondary'}
                 size="sm"
-                onClick={() => setMpAction('create')}
-                className={mpAction === 'create' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+                onClick={() => setMpAction(MpAction.Create)}
+                className={mpAction === MpAction.Create ? 'ring-2 ring-gold/80' : 'opacity-60'}
               >
                 {t('setup.createRoom')}
               </Button>
               <Button
-                variant={mpAction === 'join' ? 'primary' : 'secondary'}
+                variant={mpAction === MpAction.Join ? 'primary' : 'secondary'}
                 size="sm"
-                onClick={() => setMpAction('join')}
-                className={mpAction === 'join' ? 'ring-2 ring-gold/80' : 'opacity-60'}
+                onClick={() => setMpAction(MpAction.Join)}
+                className={mpAction === MpAction.Join ? 'ring-2 ring-gold/80' : 'opacity-60'}
               >
                 {t('setup.joinRoom')}
               </Button>
             </div>
-            {mpAction === 'join' && (
+            {mpAction === MpAction.Join && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-base text-muted">{t('setup.roomCode')}</label>
                 <input

@@ -6,31 +6,35 @@ import GameView from './components/GameView'
 import MultiplayerGame, { type JoinInfo } from './components/MultiplayerGame'
 import LanguageCurrencyBar from './components/LanguageCurrencyBar'
 
-type Mode = 'local' | 'multiplayer' | null
+const Mode = {
+  Local: 'local',
+  Multiplayer: 'multiplayer',
+} as const
+type Mode = (typeof Mode)[keyof typeof Mode] | null
 
 export default function App() {
   const local = useGame()
   const [mode, setMode] = useState<Mode>(() =>
-    local.state.phase !== GamePhase.Setup ? 'local' : null,
+    local.state.phase !== GamePhase.Setup ? Mode.Local : null,
   )
   const [joinInfo, setJoinInfo] = useState<JoinInfo>({ name: '', code: null })
 
   function handleStartLocal(players: { name: string; isBot: boolean }[]) {
     local.startGame(players)
-    setMode('local')
+    setMode(Mode.Local)
   }
 
   function handleCreate(name: string) {
     setJoinInfo({ name, code: null })
-    setMode('multiplayer')
+    setMode(Mode.Multiplayer)
   }
 
   function handleJoin(name: string, code: string) {
     setJoinInfo({ name, code })
-    setMode('multiplayer')
+    setMode(Mode.Multiplayer)
   }
 
-  if (mode === 'multiplayer') {
+  if (mode === Mode.Multiplayer) {
     return (
       <>
         <MultiplayerGame joinInfo={joinInfo} onLeft={() => setMode(null)} />
