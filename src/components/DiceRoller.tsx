@@ -47,6 +47,10 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
   const canAim = (canRoll || canRollJail) && isMyTurn
 
+  // Sync the roll target to the last painted needle value. Written in a passive
+  // effect after commit (never during render) so the press reads exactly what
+  // the player saw; a render-phase ref write would violate the effect rules and
+  // reintroduce the stale-ref bug this fix removes.
   useEffect(() => {
     aimValueRef.current = aimValue
   }, [aimValue])
