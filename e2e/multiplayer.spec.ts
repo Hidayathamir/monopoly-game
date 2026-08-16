@@ -239,6 +239,7 @@ test('a player can hold-to-roll without breaking multiplayer', async ({ browser 
 
   await pageA.click('button:has-text("Start")')
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+  await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
   // Hold the roll button ~400ms, then release → a target locks and a roll resolves.
   const roll = pageA.locator('button:has-text("Roll")')
