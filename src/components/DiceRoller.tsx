@@ -31,22 +31,16 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const [rolling, setRolling] = useState(false)
   const [holding, setHolding] = useState(false)
   const [aimValue, setAimValue] = useState(MIN_TOTAL)
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const [reducedMotion] = useState(() => {
+    const mq = window.matchMedia
+    return mq ? mq('(prefers-reduced-motion: reduce)').matches : false
+  })
   const aimValueRef = useRef(MIN_TOTAL)
   const directionRef = useRef(1)
   const player = state.players[state.currentPlayer]
 
   useEffect(() => {
-    const mq = window.matchMedia
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReducedMotion(mq ? mq('(prefers-reduced-motion: reduce)').matches : false)
-  }, [])
-
-  useEffect(() => {
     if (!holding) return
-    aimValueRef.current = MIN_TOTAL
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAimValue(MIN_TOTAL)
     if (reducedMotion) {
       directionRef.current = 1
       const id = setInterval(() => {
@@ -79,6 +73,8 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
 
   function startHold() {
     if (rolling) return
+    aimValueRef.current = MIN_TOTAL
+    setAimValue(MIN_TOTAL)
     setHolding(true)
   }
 
