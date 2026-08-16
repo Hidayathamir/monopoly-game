@@ -1,8 +1,9 @@
-import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type LogEntry } from '../types/game';
+import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
 import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
+import { shouldAcceptTrade } from './bot';
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -493,16 +494,72 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.ProposeTrade: {
+      const offer = action.offer;
+      const from = state.players[offer.fromId];
+      const to = state.players[offer.toId];
+      if (!from || !to || offer.fromId === offer.toId || to.bankrupt) return state;
+      const validOffer = offer.offerProperties.every(
+        (id) => state.board[id]?.owner === offer.fromId && !state.board[id].mortgaged && state.board[id].houses === 0,
+      );
+      if (!validOffer) return state;
+      if (to.isBot) {
+        const trade: PendingTrade = { ...offer, id: state.nextTradeId };
+        if (shouldAcceptTrade(state, trade)) {
+          const applied = applyTrade(state, trade);
+          return {
+            ...applied,
+            pendingTrades: applied.pendingTrades.filter((t) => t.id !== trade.id),
+            eventLog: [...applied.eventLog, { key: 'event.tradeAccepted', params: { from: from.name, to: to.name } }],
+          };
+        }
+        return { ...state, eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: from.name, to: to.name } }] };
+      }
       return {
         ...state,
-        pendingAction: null,
-        eventLog: [...state.eventLog, { key: 'event.tradeProposed', params: { from: state.players[state.currentPlayer].name, to: state.players[action.offer.toId].name } }],
+        pendingTrades: [...state.pendingTrades, { ...offer, id: state.nextTradeId }],
+        nextTradeId: state.nextTradeId + 1,
+        eventLog: [...state.eventLog, { key: 'event.tradeProposed', params: { from: from.name, to: to.name } }],
       };
     }
 
-    case GameActionType.AcceptTrade:
+    case GameActionType.AcceptTrade: {
+      const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
+      if (!trade) return state;
+      const from = state.players[trade.fromId];
+      const to = state.players[trade.toId];
+      if (!isTradeValid(state, trade)) {
+        return {
+          ...state,
+          pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
+          eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: from.name, to: to.name } }],
+        };
+      }
+      const applied = applyTrade(state, trade);
+      return {
+        ...applied,
+        pendingTrades: applied.pendingTrades.filter((t) => t.id !== trade.id),
+        eventLog: [...applied.eventLog, { key: 'event.tradeAccepted', params: { from: from.name, to: to.name } }],
+      };
+    }
+
     case GameActionType.RejectTrade: {
-      return { ...state, pendingAction: null };
+      const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
+      if (!trade) return state;
+      return {
+        ...state,
+        pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
+        eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
+      };
+    }
+
+    case GameActionType.CancelTrade: {
+      const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
+      if (!trade) return state;
+      return {
+        ...state,
+        pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
+        eventLog: [...state.eventLog, { key: 'event.tradeCancelled', params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
+      };
     }
 
     case GameActionType.DrawCard: {
@@ -685,4 +742,44 @@ function getNextPlayer(state: GameState): number {
     safety++;
   }
   return next;
+}
+
+function isTradeValid(state: GameState, trade: PendingTrade): boolean {
+  for (const id of trade.offerProperties) {
+    const space = state.board[id];
+    if (!space || space.owner !== trade.fromId || space.mortgaged || space.houses > 0) return false;
+  }
+  for (const id of trade.requestProperties) {
+    const space = state.board[id];
+    if (!space || space.owner !== trade.toId || space.mortgaged || space.houses > 0) return false;
+  }
+  if (state.players[trade.fromId].money < trade.offerCash) return false;
+  if (state.players[trade.toId].money < trade.requestCash) return false;
+  return true;
+}
+
+function applyTrade(state: GameState, trade: PendingTrade): GameState {
+  const board = state.board.map((space) => {
+    if (trade.offerProperties.includes(space.id)) return { ...space, owner: trade.toId };
+    if (trade.requestProperties.includes(space.id)) return { ...space, owner: trade.fromId };
+    return space;
+  });
+  const players = state.players.map((p) => {
+    if (p.id === trade.fromId) {
+      return {
+        ...p,
+        money: p.money - trade.offerCash + trade.requestCash,
+        properties: p.properties.filter((id) => !trade.offerProperties.includes(id)).concat(trade.requestProperties),
+      };
+    }
+    if (p.id === trade.toId) {
+      return {
+        ...p,
+        money: p.money + trade.offerCash - trade.requestCash,
+        properties: p.properties.filter((id) => !trade.requestProperties.includes(id)).concat(trade.offerProperties),
+      };
+    }
+    return p;
+  });
+  return { ...state, board, players };
 }
