@@ -3,13 +3,17 @@ import { screen, cleanup, fireEvent, act } from '@testing-library/react'
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import DiceRoller from '../DiceRoller'
-import { valueToAngle } from '../Speedometer'
 import { gameReducer, createInitialState } from '../../logic/gameReducer'
 import { GameActionType, type GameState } from '../../types/game'
 import { renderWithProviders } from '../../test/test-utils'
 
 function makeState(): GameState {
   return gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
+}
+
+function needleTip(): { x: number; y: number } {
+  const line = screen.getByTestId('speedometer-needle')
+  return { x: parseFloat(line.getAttribute('x2') ?? ''), y: parseFloat(line.getAttribute('y2') ?? '') }
 }
 
 afterEach(cleanup)
@@ -83,12 +87,12 @@ describe('DiceRoller', () => {
 
       fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(400)) // value = 2 + 10*(400/800) = 7 → top
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(90 70 70)')
+      expect(needleTip()).toEqual({ x: 70, y: 26 }) // straight up, into the arc
 
       act(() => vi.advanceTimersByTime(240)) // value = 2 + 10*(640/800) = 10
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe(
-        `rotate(${valueToAngle(10)} 70 70)`,
-      )
+      const tip = needleTip()
+      expect(tip.x).toBeCloseTo(101.11, 2) // moved up-right, past the apex
+      expect(tip.y).toBeCloseTo(38.89, 2)
       fireEvent.pointerUp(button)
     })
 
@@ -99,12 +103,17 @@ describe('DiceRoller', () => {
 
       fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(800)) // apex 12
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(15 70 70)')
+      const apex = needleTip()
+      expect(apex.x).toBeCloseTo(112.5, 1) // 12 → up-right at 15°
+      expect(apex.y).toBeCloseTo(58.61, 2)
+      // the needle must be UP (y < 70), never pointing down away from the arc
+      expect(apex.y).toBeLessThan(70)
 
       act(() => vi.advanceTimersByTime(80)) // descending: 2 + 10*(880/800) = 11
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe(
-        `rotate(${valueToAngle(11)} 70 70)`,
-      )
+      const tip = needleTip()
+      expect(tip.x).toBeCloseTo(108.11, 2) // now sweeping back left, still up
+      expect(tip.y).toBeCloseTo(48, 1)
+      expect(tip.y).toBeLessThan(70)
 
       fireEvent.pointerUp(button)
       expect(onRoll).toHaveBeenCalledWith(11)
@@ -140,12 +149,15 @@ describe('DiceRoller', () => {
 
       fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(40)) // stepped: no 80ms tick yet → still 2
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(165 70 70)')
+      const low = needleTip()
+      expect(low.x).toBeCloseTo(27.5, 1) // 2 → up-left at 165°
+      expect(low.y).toBeCloseTo(58.61, 2)
+      expect(low.y).toBeLessThan(70)
 
       act(() => vi.advanceTimersByTime(80)) // one tick → 3
-      expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe(
-        `rotate(${valueToAngle(3)} 70 70)`,
-      )
+      const stepped = needleTip()
+      expect(stepped.x).toBeCloseTo(31.89, 2) // 3 → up-left at 150°
+      expect(stepped.y).toBeCloseTo(48, 1)
 
       fireEvent.pointerUp(button)
       expect(onRoll).toHaveBeenCalledWith(3)

@@ -35,14 +35,20 @@ describe('Speedometer', () => {
     expect(screen.getAllByTestId('speedometer-tick')).toHaveLength(11)
   })
 
-  it('points the needle at the value angle', () => {
+  it('points the needle tip toward the arc at the value angle', () => {
     const { rerender } = renderWithProviders(<Speedometer value={2} label="Dice gauge" />)
-    expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(165 70 70)')
+    // value 2 → 165°: tip up-left of the pivot (70,70), into the arc
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('x2') ?? '')).toBeCloseTo(27.5, 1)
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('y2') ?? '')).toBeCloseTo(58.61, 2)
 
     rerender(<Speedometer value={7} label="Dice gauge" />)
-    expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(90 70 70)')
+    // value 7 → 90°: tip straight up, toward the arc apex
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('x2') ?? '')).toBeCloseTo(70, 1)
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('y2') ?? '')).toBeCloseTo(26, 1)
 
     rerender(<Speedometer value={12} label="Dice gauge" />)
-    expect(screen.getByTestId('speedometer-needle').getAttribute('transform')).toBe('rotate(15 70 70)')
+    // value 12 → 15°: tip up-right of the pivot
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('x2') ?? '')).toBeCloseTo(112.5, 1)
+    expect(parseFloat(screen.getByTestId('speedometer-needle').getAttribute('y2') ?? '')).toBeCloseTo(58.61, 2)
   })
 })

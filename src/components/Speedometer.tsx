@@ -20,6 +20,7 @@ export default function Speedometer({ value, label }: { value: number; label: st
   const [arcStartX, arcStartY] = pointOnArc(165, RADIUS)
   const [arcEndX, arcEndY] = pointOnArc(15, RADIUS)
   const needleAngle = valueToAngle(value)
+  const [needleTipX, needleTipY] = pointOnArc(needleAngle, NEEDLE_LENGTH)
 
   return (
     <svg
@@ -64,18 +65,17 @@ export default function Speedometer({ value, label }: { value: number; label: st
           </text>
         )
       })}
-      <g data-testid="speedometer-needle" transform={`rotate(${needleAngle} ${CX} ${CY})`}>
-        <line
-          x1={CX}
-          y1={CY}
-          x2={CX + NEEDLE_LENGTH}
-          y2={CY}
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          className="text-gold"
-        />
-      </g>
+      <line
+        data-testid="speedometer-needle"
+        x1={CX}
+        y1={CY}
+        x2={needleTipX}
+        y2={needleTipY}
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        className="text-gold"
+      />
       <circle cx={CX} cy={CY} r="3.5" fill="currentColor" className="text-gold" />
     </svg>
   )
