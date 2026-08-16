@@ -508,7 +508,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const applied = applyTrade(state, trade);
           return {
             ...applied,
-            pendingTrades: applied.pendingTrades.filter((t) => t.id !== trade.id),
             eventLog: [...applied.eventLog, { key: 'event.tradeAccepted', params: { from: from.name, to: to.name } }],
           };
         }
@@ -527,6 +526,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!trade) return state;
       const from = state.players[trade.fromId];
       const to = state.players[trade.toId];
+      if (!from || !to) return state;
       if (!isTradeValid(state, trade)) {
         return {
           ...state,

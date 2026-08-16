@@ -324,6 +324,34 @@ describe('GameServer', () => {
     expect(server.getState().currentPlayer).toBe(0)
   })
 
+  it('rejects a PROPOSE_TRADE whose fromId is not the sender', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
+      fromId: 1, toId: 0, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+    } })
+    expect(sent.some((m) => m.type === 'error')).toBe(true)
+    expect(server.getState().pendingTrades).toHaveLength(0)
+  })
+
+  it('lets the recipient reject a trade even when it is not their turn', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+    } })
+    const tradeId = server.getState().pendingTrades[0].id
+    // c0 is current player; c1 is NOT. The reject must bypass the turn gate.
+    server.handleAction('c1', { type: 'REJECT_TRADE', tradeId })
+    expect(server.getState().pendingTrades).toHaveLength(0)
+    expect(server.getState().currentPlayer).toBe(0)
+  })
+
   it('rejects a trade response from a player who is not a party', () => {
     const { server, sent } = setup()
     server.join('c0', 'Alice')

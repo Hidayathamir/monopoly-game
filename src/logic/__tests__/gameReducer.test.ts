@@ -837,7 +837,7 @@ describe('trade negotiation', () => {
     state = { ...state, players: state.players.map((p, i) => (i === 1 ? { ...p, isBot: true } : p)) };
     const s1 = gameReducer(state, {
       type: GameActionType.ProposeTrade,
-      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 10, requestProperties: [3], requestCash: 0 },
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 0, requestProperties: [3], requestCash: 70 },
     });
     expect(s1.pendingTrades).toHaveLength(0);
     expect(s1.eventLog).toContainEqual({ key: 'event.tradeRejected', params: { from: 'Alice', to: 'Bob' } });

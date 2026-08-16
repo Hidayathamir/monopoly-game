@@ -81,10 +81,10 @@ function liquidationAction(state: GameState): GameAction {
 
 export function shouldAcceptTrade(state: GameState, offer: TradeOffer): boolean {
   const received =
-    offer.requestCash +
-    offer.requestProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
-  const given =
     offer.offerCash +
     offer.offerProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
+  const given =
+    offer.requestCash +
+    offer.requestProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
   return received >= given;
 }

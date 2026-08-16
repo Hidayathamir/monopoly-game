@@ -191,18 +191,18 @@ describe('shouldAcceptTrade', () => {
     };
   }
 
-  it('accepts when received value equals given value', () => {
+  it('accepts when the bot receives more than it gives', () => {
     const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
-    expect(shouldAcceptTrade(state, offer({ requestProperties: [1], offerCash: 60 }))).toBe(true);
+    expect(shouldAcceptTrade(state, offer({ offerCash: 61, requestProperties: [1] }))).toBe(true);
   });
 
-  it('accepts when received value exceeds given value', () => {
+  it('rejects when the bot gives more than it receives', () => {
     const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
-    expect(shouldAcceptTrade(state, offer({ requestProperties: [1], offerCash: 40 }))).toBe(true);
+    expect(shouldAcceptTrade(state, offer({ offerCash: 40, requestProperties: [1] }))).toBe(false);
   });
 
-  it('rejects a losing deal', () => {
+  it('accepts an equal swap', () => {
     const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
-    expect(shouldAcceptTrade(state, offer({ requestProperties: [3], requestCash: 0, offerCash: 61 }))).toBe(false);
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [3] }))).toBe(true);
   });
 });
