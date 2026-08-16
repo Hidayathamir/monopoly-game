@@ -10,12 +10,21 @@ export async function startServer(port: number): Promise<TestServer> {
   const proc: ChildProcess = spawn('npx', ['tsx', 'server/main.ts'], {
     env: { ...process.env, PORT: String(port) },
     cwd: process.cwd(),
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
     detached: true,
+  })
+  let stderr = ''
+  let spawnError: Error | undefined
+  proc.stderr?.on('data', (chunk: Buffer) => {
+    stderr += chunk.toString()
+  })
+  proc.on('error', (err) => {
+    spawnError = err
   })
   const url = `http://localhost:${port}`
   const startedAt = Date.now()
   while (Date.now() - startedAt < 10000) {
+    if (spawnError) break
     try {
       const res = await fetch(`${url}/`)
       if (res.ok) {
@@ -42,5 +51,8 @@ export async function startServer(port: number): Promise<TestServer> {
   } catch {
     proc.kill()
   }
-  throw new Error(`server on port ${port} did not start`)
+  if (spawnError) {
+    throw new Error(`server on port ${port} failed to start: ${spawnError.message}`)
+  }
+  throw new Error(`server on port ${port} did not start${stderr ? `\nstderr:\n${stderr}` : ''}`)
 }

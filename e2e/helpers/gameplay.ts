@@ -25,6 +25,8 @@ export async function playHostTurns(page: Page, maxLoops: number): Promise<void>
       if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
       continue
     }
+    const ok = page.locator('button:has-text("OK")').first()
+    if (await ok.isVisible({ timeout: 500 }).catch(() => false)) { await ok.click(); continue }
     const pay = page.locator('button:has-text("Pay")').first()
     if (await pay.isVisible({ timeout: 300 }).catch(() => false)) { await pay.click(); continue }
     const end = page.locator('button:has-text("End"), button:has-text("Roll Again")').first()

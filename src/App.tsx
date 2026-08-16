@@ -5,11 +5,11 @@ import LanguageCurrencyBar from './components/LanguageCurrencyBar'
 import { loadSession, clearSession } from './net/session'
 
 export default function App() {
-  const [started, setStarted] = useState(() => loadSession() !== null)
-  const [joinInfo, setJoinInfo] = useState<JoinInfo>(() => {
-    const session = loadSession()
-    return session ? { name: session.name, code: session.code } : { name: '', code: null }
-  })
+  const [session] = useState(loadSession)
+  const [started, setStarted] = useState(() => session !== null)
+  const [joinInfo, setJoinInfo] = useState<JoinInfo>(() =>
+    session ? { name: session.name, code: session.code } : { name: '', code: null },
+  )
 
   function handleCreate(name: string) {
     setJoinInfo({ name, code: null })
