@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import type { Currency } from '../data/currency'
+import { ID_IDR_ENABLED } from '../config/features'
 
 export default function LanguageCurrencyBar() {
   const { t, i18n } = useTranslation()
@@ -27,6 +28,8 @@ export default function LanguageCurrencyBar() {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [open])
+
+  if (!ID_IDR_ENABLED) return null
 
   return (
     <div ref={containerRef} className="fixed top-2 right-2 z-[200] flex flex-col items-end gap-1.5">

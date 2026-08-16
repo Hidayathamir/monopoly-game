@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { screen, cleanup, fireEvent } from '@testing-library/react'
-import { afterEach, describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import LanguageCurrencyBar from '../LanguageCurrencyBar'
 import { renderWithProviders } from '../../test/test-utils'
 import i18n from '../../i18n'
+
+vi.mock('../../config/features', () => ({ ID_IDR_ENABLED: true }))
 
 afterEach(() => {
   cleanup()

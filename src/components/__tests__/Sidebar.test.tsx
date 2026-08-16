@@ -84,4 +84,9 @@ describe('Sidebar', () => {
     renderWithProviders(<Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} tradesEnabled={false} />)
     expect(screen.queryByText('Trades')).toBeNull()
   })
+
+  it('shows OFFLINE on a disconnected player card', () => {
+    renderWithProviders(<Sidebar state={makeState()} isMyTurn onLeave={noop} {...makeProps()} connectedPlayerIds={new Set([1])} />)
+    expect(screen.getByText('OFFLINE')).toBeTruthy()
+  })
 })

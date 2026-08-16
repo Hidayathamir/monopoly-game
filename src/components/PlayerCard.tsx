@@ -33,13 +33,14 @@ interface PlayerCardProps {
   color: string
   diff?: { diff: number; key: number } | null
   board: Space[]
+  connected?: boolean
   canTrade?: boolean
   currentPlayerId?: number
   onProposeTrade?: (playerId: number) => void
   tradesEnabled?: boolean
 }
 
-export default function PlayerCard({ player, isCurrent, color, diff, board, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, color, diff, board, connected = true, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
@@ -71,7 +72,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, canT
         className={[
           'px-2 py-1.5 rounded-lg bg-bg-dark/70 border border-border-light flex-1 min-w-[130px]',
           isCurrent ? 'ring-2 ring-gold/80 bg-[#1a4a7a]/70' : '',
-          player.bankrupt ? 'opacity-50' : '',
+          player.bankrupt || !connected ? 'opacity-50' : '',
         ].join(' ')}
         style={{ borderLeft: `3px solid ${color}` }}
         onMouseEnter={handleEnter}
@@ -85,6 +86,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, canT
             <span title={player.getOutOfJailFreeCards > 1 ? t('card.jailFreeCount', { count: player.getOutOfJailFreeCards }) : t('card.jailFreeTitle')}>🎴</span>
           )}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
+          {!connected && <span className="text-xs font-bold text-muted">{t('card.disconnected')}</span>}
         </div>
         <div className={[
           'text-sm font-semibold flex items-center relative',

@@ -1,6 +1,9 @@
 import { test, expect } from './fixtures'
 
+const idIdrEnabled = process.env.VITE_ID_IDR_ENABLED === 'true'
+
 test('defaults to English and toggles to Indonesian', async ({ page }) => {
+  test.skip(!idIdrEnabled, 'ID/IDR feature disabled by default')
   await page.goto('/')
   await expect(page.getByText('Create Room')).toBeVisible()
   await page.getByRole('button', { name: 'Settings' }).click()
@@ -9,6 +12,7 @@ test('defaults to English and toggles to Indonesian', async ({ page }) => {
 })
 
 test('currency defaults to USD and toggles money symbol', async ({ browser, serverUrl }) => {
+  test.skip(!idIdrEnabled, 'ID/IDR feature disabled by default')
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')

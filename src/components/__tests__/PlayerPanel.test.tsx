@@ -48,4 +48,24 @@ describe('PlayerPanel', () => {
     const names = screen.getAllByText(/Alice|Bob/).map((el) => el.textContent)
     expect(names.indexOf('Bob')).toBeLessThan(names.indexOf('Alice'))
   })
+
+  it('marks a player as offline when excluded from connectedPlayerIds', () => {
+    renderWithProviders(
+      <PlayerPanel
+        state={makeState(1000, 0)}
+        playerColors={COLORS}
+        onProposeTrade={() => {}}
+        canTrade
+        connectedPlayerIds={new Set([1])}
+      />,
+    )
+    expect(screen.getByText('OFFLINE')).toBeTruthy()
+  })
+
+  it('treats everyone as connected when connectedPlayerIds is omitted', () => {
+    renderWithProviders(
+      <PlayerPanel state={makeState(1000, 0)} playerColors={COLORS} onProposeTrade={() => {}} canTrade />,
+    )
+    expect(screen.queryByText('OFFLINE')).toBeNull()
+  })
 })

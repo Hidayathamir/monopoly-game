@@ -1,0 +1,1 @@
+export const ID_IDR_ENABLED = import.meta.env.VITE_ID_IDR_ENABLED === 'true'

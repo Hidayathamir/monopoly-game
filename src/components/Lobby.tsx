@@ -36,7 +36,7 @@ export default function Lobby({ game }: Props) {
           {Array.from({ length: 6 }).map((_, i) => {
             const p: LobbyPlayer | undefined = lobby[i]
             return (
-              <div key={i} className="flex items-center gap-2 text-base">
+              <div key={i} className={`flex items-center gap-2 text-base ${p && !p.connected ? 'opacity-50' : ''}`}>
                 <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: PLAYER_COLORS[i] }} />
                 <span className="text-muted">{i === hostPlayerId ? t('lobby.host') : t('lobby.player')} {i + 1}</span>
                 <span className="text-text">

@@ -17,6 +17,7 @@ interface Props {
 
 export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
   const game = useNetworkGame(onLeft)
+  const connectedPlayerIds = new Set(game.lobby.filter((p) => p.connected).map((p) => p.id))
   const { create, join } = game
   const name = joinInfo.name
   const code = joinInfo.code
@@ -38,5 +39,5 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
     return <Lobby game={game} />
   }
 
-  return <GameView game={game} onLeave={game.leave} />
+  return <GameView game={game} connectedPlayerIds={connectedPlayerIds} onLeave={game.leave} />
 }

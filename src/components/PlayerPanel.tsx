@@ -8,10 +8,11 @@ interface Props {
   playerColors: string[]
   onProposeTrade: (playerId: number) => void
   canTrade: boolean
+  connectedPlayerIds?: Set<number>
   tradesEnabled?: boolean
 }
 
-export default function PlayerPanel({ state, playerColors, onProposeTrade, canTrade, tradesEnabled = true }: Props) {
+export default function PlayerPanel({ state, playerColors, onProposeTrade, canTrade, connectedPlayerIds, tradesEnabled = true }: Props) {
   const { t } = useTranslation()
   const { players, currentPlayer, board } = state
   const prevMoney = useRef<Record<number, number>>({})
@@ -38,6 +39,7 @@ export default function PlayerPanel({ state, playerColors, onProposeTrade, canTr
         {(state.turnOrder.length > 0 ? state.turnOrder : players.map((p) => p.id)).map((id) => {
           const player = players[id]
           const isCurrent = player.id === currentPlayer
+          const connected = connectedPlayerIds === undefined || connectedPlayerIds.has(player.id)
           return (
             <PlayerCard
               key={player.id}
@@ -46,6 +48,7 @@ export default function PlayerPanel({ state, playerColors, onProposeTrade, canTr
               color={playerColors[player.id]}
               diff={diffs[player.id] ?? null}
               board={board}
+              connected={connected}
               canTrade={canTrade && !player.bankrupt}
               tradesEnabled={tradesEnabled}
               currentPlayerId={currentPlayer}

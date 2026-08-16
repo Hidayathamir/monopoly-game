@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { ID_IDR_ENABLED } from '../config/features'
 import { DEFAULT_CURRENCY, formatMoney as formatMoneyFor, type Currency } from '../data/currency'
 
 const STORAGE_KEY = 'monopoly-currency'
@@ -11,7 +12,9 @@ interface CurrencyContextValue {
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 
-function readSavedCurrency(): Currency {
+// eslint-disable-next-line react-refresh/only-export-components
+export function readSavedCurrency(enabled = ID_IDR_ENABLED): Currency {
+  if (!enabled) return DEFAULT_CURRENCY
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved === 'IDR' || saved === 'USD' ? saved : DEFAULT_CURRENCY
@@ -24,9 +27,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>(readSavedCurrency)
 
   const setCurrency = (c: Currency) => {
-    setCurrencyState(c)
+    const next = ID_IDR_ENABLED ? c : DEFAULT_CURRENCY
+    setCurrencyState(next)
     try {
-      localStorage.setItem(STORAGE_KEY, c)
+      localStorage.setItem(STORAGE_KEY, next)
     } catch {
       // ignore storage failures
     }
