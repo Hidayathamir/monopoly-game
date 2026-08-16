@@ -11,7 +11,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     players: [
       {
         id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false,
+        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false,
       },
     ],
     currentPlayer: 0,
@@ -49,5 +49,11 @@ describe('TurnHeader', () => {
   it('shows the dice total after the roll', () => {
     renderWithProviders(<TurnHeader state={makeState({ dice: [3, 4] })} />)
     expect(screen.getByText('Dice 3 + 4 = 7')).toBeTruthy()
+  })
+
+  it('shows a bot-playing status when the current player is bot-controlled', () => {
+    const players = makeState().players.map((p) => ({ ...p, botControlled: true }))
+    renderWithProviders(<TurnHeader state={{ ...makeState(), players }} />)
+    expect(screen.getByText('Alpha — offline, a bot is playing')).toBeTruthy()
   })
 })

@@ -87,6 +87,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
           )}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
           {!connected && <span className="text-xs font-bold text-muted">{t('card.disconnected')}</span>}
+          {player.botControlled && <span className="text-xs font-bold text-gold">🤖 {t('card.botControl')}</span>}
         </div>
         <div className={[
           'text-sm font-semibold flex items-center relative',

@@ -9,7 +9,7 @@ import type { Player, Space } from '../../types/game'
 
 const player: Player = {
   id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false,
+  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false,
 }
 const board: Space[] = []
 
@@ -103,5 +103,17 @@ describe('PlayerCard connection indicator', () => {
     renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
     expect(screen.queryByText('OFFLINE')).toBeNull()
     expect(screen.getByTestId('player-card').className).not.toContain('opacity-50')
+  })
+})
+
+describe('PlayerCard bot-control badge', () => {
+  it('shows a bot-control badge when the player is bot-controlled', () => {
+    renderWithProviders(<PlayerCard player={{ ...player, botControlled: true }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    expect(screen.getByText(/BOT/)).toBeTruthy()
+  })
+
+  it('does not show the bot-control badge by default', () => {
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    expect(screen.queryByText(/BOT/)).toBeNull()
   })
 })

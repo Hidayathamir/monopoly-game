@@ -84,6 +84,7 @@ export const GameActionType = {
   SkipAction: 'SKIP_ACTION',
   PayJailFine: 'PAY_JAIL_FINE',
   UseGetOutOfJailFree: 'USE_GET_OUT_OF_JAIL_FREE',
+  SetBotControl: 'SET_BOT_CONTROL',
 } as const;
 export type GameActionType = (typeof GameActionType)[keyof typeof GameActionType];
 
@@ -99,6 +100,7 @@ export type Player = {
   bankrupt: boolean;
   getOutOfJailFreeCards: number;
   isBot: boolean;
+  botControlled: boolean;
 };
 
 export type Space = {
@@ -120,7 +122,7 @@ export type Card = {
   effect: CardEffect;
 };
 
-export type LogEntry = { key: string; params?: Record<string, string | number> };
+export type LogEntry = { key: string; params?: Record<string, string | number | boolean> };
 
 export type CardEffect =
   | { action: typeof CardActionType.Collect; amount: number }
@@ -196,7 +198,8 @@ export type GameAction =
   | { type: typeof GameActionType.CollectFreeParking }
   | { type: typeof GameActionType.SkipAction }
   | { type: typeof GameActionType.PayJailFine }
-  | { type: typeof GameActionType.UseGetOutOfJailFree };
+  | { type: typeof GameActionType.UseGetOutOfJailFree }
+  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean };
 
 export type GameApi = {
   state: GameState;

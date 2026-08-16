@@ -20,6 +20,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     bankrupt: false,
     getOutOfJailFreeCards: 0,
     isBot: true,
+    botControlled: false,
     ...overrides,
   };
 }
@@ -180,6 +181,26 @@ describe('decideBotAction', () => {
     board[group[0].id] = { ...group[0], owner: 0 };
     const state = makeState({ board }, makePlayer({ properties: [group[0].id], money: 100000 }));
     expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
+  });
+
+  it('drives a bot-controlled human seat', () => {
+    const state = makeState({}, makePlayer({ isBot: false, botControlled: true }));
+    expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
+  });
+
+  it('does not drive a plain human seat', () => {
+    const state = makeState({}, makePlayer({ isBot: false, botControlled: false }));
+    expect(decideBotAction(state)).toBeNull();
+  });
+
+  it('buys for a bot-controlled player at a buy prompt', () => {
+    const board = createInitialBoard();
+    const spaceId = board.findIndex((s) => s.type === SpaceType.Property);
+    const state = makeState({
+      phase: GamePhase.Buying,
+      pendingAction: { type: PendingActionType.BuyProperty, spaceId },
+    }, makePlayer({ isBot: false, botControlled: true }));
+    expect(decideBotAction(state)).toEqual({ type: 'BUY_PROPERTY' });
   });
 });
 

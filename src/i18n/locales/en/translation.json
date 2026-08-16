@@ -113,6 +113,10 @@
   "event.bankruptcy": "{{name}} went bankrupt!",
   "event.bankruptcyWin": "{{name}} went bankrupt! {{winner}} wins!",
   "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
+  "event.playerOffline": "{{name}} went offline — a bot will play their turn",
+  "event.playerBack": "{{name}} is back — taking back control",
+
+  "log.botName": "{{name}} (bot)",
 
   "setup.title": "Monopoly",
   "setup.yourName": "Your Name",
@@ -153,6 +157,7 @@
   "turn.dice": "Dice {{a}} + {{b}} = {{total}}",
   "turn.waitingFor": "Waiting for {{name}}…",
   "turn.roll": "Roll dice",
+  "turn.botControl": "{{name}} — offline, a bot is playing",
 
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
@@ -190,6 +195,7 @@
   "card.jailFreeTitle": "Get Out of Jail Free",
   "card.bankrupt": "BANKRUPT",
   "card.disconnected": "OFFLINE",
+  "card.botControl": "BOT",
   "card.money": "Money: ",
   "card.jailFree": "Get Out of Jail Free 🎴",
   "card.properties": "Properties:",

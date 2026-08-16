@@ -23,6 +23,9 @@ interface Slot {
 
 const MAX_PLAYERS = 6
 
+const BOT_STEP_MS = 700
+const BOT_GRACE_MS = 30_000
+
 export class GameServer {
   private state: GameState
   private slots: Slot[] = Array.from({ length: MAX_PLAYERS }, () => ({
@@ -36,6 +39,8 @@ export class GameServer {
   private code: string
   private hostSlotIndex = 0
   private botSteps = 0
+  private drivenPlayerId: number | null = null
+  private botTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
     this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
@@ -71,6 +76,9 @@ export class GameServer {
     if (disconnected) {
       disconnected.clientId = clientId
       disconnected.connected = true
+      if (this.state.phase !== GamePhase.Setup) {
+        this.dispatch({ type: GameActionType.SetBotControl, playerId: this.slots.indexOf(disconnected), controlled: false })
+      }
       this.events.send(clientId, {
         type: ServerMessageType.Welcome,
         playerId: this.slots.indexOf(disconnected),
@@ -197,8 +205,11 @@ export class GameServer {
     }
 
     this.events.send(clientId, { type: ServerMessageType.Left })
-    this.broadcast()
-    this.skipLeftPlayers()
+    if (this.state.phase === GamePhase.Setup) {
+      this.broadcast()
+    } else {
+      this.dispatch({ type: GameActionType.SetBotControl, playerId: index, controlled: true })
+    }
   }
 
   roll(clientId: ClientId, target?: number): void {
@@ -239,6 +250,7 @@ export class GameServer {
   }
 
   handleAction(clientId: ClientId, action: GameAction): void {
+    if (action.type === GameActionType.SetBotControl) return
     if (
       !this.state.tradesEnabled &&
       (action.type === GameActionType.ProposeTrade ||
@@ -288,8 +300,11 @@ export class GameServer {
     if (this.state.phase === GamePhase.Setup && index === this.hostSlotIndex) {
       this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
     }
-    this.broadcast()
-    this.skipLeftPlayers()
+    if (this.state.phase === GamePhase.Setup) {
+      this.broadcast()
+    } else {
+      this.dispatch({ type: GameActionType.SetBotControl, playerId: index, controlled: true })
+    }
   }
 
   private isTurn(clientId: ClientId): boolean {
@@ -305,7 +320,6 @@ export class GameServer {
 
   private dispatch(action: GameAction): void {
     this.applyAction(action)
-    this.skipLeftPlayers()
   }
 
   private applyAction(action: GameAction): void {
@@ -321,28 +335,6 @@ export class GameServer {
       if (this.slots[idx].connected && !this.slots[idx].isBot) return idx
     }
     return from
-  }
-
-  private skipLeftPlayers(): void {
-    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
-    let guard = 0
-    while (guard++ < MAX_PLAYERS * 2) {
-      const slot = this.slots[this.state.currentPlayer]
-      if (!slot || slot.connected) return
-      const pending = this.state.pendingAction
-      if (pending) {
-        if (pending.type === PendingActionType.BuyProperty) this.applyAction({ type: GameActionType.DeclineBuy })
-        else if (pending.type === PendingActionType.PayRent) this.applyAction({ type: GameActionType.PayRent })
-        else if (pending.type === PendingActionType.Bankruptcy) this.applyAction({ type: GameActionType.DeclareBankruptcy })
-        else if (pending.type === PendingActionType.DrawCard) this.applyAction({ type: GameActionType.DrawCard })
-        else if (pending.type === PendingActionType.CardEffect) this.applyAction({ type: GameActionType.ResolveCard })
-        else return
-      } else if (this.state.phase === GamePhase.Waiting) {
-        this.applyAction({ type: GameActionType.EndTurn })
-      } else {
-        return
-      }
-    }
   }
 
   private scheduleAutoSteps(): void {
@@ -363,27 +355,60 @@ export class GameServer {
   }
 
   private driveBots(): void {
-    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
-    const slot = this.slots[this.state.currentPlayer]
-    if (!slot?.isBot) {
+    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) {
+      this.clearBotTimer()
+      return
+    }
+    const currentPlayer = this.state.currentPlayer
+    const slot = this.slots[currentPlayer]
+    if (!slot) {
+      this.clearBotTimer()
       this.botSteps = 0
+      this.drivenPlayerId = null
+      return
+    }
+    const botControlled = this.state.players[currentPlayer]?.botControlled === true
+    const isDriveable = slot.isBot || (!slot.connected && botControlled)
+    if (!isDriveable) {
+      this.clearBotTimer()
+      this.botSteps = 0
+      this.drivenPlayerId = null
       return
     }
     const action = decideBotAction(this.state)
     if (!action) {
+      this.clearBotTimer()
       this.botSteps = 0
       return
     }
     if (this.botSteps >= 100) return
+    if (this.botTimer !== null) return
     this.botSteps++
-    setTimeout(() => {
-      const current = this.slots[this.state.currentPlayer]
-      if (!current?.isBot) return
+    const isRealBot = slot.isBot
+    const isFresh = this.drivenPlayerId !== currentPlayer
+    if (isFresh) this.drivenPlayerId = currentPlayer
+    const delay = !isRealBot && isFresh ? BOT_GRACE_MS : BOT_STEP_MS
+
+    this.botTimer = setTimeout(() => {
+      this.botTimer = null
+      if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
+      const current = this.slots[currentPlayer]
+      const stillBotControlled = this.state.players[currentPlayer]?.botControlled === true
+      const stillDriveable =
+        current?.isBot === true || (current !== undefined && !current.connected && stillBotControlled)
+      if (!current || !stillDriveable) return
       const actionNow = decideBotAction(this.state)
       if (!actionNow) return
       if (actionNow.type === GameActionType.RollDice) this.startRoll()
       else this.dispatch(actionNow)
-    }, 700)
+    }, delay)
+  }
+
+  private clearBotTimer(): void {
+    if (this.botTimer !== null) {
+      clearTimeout(this.botTimer)
+      this.botTimer = null
+    }
   }
 
   private broadcast(): void {

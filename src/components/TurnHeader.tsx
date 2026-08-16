@@ -9,6 +9,7 @@ interface Props {
 function statusText(state: GameState, t: TFunction): string {
   const p = state.players[state.currentPlayer]
   const pending = state.pendingAction
+  if (p.botControlled) return t('turn.botControl', { name: p.name })
   if (pending?.type === PendingActionType.BuyProperty) return t('turn.buyOffer')
   if (pending?.type === PendingActionType.PayRent) return t('turn.payRent')
   if (pending?.type === PendingActionType.Bankruptcy) return t('turn.notEnough')

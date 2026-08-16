@@ -105,6 +105,70 @@ describe('gameReducer', () => {
       });
       expect(state.players.map((p) => p.isBot)).toEqual([false, false]);
     });
+
+    it('initializes botControlled to false', () => {
+      const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] });
+      expect(state.players.every((p) => p.botControlled === false)).toBe(true);
+    });
+  });
+
+  describe('SET_BOT_CONTROL', () => {
+    it('marks a player as bot-controlled and logs the offline notice', () => {
+      const state = gameReducer(makeStartedState(2), {
+        type: GameActionType.SetBotControl,
+        playerId: 0,
+        controlled: true,
+      });
+      expect(state.players[0].botControlled).toBe(true);
+      expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerOffline', params: { name: 'Alice' } });
+    });
+
+    it('is idempotent when the player is already bot-controlled', () => {
+      let state = gameReducer(makeStartedState(2), { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      expect(state.players[0].botControlled).toBe(true);
+      expect(state.eventLog.filter((e) => e.key === 'event.playerOffline')).toHaveLength(1);
+    });
+
+    it('clears bot-control and logs the return notice', () => {
+      let state = gameReducer(makeStartedState(2), { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: false });
+      expect(state.players[0].botControlled).toBe(false);
+      expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerBack', params: { name: 'Alice' } });
+    });
+
+    it('is idempotent clearing an already-human player', () => {
+      const state = gameReducer(makeStartedState(2), { type: GameActionType.SetBotControl, playerId: 0, controlled: false });
+      expect(state.eventLog.filter((e) => e.key === 'event.playerBack')).toHaveLength(0);
+    });
+  });
+
+  describe('event log bot labeling', () => {
+    it('marks roll entries of a bot-controlled actor with bot: true', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      state = gameReducer(state, { type: GameActionType.RollDice });
+      state = gameReducer(state, { type: GameActionType.DiceAnimated, dice: [4, 3] });
+      const roll = state.eventLog.find((e) => e.key === 'event.rolled');
+      expect(roll?.params?.bot).toBe(true);
+    });
+
+    it('does not mark entries of a human-controlled actor', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.RollDice });
+      state = gameReducer(state, { type: GameActionType.DiceAnimated, dice: [4, 3] });
+      const roll = state.eventLog.find((e) => e.key === 'event.rolled');
+      expect(roll?.params?.bot).toBeUndefined();
+    });
+
+    it('labels the turn entry when the next player is bot-controlled', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 1, controlled: true });
+      state = { ...state, turnOrder: [0, 1], currentPlayer: 0, dice: [4, 3] };
+      state = gameReducer(state, { type: GameActionType.EndTurn });
+      const turn = state.eventLog.find((e) => e.key === 'event.turn');
+      expect(turn?.params?.bot).toBe(true);
+    });
   });
 
   describe('ROLL_DICE + DICE_ANIMATED', () => {
@@ -1028,4 +1092,27 @@ describe('trade feature disabled', () => {
     expect(s2.pendingTrades).toHaveLength(1);
     expect(s2.eventLog).not.toContainEqual(expect.objectContaining({ key: 'event.tradeCancelled' }));
   });
+});
+
+it('auto-answers a trade from a bot-controlled recipient', () => {
+  const started = makeStartedState(2);
+  const state = gameReducer({ ...started, tradesEnabled: true }, {
+    type: GameActionType.SetBotControl,
+    playerId: 1,
+    controlled: true,
+  });
+  const next = gameReducer(state, {
+    type: GameActionType.ProposeTrade,
+    offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 300, requestProperties: [], requestCash: 0 },
+  });
+  expect(next.eventLog.some((e) => e.key === 'event.tradeAccepted' || e.key === 'event.tradeRejected')).toBe(true);
+  expect(next.pendingTrades).toHaveLength(0);
+});
+
+it('does not auto-answer a trade from a human recipient', () => {
+  const state = gameReducer({ ...makeStartedState(2), tradesEnabled: true }, {
+    type: GameActionType.ProposeTrade,
+    offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 300, requestProperties: [], requestCash: 0 },
+  });
+  expect(state.pendingTrades).toHaveLength(1);
 });
