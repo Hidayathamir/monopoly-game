@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createInitialState } from '../logic/gameReducer'
 import { GameClient } from '../net/client'
+import { GameActionType } from '../types/game'
 import type { GameApi, GameAction, GameState, TradeOffer } from '../types/game'
-import type { ConnectionStatus, LobbyPlayer } from '../types/net'
+import { ClientMessageType, ConnectionStatus, ServerMessageType } from '../types/net'
+import type { LobbyPlayer } from '../types/net'
 
 export type NetworkGameApi = GameApi & {
   playerId: number | null
@@ -25,7 +27,7 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const [hostPlayerId, setHostPlayerId] = useState<number | null>(null)
   const [code, setCode] = useState<string | null>(null)
   const [lobby, setLobby] = useState<LobbyPlayer[]>([])
-  const [status, setStatus] = useState<ConnectionStatus>('connecting')
+  const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.Connecting)
   const [error, setError] = useState<string | null>(null)
   const clientRef = useRef<GameClient | null>(null)
   const onLeftRef = useRef(onLeft)
@@ -36,25 +38,25 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
 
   useEffect(() => {
     const client = new GameClient({
-      onOpen: () => setStatus('connected'),
-      onClose: () => setStatus('disconnected'),
+      onOpen: () => setStatus(ConnectionStatus.Connected),
+      onClose: () => setStatus(ConnectionStatus.Disconnected),
       onMessage: (message) => {
-        if (message.type === 'welcome') {
+        if (message.type === ServerMessageType.Welcome) {
           setPlayerId(message.playerId)
           setHostPlayerId(message.hostPlayerId)
           setCode(message.code)
           setLobby(message.players)
           setState(message.state)
-          setStatus('connected')
+          setStatus(ConnectionStatus.Connected)
           setError(null)
-        } else if (message.type === 'lobby') {
+        } else if (message.type === ServerMessageType.Lobby) {
           setLobby(message.players)
           setHostPlayerId(message.hostPlayerId)
-        } else if (message.type === 'state') {
+        } else if (message.type === ServerMessageType.State) {
           setState(message.state)
-        } else if (message.type === 'left') {
+        } else if (message.type === ServerMessageType.Left) {
           onLeftRef.current()
-        } else if (message.type === 'error') {
+        } else if (message.type === ServerMessageType.Error) {
           setError(message.message)
         }
       },
@@ -69,37 +71,37 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   }, [])
 
   const sendAction = useCallback(
-    (action: GameAction) => send({ type: 'action', action }),
+    (action: GameAction) => send({ type: ClientMessageType.Action, action }),
     [send],
   )
 
-  const create = useCallback((name: string) => send({ type: 'create', name }), [send])
-  const join = useCallback((code: string, name: string) => send({ type: 'join', code, name }), [send])
-  const leave = useCallback(() => send({ type: 'leave' }), [send])
-  const start = useCallback(() => send({ type: 'start' }), [send])
-  const addBot = useCallback(() => send({ type: 'addBot' }), [send])
-  const removeBot = useCallback((playerId: number) => send({ type: 'removeBot', playerId }), [send])
+  const create = useCallback((name: string) => send({ type: ClientMessageType.Create, name }), [send])
+  const join = useCallback((code: string, name: string) => send({ type: ClientMessageType.Join, code, name }), [send])
+  const leave = useCallback(() => send({ type: ClientMessageType.Leave }), [send])
+  const start = useCallback(() => send({ type: ClientMessageType.Start }), [send])
+  const addBot = useCallback(() => send({ type: ClientMessageType.AddBot }), [send])
+  const removeBot = useCallback((playerId: number) => send({ type: ClientMessageType.RemoveBot, playerId }), [send])
 
-  const roll = useCallback(() => sendAction({ type: 'ROLL_DICE' }), [sendAction])
-  const buyProperty = useCallback(() => sendAction({ type: 'BUY_PROPERTY' }), [sendAction])
-  const declineBuy = useCallback(() => sendAction({ type: 'DECLINE_BUY' }), [sendAction])
-  const payRent = useCallback(() => sendAction({ type: 'PAY_RENT' }), [sendAction])
-  const buildHouse = useCallback((spaceId: number) => sendAction({ type: 'BUILD_HOUSE', spaceId }), [sendAction])
-  const sellHouse = useCallback((spaceId: number) => sendAction({ type: 'SELL_HOUSE', spaceId }), [sendAction])
-  const mortgage = useCallback((spaceId: number) => sendAction({ type: 'MORTGAGE', spaceId }), [sendAction])
-  const unmortgage = useCallback((spaceId: number) => sendAction({ type: 'UNMORTGAGE', spaceId }), [sendAction])
-  const sellProperty = useCallback((spaceId: number) => sendAction({ type: 'SELL_PROPERTY', spaceId }), [sendAction])
-  const proposeTrade = useCallback((offer: TradeOffer) => sendAction({ type: 'PROPOSE_TRADE', offer }), [sendAction])
-  const acceptTrade = useCallback((tradeId: number) => sendAction({ type: 'ACCEPT_TRADE', tradeId }), [sendAction])
-  const rejectTrade = useCallback((tradeId: number) => sendAction({ type: 'REJECT_TRADE', tradeId }), [sendAction])
-  const cancelTrade = useCallback((tradeId: number) => sendAction({ type: 'CANCEL_TRADE', tradeId }), [sendAction])
-  const drawCard = useCallback(() => sendAction({ type: 'DRAW_CARD' }), [sendAction])
-  const resolveCard = useCallback(() => sendAction({ type: 'RESOLVE_CARD' }), [sendAction])
-  const endTurn = useCallback(() => sendAction({ type: 'END_TURN' }), [sendAction])
-  const declareBankruptcy = useCallback(() => sendAction({ type: 'DECLARE_BANKRUPTCY' }), [sendAction])
-  const skipAction = useCallback(() => sendAction({ type: 'SKIP_ACTION' }), [sendAction])
-  const payJailFine = useCallback(() => sendAction({ type: 'PAY_JAIL_FINE' }), [sendAction])
-  const useGetOutOfJailFree = useCallback(() => sendAction({ type: 'USE_GET_OUT_OF_JAIL_FREE' }), [sendAction])
+  const roll = useCallback(() => sendAction({ type: GameActionType.RollDice }), [sendAction])
+  const buyProperty = useCallback(() => sendAction({ type: GameActionType.BuyProperty }), [sendAction])
+  const declineBuy = useCallback(() => sendAction({ type: GameActionType.DeclineBuy }), [sendAction])
+  const payRent = useCallback(() => sendAction({ type: GameActionType.PayRent }), [sendAction])
+  const buildHouse = useCallback((spaceId: number) => sendAction({ type: GameActionType.BuildHouse, spaceId }), [sendAction])
+  const sellHouse = useCallback((spaceId: number) => sendAction({ type: GameActionType.SellHouse, spaceId }), [sendAction])
+  const mortgage = useCallback((spaceId: number) => sendAction({ type: GameActionType.Mortgage, spaceId }), [sendAction])
+  const unmortgage = useCallback((spaceId: number) => sendAction({ type: GameActionType.Unmortgage, spaceId }), [sendAction])
+  const sellProperty = useCallback((spaceId: number) => sendAction({ type: GameActionType.SellProperty, spaceId }), [sendAction])
+  const proposeTrade = useCallback((offer: TradeOffer) => sendAction({ type: GameActionType.ProposeTrade, offer }), [sendAction])
+  const acceptTrade = useCallback((tradeId: number) => sendAction({ type: GameActionType.AcceptTrade, tradeId }), [sendAction])
+  const rejectTrade = useCallback((tradeId: number) => sendAction({ type: GameActionType.RejectTrade, tradeId }), [sendAction])
+  const cancelTrade = useCallback((tradeId: number) => sendAction({ type: GameActionType.CancelTrade, tradeId }), [sendAction])
+  const drawCard = useCallback(() => sendAction({ type: GameActionType.DrawCard }), [sendAction])
+  const resolveCard = useCallback(() => sendAction({ type: GameActionType.ResolveCard }), [sendAction])
+  const endTurn = useCallback(() => sendAction({ type: GameActionType.EndTurn }), [sendAction])
+  const declareBankruptcy = useCallback(() => sendAction({ type: GameActionType.DeclareBankruptcy }), [sendAction])
+  const skipAction = useCallback(() => sendAction({ type: GameActionType.SkipAction }), [sendAction])
+  const payJailFine = useCallback(() => sendAction({ type: GameActionType.PayJailFine }), [sendAction])
+  const useGetOutOfJailFree = useCallback(() => sendAction({ type: GameActionType.UseGetOutOfJailFree }), [sendAction])
   const resetGame = useCallback(() => window.location.reload(), [])
 
   return {
