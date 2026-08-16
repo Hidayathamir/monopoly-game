@@ -90,6 +90,9 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const unmortgage = useCallback((spaceId: number) => sendAction({ type: 'UNMORTGAGE', spaceId }), [sendAction])
   const sellProperty = useCallback((spaceId: number) => sendAction({ type: 'SELL_PROPERTY', spaceId }), [sendAction])
   const proposeTrade = useCallback((offer: TradeOffer) => sendAction({ type: 'PROPOSE_TRADE', offer }), [sendAction])
+  const acceptTrade = useCallback((tradeId: number) => sendAction({ type: 'ACCEPT_TRADE', tradeId }), [sendAction])
+  const rejectTrade = useCallback((tradeId: number) => sendAction({ type: 'REJECT_TRADE', tradeId }), [sendAction])
+  const cancelTrade = useCallback((tradeId: number) => sendAction({ type: 'CANCEL_TRADE', tradeId }), [sendAction])
   const drawCard = useCallback(() => sendAction({ type: 'DRAW_CARD' }), [sendAction])
   const resolveCard = useCallback(() => sendAction({ type: 'RESOLVE_CARD' }), [sendAction])
   const endTurn = useCallback(() => sendAction({ type: 'END_TURN' }), [sendAction])
@@ -124,6 +127,9 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     unmortgage,
     sellProperty,
     proposeTrade,
+    acceptTrade,
+    rejectTrade,
+    cancelTrade,
     drawCard,
     resolveCard,
     endTurn,

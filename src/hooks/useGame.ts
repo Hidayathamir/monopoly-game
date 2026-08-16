@@ -85,6 +85,9 @@ export function useGame() {
   const unmortgage = useCallback((spaceId: number) => send({ type: 'UNMORTGAGE', spaceId }), [send])
   const sellProperty = useCallback((spaceId: number) => send({ type: 'SELL_PROPERTY', spaceId }), [send])
   const proposeTrade = useCallback((offer: TradeOffer) => send({ type: 'PROPOSE_TRADE', offer }), [send])
+  const acceptTrade = useCallback((tradeId: number) => send({ type: 'ACCEPT_TRADE', tradeId }), [send])
+  const rejectTrade = useCallback((tradeId: number) => send({ type: 'REJECT_TRADE', tradeId }), [send])
+  const cancelTrade = useCallback((tradeId: number) => send({ type: 'CANCEL_TRADE', tradeId }), [send])
   const drawCard = useCallback(() => send({ type: 'DRAW_CARD' }), [send])
   const resolveCard = useCallback(() => send({ type: 'RESOLVE_CARD' }), [send])
   const endTurn = useCallback(() => send({ type: 'END_TURN' }), [send])
@@ -122,6 +125,9 @@ export function useGame() {
     unmortgage,
     sellProperty,
     proposeTrade,
+    acceptTrade,
+    rejectTrade,
+    cancelTrade,
     drawCard,
     resolveCard,
     endTurn,
