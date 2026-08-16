@@ -48,6 +48,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           bankrupt: false,
           getOutOfJailFreeCards: 0,
           isBot: action.isBot?.[i] ?? false,
+          botControlled: false,
         });
       }
       const turnOrder = shuffle(Array.from({ length: action.playerCount }, (_, i) => i));
@@ -513,7 +514,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         (id) => state.board[id]?.owner === offer.fromId && !state.board[id].mortgaged && state.board[id].houses === 0,
       );
       if (!validOffer) return state;
-      if (to.isBot) {
+      if (to.isBot || to.botControlled) {
         const trade: PendingTrade = { ...offer, id: state.nextTradeId };
         if (shouldAcceptTrade(state, trade)) {
           const applied = applyTrade(state, trade);
@@ -765,6 +766,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         doublesCount: 0,
         lastMoveSteps: null,
         eventLog: [...state.eventLog, ...logs, { key: 'event.turn', params: { name: newPlayers[next].name } }],
+      };
+    }
+
+    case GameActionType.SetBotControl: {
+      const target = state.players[action.playerId];
+      if (!target || target.botControlled === action.controlled) return state;
+      const newPlayers = [...state.players];
+      newPlayers[action.playerId] = { ...target, botControlled: action.controlled };
+      const logKey = action.controlled ? 'event.playerOffline' : 'event.playerBack';
+      return {
+        ...state,
+        players: newPlayers,
+        eventLog: [...state.eventLog, { key: logKey, params: { name: target.name } }],
       };
     }
 

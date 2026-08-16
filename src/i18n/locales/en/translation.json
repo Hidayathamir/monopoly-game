@@ -113,6 +113,8 @@
   "event.bankruptcy": "{{name}} went bankrupt!",
   "event.bankruptcyWin": "{{name}} went bankrupt! {{winner}} wins!",
   "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
+  "event.playerOffline": "{{name}} went offline — a bot will play their turn",
+  "event.playerBack": "{{name}} is back — taking back control",
 
   "setup.title": "Monopoly",
   "setup.yourName": "Your Name",

@@ -20,6 +20,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     bankrupt: false,
     getOutOfJailFreeCards: 0,
     isBot: true,
+    botControlled: false,
     ...overrides,
   };
 }

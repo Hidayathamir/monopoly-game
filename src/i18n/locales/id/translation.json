@@ -113,6 +113,8 @@
   "event.bankruptcy": "{{name}} bangkrut!",
   "event.bankruptcyWin": "{{name}} bangkrut! {{winner}} menang!",
   "event.bankruptcyTransfer": "Aset {{name}} dilikuidasi untuk {{creditor}} sebesar {{amount}}",
+  "event.playerOffline": "{{name}} offline — bot akan memainkan gilirannya",
+  "event.playerBack": "{{name}} kembali — kendali diambil lagi",
 
   "setup.title": "Monopoli",
   "setup.yourName": "Nama Kamu",
