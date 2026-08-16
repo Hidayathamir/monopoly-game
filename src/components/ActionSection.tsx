@@ -8,7 +8,6 @@ interface Props {
   state: GameState
   onEndTurn: () => void
   onDrawCard: () => void
-  onProposeTrade: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
   onPayRent: () => void
@@ -20,7 +19,7 @@ interface Props {
 }
 
 export default function ActionSection({
-  state, onEndTurn, onDrawCard, onProposeTrade, onBuyProperty,
+  state, onEndTurn, onDrawCard, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
   onBuild, isMyTurn = true,
 }: Props) {
@@ -136,7 +135,6 @@ export default function ActionSection({
           {player.money >= 0 ? (
             <>
               <Button variant="secondary" onClick={onEndTurn}>{t(state.doublesCount > 0 ? 'action.rollAgain' : 'action.endTurn')}</Button>
-              <Button size="sm" onClick={onProposeTrade}>{t('action.trade')}</Button>
             </>
           ) : (
             <p className="text-base text-muted text-center mt-1" style={{ color: '#e74c3c' }}>
