@@ -1,5 +1,5 @@
 import {
-  GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space, type TradeOffer,
+  GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space, type TradeOffer,
 } from '../types/game';
 import { getHouseCost, JAIL_FINE } from '../data/board';
 import { isMonopoly } from './rent';
@@ -14,19 +14,19 @@ export function decideBotAction(state: GameState): GameAction | null {
       case PendingActionType.BuyProperty: {
         const space = state.board[pending.spaceId];
         return player.money >= (space.price ?? 0)
-          ? { type: 'BUY_PROPERTY' }
-          : { type: 'DECLINE_BUY' };
+          ? { type: GameActionType.BuyProperty }
+          : { type: GameActionType.DeclineBuy };
       }
       case PendingActionType.PayRent: {
-        if (player.money >= pending.amount) return { type: 'PAY_RENT' };
+        if (player.money >= pending.amount) return { type: GameActionType.PayRent };
         return liquidationAction(state);
       }
       case PendingActionType.DrawCard:
-        return { type: 'DRAW_CARD' };
+        return { type: GameActionType.DrawCard };
       case PendingActionType.CardEffect:
-        return { type: 'RESOLVE_CARD' };
+        return { type: GameActionType.ResolveCard };
       case PendingActionType.Bankruptcy:
-        return { type: 'DECLARE_BANKRUPTCY' };
+        return { type: GameActionType.DeclareBankruptcy };
       default:
         return null;
     }
@@ -34,14 +34,14 @@ export function decideBotAction(state: GameState): GameAction | null {
 
   if (state.phase === GamePhase.Waiting) {
     if (player.inJail) {
-      if (player.hasGetOutOfJailFree) return { type: 'USE_GET_OUT_OF_JAIL_FREE' };
-      if (player.money >= JAIL_FINE) return { type: 'PAY_JAIL_FINE' };
-      return { type: 'ROLL_DICE' };
+      if (player.hasGetOutOfJailFree) return { type: GameActionType.UseGetOutOfJailFree };
+      if (player.money >= JAIL_FINE) return { type: GameActionType.PayJailFine };
+      return { type: GameActionType.RollDice };
     }
     if (state.dice === null) {
-      return buildAction(state) ?? { type: 'ROLL_DICE' };
+      return buildAction(state) ?? { type: GameActionType.RollDice };
     }
-    return { type: 'END_TURN' };
+    return { type: GameActionType.EndTurn };
   }
 
   return null;
@@ -63,20 +63,20 @@ function buildAction(state: GameState): GameAction | null {
       best = space;
     }
   }
-  return best ? { type: 'BUILD_HOUSE', spaceId: best.id } : null;
+  return best ? { type: GameActionType.BuildHouse, spaceId: best.id } : null;
 }
 
 function liquidationAction(state: GameState): GameAction {
   const player = state.players[state.currentPlayer];
   for (const id of player.properties) {
     const space = state.board[id];
-    if (space && space.houses > 0) return { type: 'SELL_HOUSE', spaceId: id };
+    if (space && space.houses > 0) return { type: GameActionType.SellHouse, spaceId: id };
   }
   for (const id of player.properties) {
     const space = state.board[id];
-    if (space && !space.mortgaged && space.houses === 0) return { type: 'MORTGAGE', spaceId: id };
+    if (space && !space.mortgaged && space.houses === 0) return { type: GameActionType.Mortgage, spaceId: id };
   }
-  return { type: 'DECLARE_BANKRUPTCY' };
+  return { type: GameActionType.DeclareBankruptcy };
 }
 
 export function shouldAcceptTrade(state: GameState, offer: TradeOffer): boolean {
