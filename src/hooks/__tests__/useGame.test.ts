@@ -138,3 +138,34 @@ describe('useGame bot auto-play', () => {
     expect(result.current.state.dice).toBeNull()
   })
 })
+
+describe('useGame controlled dice', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('rolls controlled dice toward the given target and logs the aim', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5) // luck 50, total 8, pair (4,4)
+    const { result } = renderHook(() => useGame())
+    act(() => result.current.startGame([{ name: 'Alice', isBot: false }, { name: 'Bob', isBot: false }]))
+
+    act(() => result.current.roll(8))
+    act(() => vi.advanceTimersByTime(500)) // DICE_ANIMATED
+    expect(result.current.state.dice).toEqual([4, 4])
+    expect(result.current.state.doublesCount).toBe(1)
+
+    const entry = result.current.state.eventLog[result.current.state.eventLog.length - 1]
+    expect(entry.key).toBe('event.rolledAimed')
+    expect(entry.params).toEqual(expect.objectContaining({ target: 8, luck: 50 }))
+  })
+})

@@ -2,6 +2,7 @@ import { useReducer, useCallback, useEffect, useRef } from 'react'
 import { GameActionType, GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
 import { gameReducer, createInitialState } from '../logic/gameReducer'
 import { decideBotAction } from '../logic/bot'
+import { rollControlledDice } from '../logic/controlledDice'
 
 const STORAGE_KEY = 'monopoly-game-state'
 const STATE_VERSION = 9
@@ -47,14 +48,23 @@ export function useGame() {
     window.location.reload()
   }, [])
 
-  const roll = useCallback(() => {
+  const roll = useCallback((target?: number) => {
     dispatch({ type: GameActionType.RollDice })
-    const d1 = Math.floor(Math.random() * 6) + 1
-    const d2 = Math.floor(Math.random() * 6) + 1
-    const total = d1 + d2
+    let dice: [number, number]
+    let aimed: { target: number; luck: number } | undefined
+    if (target != null) {
+      const result = rollControlledDice(target, Math.random)
+      dice = result.dice
+      aimed = { target, luck: result.luck }
+    } else {
+      const d1 = Math.floor(Math.random() * 6) + 1
+      const d2 = Math.floor(Math.random() * 6) + 1
+      dice = [d1, d2]
+    }
+    const total = dice[0] + dice[1]
     const animDuration = 500 + total * 150
     setTimeout(() => {
-      dispatch({ type: GameActionType.DiceAnimated, dice: [d1, d2] })
+      dispatch({ type: GameActionType.DiceAnimated, dice, ...(aimed ?? {}) })
       setTimeout(() => dispatch({ type: GameActionType.ResolveSpace }), animDuration)
     }, 500)
   }, [])

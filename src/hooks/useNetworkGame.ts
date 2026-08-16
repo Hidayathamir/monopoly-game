@@ -82,7 +82,10 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const addBot = useCallback(() => send({ type: ClientMessageType.AddBot }), [send])
   const removeBot = useCallback((playerId: number) => send({ type: ClientMessageType.RemoveBot, playerId }), [send])
 
-  const roll = useCallback(() => sendAction({ type: GameActionType.RollDice }), [sendAction])
+  const roll = useCallback(
+    (target?: number) => sendAction({ type: GameActionType.RollDice, ...(target != null ? { target } : {}) }),
+    [sendAction],
+  )
   const buyProperty = useCallback(() => sendAction({ type: GameActionType.BuyProperty }), [sendAction])
   const declineBuy = useCallback(() => sendAction({ type: GameActionType.DeclineBuy }), [sendAction])
   const payRent = useCallback(() => sendAction({ type: GameActionType.PayRent }), [sendAction])
