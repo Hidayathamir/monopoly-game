@@ -36,6 +36,8 @@ function makeProps() {
     onPayJailFine: noop,
     onUseGetOutOfJailFree: noop,
     onBuild: noop,
+    tradeCount: 0,
+    onOpenTrades: noop,
   }
 }
 
@@ -69,5 +71,11 @@ describe('Sidebar', () => {
     const sidebar = screen.getByTestId('sidebar')
     const firstChild = sidebar.children[0] as HTMLElement
     expect(within(firstChild).getByRole('button', { name: 'Leave Room' })).toBeVisible()
+  })
+
+  it('shows the trade inbox badge count', () => {
+    renderWithProviders(<Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} tradeCount={3} />)
+    expect(screen.getByText('Trades')).toBeVisible()
+    expect(screen.getByText('3')).toBeVisible()
   })
 })

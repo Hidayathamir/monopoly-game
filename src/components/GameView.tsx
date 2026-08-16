@@ -3,6 +3,7 @@ import { GamePhase, type GameApi, type TradeOffer } from '../types/game'
 import GameBoard from './GameBoard'
 import Sidebar from './Sidebar'
 import TradeModal from './Modals/TradeModal'
+import TradeInboxModal from './Modals/TradeInboxModal'
 import CardModal from './Modals/CardModal'
 import BankruptcyModal from './Modals/BankruptcyModal'
 import GameOverModal from './Modals/GameOverModal'
@@ -14,6 +15,10 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
     : game.myPlayerId === state.currentPlayer
   const canTrade = isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
+  const [showTrades, setShowTrades] = useState(false)
+  const tradeCount = state.pendingTrades.filter((tr) =>
+    game.myPlayerId === null || tr.fromId === game.myPlayerId || tr.toId === game.myPlayerId
+  ).length
 
   return (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
@@ -42,6 +47,8 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
           onUseGetOutOfJailFree={game.useGetOutOfJailFree}
           onBuild={game.buildHouse}
           onLeave={onLeave}
+          tradeCount={tradeCount}
+          onOpenTrades={() => setShowTrades(true)}
         />
       </GameBoard>
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
@@ -56,6 +63,16 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
             setTradeTargetId(null)
           }}
           onClose={() => setTradeTargetId(null)}
+        />
+      )}
+      {showTrades && (
+        <TradeInboxModal
+          state={state}
+          myPlayerId={game.myPlayerId}
+          onAccept={(id) => game.acceptTrade(id)}
+          onReject={(id) => game.rejectTrade(id)}
+          onCancel={(id) => game.cancelTrade(id)}
+          onClose={() => setShowTrades(false)}
         />
       )}
     </div>

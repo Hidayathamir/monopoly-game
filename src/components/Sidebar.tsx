@@ -25,9 +25,11 @@ interface Props {
   onLeave?: () => void
   isMyTurn: boolean
   canTrade?: boolean
+  tradeCount: number
+  onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canTrade = true, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canTrade = true, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
@@ -51,6 +53,18 @@ export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canT
             {t('turn.waitingFor', { name: state.players[state.currentPlayer].name })}
           </p>
         )}
+        <button
+          type="button"
+          onClick={onOpenTrades}
+          className="relative w-full py-1.5 rounded-lg border border-border bg-bg-dark text-sm font-semibold hover:opacity-90"
+        >
+          {t('trade.inbox')}
+          {tradeCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-danger text-white text-xs font-bold rounded-full px-1.5">
+              {tradeCount}
+            </span>
+          )}
+        </button>
         <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} />
         <EventLog log={state.eventLog} />
       </div>
