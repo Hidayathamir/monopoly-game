@@ -14,10 +14,10 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 
 ## Architecture
 
-- **Shared game logic**: `src/logic/gameReducer.ts` (the reducer + `createInitialState`) is the single source of truth for rules. It runs on the client for local mode (`src/hooks/useGame.ts`) and on the server, authoritatively, for multiplayer (`server/gameServer.ts`). New rules/actions go in `src/logic` + `src/types/game.ts` and must work in both contexts.
+- **Shared game logic**: `src/logic/gameReducer.ts` (the reducer + `createInitialState`) is the single source of truth for rules. It runs on the server, authoritatively, for multiplayer (`server/gameServer.ts`). New rules/actions go in `src/logic` + `src/types/game.ts` and must work in both contexts.
 - **Multiplayer**: Node server (`server/`) uses `tsx` and the `ws` lib. `RoomManager` issues 5-char join codes; `GameServer` owns state per room (max 6 players) and broadcasts full `GameState` snapshots over JSON. Server rejects actions out of turn. Board/card data lives in `src/data/*.json`; shared types in `src/types/*`.
 - **Server/client contract**: `src/types/net.ts` defines `ClientMessage`/`ServerMessage`. Server sends full state snapshots; the client's `src/net/client.ts` (`GameClient`) wraps the WebSocket and `src/hooks/useNetworkGame.ts` applies snapshots directly.
-- **Bots**: `src/logic/bot.ts` (`decideBotAction`) drives bot seats locally and on the server; `src/data/bots.ts` supplies `BOT_NAMES`. Bot turns auto-play through the same reducer in both modes.
+- **Bots**: `src/logic/bot.ts` (`decideBotAction`) drives bot seats on the server; `src/data/bots.ts` supplies `BOT_NAMES`. Bot turns auto-play through the server reducer.
 - **Two tsconfig projects beyond the app/node split**: `tsconfig.server.json` compiles `server/` plus `src/{types,logic,data,utils}` (no DOM); `tsconfig.app.json` covers `src/`. `npm run build`/`typecheck` build all via project references.
 
 ## Tests
@@ -40,7 +40,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
   must never change when refactoring.
 - **Semicolons are mixed**: `src/logic/*`, `src/data/*`, `src/types/game.ts` use them; most components/hooks/net/server files omit them. Match the file you're editing; eslint does not enforce.
 - **i18n**: every UI string must exist in both `src/i18n/locales/en/translation.json` and `id/translation.json` (flat keys, `keySeparator: false`). Server-side error strings are hardcoded Indonesian and rendered raw by the client — don't add new hardcoded UI strings; route user-facing text through i18n keys or `LogEntry` keys (see `src/i18n/log.ts`).
-- **Local state persistence**: `useGame` saves state to `localStorage` under `monopoly-game-state`; bump `STATE_VERSION` in `src/hooks/useGame.ts` when the `GameState` shape changes incompatibly.
+- **Multiplayer session persistence**: the client stores the active room session under `monopoly-mp-session` (`src/net/session.ts`) so a refresh auto-rejoins the same room.
 - **Design workflow**: specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/` (dated). Before implementing a feature, check for the latest related spec/plan there.
 
 ## Gotchas
