@@ -75,6 +75,7 @@
   "event.gameStarted": "Permainan dimulai!",
   "event.turn": "Giliran {{name}}",
   "event.rolled": "{{name}} melempar {{d1}}+{{d2}}={{total}}",
+  "event.rolledAimed": "{{name}} melempar {{d1}}+{{d2}}={{total}} (membidik {{target}}, keberuntungan {{luck}})",
   "event.passedGo": "{{name}} melewati MULAI, dapat {{amount}}",
   "event.jailBreakDoubles": "{{name}} keluar dari penjara! (dadu ganda)",
   "event.jailForcedOut": "{{name}} sudah 3 kali gagal, dipaksa keluar penjara",
@@ -169,6 +170,7 @@
 
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",
+  "dice.aiming": "Membidik: {{target}}",
   "dice.doubles": "Ganda? {{result}} — {{n}}x lagi",
 
   "action.buyPrompt": "Beli {{name}}?",

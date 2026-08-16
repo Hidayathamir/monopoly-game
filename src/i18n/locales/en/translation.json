@@ -75,6 +75,7 @@
   "event.gameStarted": "Game started!",
   "event.turn": "Turn: {{name}}",
   "event.rolled": "{{name}} rolled {{d1}}+{{d2}}={{total}}",
+  "event.rolledAimed": "{{name}} rolled {{d1}}+{{d2}}={{total}} (aimed for {{target}}, luck {{luck}})",
   "event.passedGo": "{{name}} passed GO and collected {{amount}}",
   "event.jailBreakDoubles": "{{name}} broke out of jail! (doubles)",
   "event.jailForcedOut": "{{name}} failed 3 times and was forced out of jail",
@@ -169,6 +170,7 @@
 
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
+  "dice.aiming": "Aiming: {{target}}",
   "dice.doubles": "Doubles? {{result}} — {{n}} more",
 
   "action.buyPrompt": "Buy {{name}}?",
