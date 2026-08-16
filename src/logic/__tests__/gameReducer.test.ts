@@ -44,7 +44,7 @@ describe('gameReducer', () => {
 
   describe('START_GAME', () => {
     it('creates players with 1500 each', () => {
-      const state = makeStartedState(3);
+      const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 3, names: ['Alice', 'Bob', 'Charlie', 'Diana'] });
       expect(state.players).toHaveLength(3);
       expect(state.players[0].money).toBe(STARTING_MONEY);
       expect(state.players[1].money).toBe(STARTING_MONEY);
@@ -55,7 +55,7 @@ describe('gameReducer', () => {
     });
 
     it('turnOrder is a permutation of every player id', () => {
-      const state = makeStartedState(4);
+      const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 4, names: ['Alice', 'Bob', 'Charlie', 'Diana'] });
       expect([...state.turnOrder].sort()).toEqual([0, 1, 2, 3]);
     });
 
