@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
-import { screen, cleanup } from '@testing-library/react'
-import { afterEach, describe, it, expect } from 'vitest'
+import { screen, cleanup, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import type { ComponentProps } from 'react'
 import PlayerCard from '../PlayerCard'
 import { renderWithProviders } from '../../test/test-utils'
 import type { Player, Space } from '../../types/game'
@@ -37,5 +39,49 @@ describe('PlayerCard', () => {
     renderWithProviders(<PlayerCard player={{ ...player, money: 15000 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
     const positiveDiv = screen.getByText(/\$15K/).closest('div')!
     expect(positiveDiv.className).toContain('text-green-money')
+  })
+})
+
+describe('PlayerCard popup trade button', () => {
+  const otherPlayer = { ...player, id: 1, name: 'Beta' }
+
+  function openPopup(props: Partial<ComponentProps<typeof PlayerCard>> = {}) {
+    renderWithProviders(
+      <PlayerCard
+        player={otherPlayer}
+        isCurrent={false}
+        color="#E74C3C"
+        diff={null}
+        board={board}
+        currentPlayerId={0}
+        canTrade
+        onProposeTrade={() => {}}
+        {...props}
+      />,
+    )
+    fireEvent.mouseEnter(screen.getByTestId('player-card'))
+  }
+
+  it('shows a Trade button in the popup for another player', () => {
+    openPopup()
+    expect(screen.getByRole('button', { name: /Trade/ })).toBeVisible()
+  })
+
+  it('hides the Trade button on your own card', () => {
+    openPopup({ player, currentPlayerId: 0 })
+    expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
+  })
+
+  it('disables the Trade button when canTrade is false', () => {
+    openPopup({ canTrade: false })
+    expect(screen.getByRole('button', { name: /Trade/ })).toBeDisabled()
+  })
+
+  it('calls onProposeTrade with the hovered player id and closes the popup', () => {
+    const onProposeTrade = vi.fn()
+    openPopup({ onProposeTrade })
+    fireEvent.click(screen.getByRole('button', { name: /Trade/ }))
+    expect(onProposeTrade).toHaveBeenCalledWith(1)
+    expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
   })
 })

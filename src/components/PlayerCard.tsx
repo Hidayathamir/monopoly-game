@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Player, Space } from '../types/game'
 import { useCurrency } from '../i18n/CurrencyContext'
+import Button from './Button'
 
 function MoneyChange({ diff }: { diff: number }) {
   const { formatMoney } = useCurrency()
@@ -32,9 +33,12 @@ interface PlayerCardProps {
   color: string
   diff?: { diff: number; key: number } | null
   board: Space[]
+  canTrade?: boolean
+  currentPlayerId?: number
+  onProposeTrade?: (playerId: number) => void
 }
 
-export default function PlayerCard({ player, isCurrent, color, diff, board }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, color, diff, board, canTrade = true, currentPlayerId, onProposeTrade }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
@@ -51,6 +55,12 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
 
   function handleLeave() {
     timerRef.current = setTimeout(() => setPopupRect(null), 200)
+  }
+
+  function handleTrade() {
+    clearTimeout(timerRef.current)
+    setPopupRect(null)
+    onProposeTrade?.(player.id)
   }
 
   return (
@@ -91,6 +101,9 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
             rect={popupRect}
             onEnter={() => clearTimeout(timerRef.current)}
             onLeave={handleLeave}
+            canTrade={canTrade}
+            currentPlayerId={currentPlayerId}
+            onProposeTrade={handleTrade}
           />,
           document.body,
         )
@@ -99,13 +112,16 @@ export default function PlayerCard({ player, isCurrent, color, diff, board }: Pl
   )
 }
 
-function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
+function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade }: {
   player: Player
   owned: Space[]
   color: string
   rect: DOMRect
   onEnter: () => void
   onLeave: () => void
+  canTrade: boolean
+  currentPlayerId?: number
+  onProposeTrade?: () => void
 }) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
@@ -147,6 +163,11 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave }: {
       )}
       {owned.length === 0 && (
         <div className="text-sm text-muted italic">{t('card.noProperties')}</div>
+      )}
+      {player.id !== currentPlayerId && (
+        <Button size="sm" disabled={!canTrade} onClick={onProposeTrade} className="w-full mt-2">
+          {t('action.trade')}
+        </Button>
       )}
     </div>
   )
