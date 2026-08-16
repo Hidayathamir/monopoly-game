@@ -58,8 +58,9 @@ Bots already on bot seats (`isBot: true`) keep their exact current behavior.
     append `event.playerBack` log. Idempotent: no-op if already not
     bot-controlled (so a reconnect during Setup logs nothing; the flag is never
     set there anyway).
-- `Player` shape changed ⇒ bump `STATE_VERSION` in `src/hooks/useGame.ts`
-  (9 → 10).
+- No `STATE_VERSION` bump: the `useGame` localStorage hook was deleted (the app
+  is multiplayer-only and `GameState` rides over WebSocket snapshots), so there
+  is no persisted-state version to invalidate.
 
 ### 2 — `decideBotAction` gate
 
@@ -161,7 +162,6 @@ accept trades on their own — only the bot response changes.
 | `src/logic/bot.ts` | `decideBotAction` gate accepts `botControlled` |
 | `src/i18n/log.ts` | `params.bot` → render name through `log.botName` |
 | `src/server/gameServer.ts` | dispatch `SetBotControl` on disconnect/rejoin; `driveBots` drives offline humans with 30s grace; remove `skipLeftPlayers` |
-| `src/hooks/useGame.ts` | bump `STATE_VERSION` to 10 |
 | `src/components/PlayerCard.tsx` | 🤖 BOT badge when `player.botControlled` |
 | `src/components/TurnHeader.tsx` | `turn.botControl` status for bot-controlled current player |
 | `src/i18n/locales/{en,id}/translation.json` | `log.botName`, `event.playerOffline`, `event.playerBack`, `card.botControl`, `turn.botControl` |
