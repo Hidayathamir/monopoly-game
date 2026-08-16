@@ -88,6 +88,25 @@ describe('GameServer', () => {
     expect(server.getState().phase).toBe(GamePhase.Waiting)
   })
 
+  it('rolls controlled dice toward the client target', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0.5, 0.5, 0.5][n++] ?? 0.5) // luck 50, total 8, pair (4,4)
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.roll('c0', 8)
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+
+    vi.advanceTimersByTime(500)
+    expect(server.getState().dice).toEqual([4, 4])
+    const entry = server.getState().eventLog[server.getState().eventLog.length - 1]
+    expect(entry.key).toBe('event.rolledAimed')
+    expect(entry.params).toEqual(expect.objectContaining({ target: 8, luck: 50 }))
+  })
+
   it('reclaims a disconnected slot on rejoin with the same name', () => {
     const { server } = setup()
     server.join('c0', 'Alice')

@@ -4,6 +4,7 @@ import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
+import { rollControlledDice } from '../src/logic/controlledDice'
 
 export type ClientId = string
 
@@ -199,7 +200,7 @@ export class GameServer {
     this.skipLeftPlayers()
   }
 
-  roll(clientId: ClientId): void {
+  roll(clientId: ClientId, target?: number): void {
     if (!this.isTurn(clientId)) {
       this.events.send(clientId, { type: ServerMessageType.Error, message: 'Bukan giliranmu' })
       return
@@ -208,18 +209,25 @@ export class GameServer {
       this.events.send(clientId, { type: ServerMessageType.Error, message: 'Belum bisa melempar dadu' })
       return
     }
-    this.startRoll()
+    this.startRoll(target)
   }
 
-  private startRoll(): void {
+  private startRoll(target?: number): void {
     this.dispatch({ type: GameActionType.RollDice })
-    const d1 = 1 + Math.floor(this.rng() * 6)
-    const d2 = 1 + Math.floor(this.rng() * 6)
-    const animDuration = 500 + (d1 + d2) * 150
+    let dice: [number, number]
+    let aimed: { target: number; luck: number } | undefined
+    if (target != null) {
+      const result = rollControlledDice(target, this.rng)
+      dice = result.dice
+      aimed = { target, luck: result.luck }
+    } else {
+      dice = [1 + Math.floor(this.rng() * 6), 1 + Math.floor(this.rng() * 6)]
+    }
+    const animDuration = 500 + (dice[0] + dice[1]) * 150
 
     setTimeout(() => {
       if (this.state.phase === GamePhase.Rolling) {
-        this.dispatch({ type: GameActionType.DiceAnimated, dice: [d1, d2] })
+        this.dispatch({ type: GameActionType.DiceAnimated, dice, ...(aimed ?? {}) })
         setTimeout(() => {
           if (this.state.phase === GamePhase.Moving) {
             this.dispatch({ type: GameActionType.ResolveSpace })
@@ -231,7 +239,7 @@ export class GameServer {
 
   handleAction(clientId: ClientId, action: GameAction): void {
     if (action.type === GameActionType.RollDice) {
-      this.roll(clientId)
+      this.roll(clientId, action.target)
       return
     }
     const slotIndex = this.slots.findIndex((s) => s.clientId === clientId)
