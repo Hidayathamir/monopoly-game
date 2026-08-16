@@ -20,6 +20,7 @@ function buildPeakWeights(target: number): Record<number, number> {
 }
 
 export function rollControlledDice(target: number, rng: () => number): ControlledDiceResult {
+  target = Math.min(12, Math.max(2, Math.floor(target)));
   const luck = Math.min(100, Math.floor(rng() * 101));
   const alpha = luck / 100;
   const peak = buildPeakWeights(target);

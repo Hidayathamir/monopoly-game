@@ -91,6 +91,45 @@ describe('rollControlledDice', () => {
     }
   })
 
+  it('at luck 100 clamps an out-of-range high target to 12', () => {
+    const counts = new Map<number, number>()
+    for (let i = 0; i < 500; i++) {
+      const lcg = lcgSequence(i + 1)
+      let first = true
+      const rng = () => (first ? ((first = false), 0.999) : lcg())
+      const r = rollControlledDice(999, rng)
+      const total = r.dice[0] + r.dice[1]
+      expect(r.luck).toBe(100)
+      expect(total).toBeGreaterThanOrEqual(9)
+      expect(total).toBeLessThanOrEqual(12)
+      counts.set(total, (counts.get(total) ?? 0) + 1)
+    }
+    // Without clamping, the empty peak makes every roll fall through to 12.
+    expect(counts.size).toBeGreaterThan(1)
+  })
+
+  it('at luck 100 clamps an out-of-range low target to 2', () => {
+    const counts = new Map<number, number>()
+    for (let i = 0; i < 500; i++) {
+      const lcg = lcgSequence(i + 1)
+      let first = true
+      const rng = () => (first ? ((first = false), 0.999) : lcg())
+      const r = rollControlledDice(1, rng)
+      const total = r.dice[0] + r.dice[1]
+      expect(r.luck).toBe(100)
+      expect(total).toBeGreaterThanOrEqual(2)
+      expect(total).toBeLessThanOrEqual(5)
+      counts.set(total, (counts.get(total) ?? 0) + 1)
+    }
+    expect(counts.size).toBeGreaterThan(1)
+  })
+
+  it('floors a non-integer target before rolling', () => {
+    const a = rollControlledDice(8.5, sequence(0.5, 0.5, 0.5))
+    const b = rollControlledDice(8, sequence(0.5, 0.5, 0.5))
+    expect(a).toEqual(b)
+  })
+
   it('is a pure function of its rng', () => {
     const a = rollControlledDice(9, sequence(0.5, 0.1, 0.7))
     const b = rollControlledDice(9, sequence(0.5, 0.1, 0.7))
