@@ -80,7 +80,9 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean 
         } else if (msg.type === ClientMessageType.Start) {
           roomManager.gameFor(clientId)?.start(clientId)
         } else if (msg.type === ClientMessageType.Leave) {
-          roomManager.gameFor(clientId)?.leave(clientId)
+          const game = roomManager.gameFor(clientId)
+          if (game) game.leave(clientId)
+          else send(clientId, { type: ServerMessageType.Left })
           roomManager.removeClient(clientId)
         } else if (msg.type === ClientMessageType.AddBot) {
           roomManager.gameFor(clientId)?.addBot(clientId)

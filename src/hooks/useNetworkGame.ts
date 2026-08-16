@@ -77,7 +77,10 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
 
   const create = useCallback((name: string) => send({ type: ClientMessageType.Create, name }), [send])
   const join = useCallback((code: string, name: string) => send({ type: ClientMessageType.Join, code, name }), [send])
-  const leave = useCallback(() => send({ type: ClientMessageType.Leave }), [send])
+  const leave = useCallback(() => {
+    send({ type: ClientMessageType.Leave })
+    onLeftRef.current()
+  }, [send])
   const start = useCallback(() => send({ type: ClientMessageType.Start }), [send])
   const addBot = useCallback(() => send({ type: ClientMessageType.AddBot }), [send])
   const removeBot = useCallback((playerId: number) => send({ type: ClientMessageType.RemoveBot, playerId }), [send])

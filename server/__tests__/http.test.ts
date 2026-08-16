@@ -87,6 +87,18 @@ describe('http server', () => {
     ws.close()
   })
 
+  it('lets a client who failed to join leave and receive Left', async () => {
+    const ws = await connect()
+    const err = waitFor(ws, 'error')
+    ws.send(JSON.stringify({ type: 'join', code: 'ZZZZZ', name: 'Bob' }))
+    await err
+    const left = waitFor(ws, 'left')
+    ws.send(JSON.stringify({ type: 'leave' }))
+    const msg = await left
+    expect(msg.type).toBe('left')
+    ws.close()
+  })
+
   it('serves static files and rejects path traversal', async () => {
     const res = await fetch(`http://localhost:${port}/`)
     expect(res.status).toBe(200)
