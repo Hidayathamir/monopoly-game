@@ -105,3 +105,15 @@ describe('PlayerCard connection indicator', () => {
     expect(screen.getByTestId('player-card').className).not.toContain('opacity-50')
   })
 })
+
+describe('PlayerCard bot-control badge', () => {
+  it('shows a bot-control badge when the player is bot-controlled', () => {
+    renderWithProviders(<PlayerCard player={{ ...player, botControlled: true }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    expect(screen.getByText(/BOT/)).toBeTruthy()
+  })
+
+  it('does not show the bot-control badge by default', () => {
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    expect(screen.queryByText(/BOT/)).toBeNull()
+  })
+})

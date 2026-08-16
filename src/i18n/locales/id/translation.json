@@ -157,6 +157,7 @@
   "turn.dice": "Dadu {{a}} + {{b}} = {{total}}",
   "turn.waitingFor": "Menunggu {{name}}…",
   "turn.roll": "Lempar dadu",
+  "turn.botControl": "{{name}} — offline, bot sedang bermain",
 
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",
@@ -194,6 +195,7 @@
   "card.jailFreeTitle": "Kartu Bebas Penjara",
   "card.bankrupt": "BANGKRUT",
   "card.disconnected": "OFFLINE",
+  "card.botControl": "BOT",
   "card.money": "Uang: ",
   "card.jailFree": "Kartu Bebas Penjara 🎴",
   "card.properties": "Properti:",

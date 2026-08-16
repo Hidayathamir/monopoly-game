@@ -50,4 +50,10 @@ describe('TurnHeader', () => {
     renderWithProviders(<TurnHeader state={makeState({ dice: [3, 4] })} />)
     expect(screen.getByText('Dice 3 + 4 = 7')).toBeTruthy()
   })
+
+  it('shows a bot-playing status when the current player is bot-controlled', () => {
+    const players = makeState().players.map((p) => ({ ...p, botControlled: true }))
+    renderWithProviders(<TurnHeader state={{ ...makeState(), players }} />)
+    expect(screen.getByText('Alpha — offline, a bot is playing')).toBeTruthy()
+  })
 })

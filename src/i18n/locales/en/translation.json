@@ -157,6 +157,7 @@
   "turn.dice": "Dice {{a}} + {{b}} = {{total}}",
   "turn.waitingFor": "Waiting for {{name}}…",
   "turn.roll": "Roll dice",
+  "turn.botControl": "{{name}} — offline, a bot is playing",
 
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
@@ -194,6 +195,7 @@
   "card.jailFreeTitle": "Get Out of Jail Free",
   "card.bankrupt": "BANKRUPT",
   "card.disconnected": "OFFLINE",
+  "card.botControl": "BOT",
   "card.money": "Money: ",
   "card.jailFree": "Get Out of Jail Free 🎴",
   "card.properties": "Properties:",
