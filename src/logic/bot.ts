@@ -1,5 +1,5 @@
 import {
-  GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space,
+  GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space, type TradeOffer,
 } from '../types/game';
 import { getHouseCost, JAIL_FINE } from '../data/board';
 import { isMonopoly } from './rent';
@@ -77,4 +77,14 @@ function liquidationAction(state: GameState): GameAction {
     if (space && !space.mortgaged && space.houses === 0) return { type: 'MORTGAGE', spaceId: id };
   }
   return { type: 'DECLARE_BANKRUPTCY' };
+}
+
+export function shouldAcceptTrade(state: GameState, offer: TradeOffer): boolean {
+  const received =
+    offer.requestCash +
+    offer.requestProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
+  const given =
+    offer.offerCash +
+    offer.offerProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
+  return received >= given;
 }

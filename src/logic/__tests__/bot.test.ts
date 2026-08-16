@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { decideBotAction } from '../bot';
+import { decideBotAction, shouldAcceptTrade } from '../bot';
+import { gameReducer, createInitialState } from '../gameReducer';
 import {
-  GamePhase, PendingActionType, SpaceType, type GameState, type Player, type Space,
+  GameActionType, GamePhase, PendingActionType, SpaceType,
+  type GameState, type Player, type Space, type TradeOffer,
 } from '../../types/game';
 import { createInitialBoard, STARTING_MONEY, JAIL_FINE } from '../../data/board';
 
@@ -176,5 +178,31 @@ describe('decideBotAction', () => {
     board[group[0].id] = { ...group[0], owner: 0 };
     const state = makeState({ board }, makePlayer({ properties: [group[0].id], money: 100000 }));
     expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
+  });
+});
+
+describe('shouldAcceptTrade', () => {
+  function offer(overrides: Partial<TradeOffer> = {}): TradeOffer {
+    return {
+      fromId: 0, toId: 1,
+      offerProperties: [], offerCash: 0,
+      requestProperties: [], requestCash: 0,
+      ...overrides,
+    };
+  }
+
+  it('accepts when received value equals given value', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    expect(shouldAcceptTrade(state, offer({ requestProperties: [1], offerCash: 60 }))).toBe(true);
+  });
+
+  it('accepts when received value exceeds given value', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    expect(shouldAcceptTrade(state, offer({ requestProperties: [1], offerCash: 40 }))).toBe(true);
+  });
+
+  it('rejects a losing deal', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    expect(shouldAcceptTrade(state, offer({ requestProperties: [3], requestCash: 0, offerCash: 61 }))).toBe(false);
   });
 });
