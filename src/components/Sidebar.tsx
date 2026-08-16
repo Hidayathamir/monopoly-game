@@ -12,7 +12,7 @@ interface Props {
   state: GameState
   onRoll: () => void
   onEndTurn: () => void
-  onProposeTrade: () => void
+  onProposeTrade: (playerId: number) => void
   onDrawCard: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
@@ -24,9 +24,10 @@ interface Props {
   onBuild: (spaceId: number) => void
   onLeave?: () => void
   isMyTurn: boolean
+  canTrade?: boolean
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canTrade = true, ...actions }: Props) {
   const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
@@ -50,7 +51,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, ...actions }: Props)
             {t('turn.waitingFor', { name: state.players[state.currentPlayer].name })}
           </p>
         )}
-        <PlayerPanel state={state} playerColors={PLAYER_COLORS} />
+        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} />
         <EventLog log={state.eventLog} />
       </div>
     </div>

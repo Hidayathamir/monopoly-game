@@ -16,8 +16,22 @@ function makeState(money: number, position: number): GameState {
 
 describe('PlayerPanel', () => {
   it('shows a money float when a player passes GO (salary increase)', () => {
-    const { rerender } = renderWithProviders(<PlayerPanel state={makeState(1000, 38)} playerColors={COLORS} />)
-    rerender(<PlayerPanel state={makeState(1000 + GO_SALARY, 5)} playerColors={COLORS} />)
+    const { rerender } = renderWithProviders(
+      <PlayerPanel
+        state={makeState(1000, 38)}
+        playerColors={COLORS}
+        onProposeTrade={() => {}}
+        canTrade
+      />,
+    )
+    rerender(
+      <PlayerPanel
+        state={makeState(1000 + GO_SALARY, 5)}
+        playerColors={COLORS}
+        onProposeTrade={() => {}}
+        canTrade
+      />,
+    )
     expect(screen.getAllByText(/^\+/).length).toBeGreaterThan(0)
   })
 })

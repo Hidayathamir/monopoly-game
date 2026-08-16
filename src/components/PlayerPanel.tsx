@@ -6,9 +6,11 @@ import PlayerCard from './PlayerCard'
 interface Props {
   state: GameState
   playerColors: string[]
+  onProposeTrade: (playerId: number) => void
+  canTrade: boolean
 }
 
-export default function PlayerPanel({ state, playerColors }: Props) {
+export default function PlayerPanel({ state, playerColors, onProposeTrade, canTrade }: Props) {
   const { t } = useTranslation()
   const { players, currentPlayer, board } = state
   const prevMoney = useRef<Record<number, number>>({})
@@ -42,6 +44,9 @@ export default function PlayerPanel({ state, playerColors }: Props) {
               color={playerColors[player.id]}
               diff={diffs[player.id] ?? null}
               board={board}
+              canTrade={canTrade && !player.bankrupt}
+              currentPlayerId={currentPlayer}
+              onProposeTrade={onProposeTrade}
             />
           )
         })}

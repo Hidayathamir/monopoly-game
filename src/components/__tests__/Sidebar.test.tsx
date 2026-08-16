@@ -26,6 +26,7 @@ function makeProps() {
     onRoll: noop,
     onEndTurn: noop,
     onProposeTrade: noop,
+    canTrade: true,
     onDrawCard: noop,
     onBuyProperty: noop,
     onDeclineBuy: noop,
