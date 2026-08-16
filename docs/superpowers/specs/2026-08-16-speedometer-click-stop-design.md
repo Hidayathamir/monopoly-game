@@ -52,12 +52,15 @@ the needle at the number they want.
 
 ### 2. Continuous sweep
 
-- The sweep effect runs while `canAim` instead of `while (holding)`: on each
-  `canAim` becoming true, reset `aimValueRef.current = MIN_TOTAL` and
-  `setAimValue(MIN_TOTAL)` (needle restarts at 2), then start the 16ms
-  interval computing `sweepValue(Date.now() − start)`; `prefers-reduced-motion`
-  runs the stepped 80ms ticker. Cleanup clears the interval when `canAim`
-  turns false or the component unmounts.
+- The sweep effect runs while `canAim` instead of `while (holding)`. On each
+  `canAim` becoming true, seed the sweep's start time from the current needle
+  position (`start = Date.now() − msFor(aimValueRef.current)` where
+  `msFor(v) = (v − 2) / 10 × 800`), so the needle continues sweeping
+  seamlessly — no jump and no restart-at-2, and no `setState` call in the
+  effect body. Then run the 16ms interval computing
+  `sweepValue(Date.now() − start)`; `prefers-reduced-motion` runs the stepped
+  80ms ticker, also continuing from the current value. Cleanup clears the
+  interval when `canAim` turns false or the component unmounts.
 
 ### 3. Click to stop
 
