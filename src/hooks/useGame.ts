@@ -4,7 +4,7 @@ import { gameReducer, createInitialState } from '../logic/gameReducer'
 import { decideBotAction } from '../logic/bot'
 
 const STORAGE_KEY = 'monopoly-game-state'
-const STATE_VERSION = 8
+const STATE_VERSION = 9
 
 function loadState() {
   try {

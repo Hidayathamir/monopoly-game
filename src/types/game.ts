@@ -97,7 +97,7 @@ export type Player = {
   inJail: boolean;
   jailTurns: number;
   bankrupt: boolean;
-  hasGetOutOfJailFree: boolean;
+  getOutOfJailFreeCards: number;
   isBot: boolean;
 };
 

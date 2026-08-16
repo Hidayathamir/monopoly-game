@@ -9,7 +9,7 @@ import type { Player, Space } from '../../types/game'
 
 const player: Player = {
   id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false, isBot: false,
+  passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false,
 }
 const board: Space[] = []
 
@@ -22,7 +22,7 @@ describe('PlayerCard', () => {
   })
 
   it('shows a free-jail badge when the player holds the card', () => {
-    renderWithProviders(<PlayerCard player={{ ...player, hasGetOutOfJailFree: true }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={{ ...player, getOutOfJailFreeCards: 1 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
     expect(screen.getByTitle('Get Out of Jail Free')).toBeTruthy()
   })
 

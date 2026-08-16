@@ -476,6 +476,38 @@ describe('gameReducer', () => {
     });
   });
 
+  describe('GET_OUT_OF_JAIL_FREE', () => {
+    it('initially has no jail cards', () => {
+      const state = makeStartedState();
+      expect(state.players[0].getOutOfJailFreeCards).toBe(0);
+    });
+
+    it('uses one card and keeps the second', () => {
+      let state = makeStartedState();
+      state = {
+        ...state,
+        players: [
+          { ...state.players[0], inJail: true, position: 10, getOutOfJailFreeCards: 2 },
+          state.players[1],
+        ],
+      };
+      const s1 = gameReducer(state, { type: GameActionType.UseGetOutOfJailFree });
+      expect(s1.players[0].inJail).toBe(false);
+      expect(s1.players[0].getOutOfJailFreeCards).toBe(1);
+      expect(s1.currentPlayer).toBe(1);
+    });
+
+    it('does nothing without a jail card', () => {
+      let state = makeStartedState();
+      state = {
+        ...state,
+        players: [{ ...state.players[0], inJail: true, position: 10, getOutOfJailFreeCards: 0 }, state.players[1]],
+      };
+      const s1 = gameReducer(state, { type: GameActionType.UseGetOutOfJailFree });
+      expect(s1.players[0].inJail).toBe(true);
+    });
+  });
+
   describe('tax handling', () => {
     it('pays income tax (10% of current money) to free parking', () => {
       let state = makeStartedState();

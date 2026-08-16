@@ -44,7 +44,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           inJail: false,
           jailTurns: 0,
           bankrupt: false,
-          hasGetOutOfJailFree: false,
+          getOutOfJailFreeCards: 0,
           isBot: action.isBot?.[i] ?? false,
         });
       }
@@ -645,13 +645,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case GameActionType.UseGetOutOfJailFree: {
       const player = state.players[state.currentPlayer];
-      if (!player.inJail || !player.hasGetOutOfJailFree) return state;
+      if (!player.inJail || player.getOutOfJailFreeCards <= 0) return state;
       const newPlayers = [...state.players];
       newPlayers[state.currentPlayer] = {
         ...player,
         inJail: false,
         jailTurns: 0,
-        hasGetOutOfJailFree: false,
+        getOutOfJailFreeCards: player.getOutOfJailFreeCards - 1,
       };
       const nextPlayer = getNextPlayer({ ...state, currentPlayer: state.currentPlayer });
       return {

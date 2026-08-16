@@ -80,7 +80,9 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, canT
           <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
           <strong className="truncate">{player.name}</strong>
           {player.inJail && <span>🔒</span>}
-          {player.hasGetOutOfJailFree && <span title={t('card.jailFreeTitle')}>🎴</span>}
+          {player.getOutOfJailFreeCards > 0 && (
+            <span title={player.getOutOfJailFreeCards > 1 ? t('card.jailFreeCount', { count: player.getOutOfJailFreeCards }) : t('card.jailFreeTitle')}>🎴</span>
+          )}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
         </div>
         <div className={[
@@ -141,8 +143,10 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, c
       <div className={player.money < 0 ? 'text-sm text-red-danger mb-1.5' : 'text-sm text-green-money mb-1.5'}>
         {t('card.money')}<strong>{formatMoney(player.money)}</strong>
       </div>
-      {player.hasGetOutOfJailFree && (
-        <div className="text-sm text-gold mb-1.5">{t('card.jailFree')}</div>
+      {player.getOutOfJailFreeCards > 0 && (
+        <div className="text-sm text-gold mb-1.5">
+          {player.getOutOfJailFreeCards > 1 ? t('card.jailFreeCount', { count: player.getOutOfJailFreeCards }) : t('card.jailFree')}
+        </div>
       )}
       {owned.length > 0 && (
         <>

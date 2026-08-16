@@ -29,7 +29,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       const newPlayers = [...newState.players];
       newPlayers[state.currentPlayer] = {
         ...newPlayers[state.currentPlayer],
-        hasGetOutOfJailFree: true,
+        getOutOfJailFreeCards: (newPlayers[state.currentPlayer].getOutOfJailFreeCards ?? 0) + 1,
       };
       return { state: { ...newState, players: newPlayers }, log: [{ key: 'event.gotJailCard', params: { name: player.name, cardId: card.id } }] };
     }

@@ -8,8 +8,8 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     phase: GamePhase.Waiting,
     players: [
-      { id: 0, name: 'Alice', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false, isBot: false },
-      { id: 1, name: 'Bob', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false, isBot: false },
+      { id: 0, name: 'Alice', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false },
+      { id: 1, name: 'Bob', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false },
     ],
     currentPlayer: 0,
     board: createInitialBoard(),
@@ -103,8 +103,16 @@ describe('resolveCardEffect', () => {
     const state = makeState();
     const card: Card = { id: 7, type: CardType.Chance, effect: { action: CardActionType.GetOutOfJailFree } };
     const result = resolveCardEffect(state, card);
-    expect(result.state.players[0].hasGetOutOfJailFree).toBe(true);
+    expect(result.state.players[0].getOutOfJailFreeCards).toBe(1);
     expect(result.log).toEqual([{ key: 'event.gotJailCard', params: { name: 'Alice', cardId: 7 } }]);
+  });
+
+  it('stacks multiple jail cards as a count', () => {
+    let state = makeState();
+    const card: Card = { id: 7, type: CardType.Chance, effect: { action: CardActionType.GetOutOfJailFree } };
+    state = resolveCardEffect(state, card).state;
+    state = resolveCardEffect(state, card).state;
+    expect(state.players[0].getOutOfJailFreeCards).toBe(2);
   });
 
   it('collect from players logs a per-player breakdown', () => {

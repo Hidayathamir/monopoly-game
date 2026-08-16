@@ -115,7 +115,7 @@ export default function ActionSection({
       {player.inJail ? (
         <>
           <p className="text-base text-muted text-center mt-1">{t('action.inJailPrompt')}</p>
-          {player.hasGetOutOfJailFree && (
+          {player.getOutOfJailFreeCards > 0 && (
             <Button variant="success" size="sm" onClick={onUseGetOutOfJailFree}>
               {t('action.useJailCard')}
             </Button>

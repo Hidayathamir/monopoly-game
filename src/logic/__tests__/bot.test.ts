@@ -18,7 +18,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     inJail: false,
     jailTurns: 0,
     bankrupt: false,
-    hasGetOutOfJailFree: false,
+    getOutOfJailFreeCards: 0,
     isBot: true,
     ...overrides,
   };
@@ -67,7 +67,7 @@ describe('decideBotAction', () => {
   });
 
   it('uses the get-out-of-jail card when in jail', () => {
-    const state = makeState({}, makePlayer({ inJail: true, hasGetOutOfJailFree: true }));
+    const state = makeState({}, makePlayer({ inJail: true, getOutOfJailFreeCards: 1 }));
     expect(decideBotAction(state)).toEqual({ type: 'USE_GET_OUT_OF_JAIL_FREE' });
   });
 

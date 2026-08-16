@@ -264,5 +264,6 @@
 
   "settings.language": "Language",
   "settings.currency": "Currency",
-  "settings.toggle": "Settings"
+  "settings.toggle": "Settings",
+  "card.jailFreeCount": "Get Out of Jail Free ×{{count}}"
 }

@@ -11,7 +11,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     players: [
       {
         id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, hasGetOutOfJailFree: false, isBot: false,
+        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false,
       },
     ],
     currentPlayer: 0,

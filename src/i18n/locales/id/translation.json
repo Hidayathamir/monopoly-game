@@ -264,5 +264,6 @@
 
   "settings.language": "Bahasa",
   "settings.currency": "Mata Uang",
-  "settings.toggle": "Pengaturan"
+  "settings.toggle": "Pengaturan",
+  "card.jailFreeCount": "Kartu Bebas Penjara ×{{count}}"
 }

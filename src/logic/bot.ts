@@ -34,7 +34,7 @@ export function decideBotAction(state: GameState): GameAction | null {
 
   if (state.phase === GamePhase.Waiting) {
     if (player.inJail) {
-      if (player.hasGetOutOfJailFree) return { type: GameActionType.UseGetOutOfJailFree };
+      if (player.getOutOfJailFreeCards > 0) return { type: GameActionType.UseGetOutOfJailFree };
       if (player.money >= JAIL_FINE) return { type: GameActionType.PayJailFine };
       return { type: GameActionType.RollDice };
     }
