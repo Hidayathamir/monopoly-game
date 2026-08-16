@@ -1,4 +1,5 @@
 import { GameServer } from './gameServer'
+import { ServerMessageType } from '../src/types/net'
 import type { ServerMessage } from '../src/types/net'
 
 export type ClientId = string
@@ -25,9 +26,10 @@ export class RoomManager {
     const code = this.generateCode()
     const game = new GameServer(
       {
-        broadcastState: (state) => this.broadcastToRoom(code, { type: 'state', state }),
+        broadcastState: (state) =>
+          this.broadcastToRoom(code, { type: ServerMessageType.State, state }),
         broadcastLobby: (players, hostPlayerId) =>
-          this.broadcastToRoom(code, { type: 'lobby', players, hostPlayerId }),
+          this.broadcastToRoom(code, { type: ServerMessageType.Lobby, players, hostPlayerId }),
         send: (clientId, msg) => this.events.send(clientId, msg),
       },
       { code, rng: this.rng },

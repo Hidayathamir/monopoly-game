@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join, extname, resolve, relative, isAbsolute } from 'node:path'
 import { WebSocketServer, WebSocket } from 'ws'
 import { RoomManager } from './roomManager'
+import { ClientMessageType } from '../src/types/net'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 
 const MIME: Record<string, string> = {
@@ -66,26 +67,26 @@ export function createServer(distDir = 'dist') {
     ws.on('message', (raw) => {
       try {
         const msg = JSON.parse(raw.toString()) as ClientMessage
-        if (msg.type === 'create') {
+        if (msg.type === ClientMessageType.Create) {
           const { code, game } = roomManager.create()
           if (game.join(clientId, msg.name)) roomManager.addClient(code, clientId)
-        } else if (msg.type === 'join') {
+        } else if (msg.type === ClientMessageType.Join) {
           const game = roomManager.get(msg.code)
           if (!game) {
             send(clientId, { type: 'error', message: 'Ruangan tidak ditemukan' })
             return
           }
           if (game.join(clientId, msg.name)) roomManager.addClient(msg.code, clientId)
-        } else if (msg.type === 'start') {
+        } else if (msg.type === ClientMessageType.Start) {
           roomManager.gameFor(clientId)?.start(clientId)
-        } else if (msg.type === 'leave') {
+        } else if (msg.type === ClientMessageType.Leave) {
           roomManager.gameFor(clientId)?.leave(clientId)
           roomManager.removeClient(clientId)
-        } else if (msg.type === 'addBot') {
+        } else if (msg.type === ClientMessageType.AddBot) {
           roomManager.gameFor(clientId)?.addBot(clientId)
-        } else if (msg.type === 'removeBot') {
+        } else if (msg.type === ClientMessageType.RemoveBot) {
           roomManager.gameFor(clientId)?.removeBot(clientId, msg.playerId)
-        } else if (msg.type === 'action') {
+        } else if (msg.type === ClientMessageType.Action) {
           roomManager.gameFor(clientId)?.handleAction(clientId, msg.action)
         }
       } catch {
