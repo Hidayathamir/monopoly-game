@@ -1,5 +1,4 @@
 {
-  "common.player": "Player {{n}}",
   "common.yes": "Yes!",
 
   "board.space.0": "START",
@@ -116,19 +115,6 @@
   "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
 
   "setup.title": "Monopoly",
-  "setup.singleDevice": "Single Device",
-  "setup.multiplayer": "Multiplayer (LAN)",
-  "setup.playerCount": "Number of Players",
-  "setup.playerCount2": "2 Players",
-  "setup.playerCount3": "3 Players",
-  "setup.playerCount4": "4 Players",
-  "setup.playerCount5": "5 Players",
-  "setup.playerCount6": "6 Players",
-  "setup.playerName": "Player {{n}} Name",
-  "setup.playerPlaceholder": "Player {{n}}",
-  "setup.isBot": "Bot seat {{n}}",
-  "setup.isBotLabel": "Bot",
-  "setup.start": "Start Game",
   "setup.yourName": "Your Name",
   "setup.namePlaceholder": "Name",
   "setup.createRoom": "Create Room",
@@ -265,11 +251,6 @@
   "trade.noOffers": "No pending trade offers",
   "trade.accept": "Accept",
   "trade.reject": "Reject",
-
-  "exit.label": "Exit Game",
-  "exit.title": "Exit Game",
-  "exit.message": "Leave the current game? Progress will be lost and a new game will start.",
-  "exit.confirm": "Exit",
 
   "settings.language": "Language",
   "settings.currency": "Currency",

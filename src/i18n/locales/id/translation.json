@@ -1,5 +1,4 @@
 {
-  "common.player": "Pemain {{n}}",
   "common.yes": "Ya!",
 
   "board.space.0": "MULAI",
@@ -116,19 +115,6 @@
   "event.bankruptcyTransfer": "Aset {{name}} dilikuidasi untuk {{creditor}} sebesar {{amount}}",
 
   "setup.title": "Monopoli",
-  "setup.singleDevice": "Satu Perangkat",
-  "setup.multiplayer": "Multiplayer (LAN)",
-  "setup.playerCount": "Jumlah Pemain",
-  "setup.playerCount2": "2 Pemain",
-  "setup.playerCount3": "3 Pemain",
-  "setup.playerCount4": "4 Pemain",
-  "setup.playerCount5": "5 Pemain",
-  "setup.playerCount6": "6 Pemain",
-  "setup.playerName": "Nama Pemain {{n}}",
-  "setup.playerPlaceholder": "Pemain {{n}}",
-  "setup.isBot": "Kursi bot {{n}}",
-  "setup.isBotLabel": "Bot",
-  "setup.start": "Mulai Permainan",
   "setup.yourName": "Nama Kamu",
   "setup.namePlaceholder": "Nama",
   "setup.createRoom": "Buat Ruangan",
@@ -265,11 +251,6 @@
   "trade.noOffers": "Tidak ada tawaran pertukaran",
   "trade.accept": "Terima",
   "trade.reject": "Tolak",
-
-  "exit.label": "Keluar Permainan",
-  "exit.title": "Keluar Permainan",
-  "exit.message": "Keluar dari permainan saat ini? Progres akan hilang dan permainan baru akan dimulai.",
-  "exit.confirm": "Keluar",
 
   "settings.language": "Bahasa",
   "settings.currency": "Mata Uang",
