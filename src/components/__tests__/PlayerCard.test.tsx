@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, cleanup, fireEvent } from '@testing-library/react'
+import { screen, cleanup, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, it, expect, vi } from 'vitest'
 import type { ComponentProps } from 'react'
@@ -88,5 +88,20 @@ describe('PlayerCard popup trade button', () => {
     fireEvent.click(screen.getByRole('button', { name: /Trade/ }))
     expect(onProposeTrade).toHaveBeenCalledWith(1)
     expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
+  })
+})
+
+describe('PlayerCard connection indicator', () => {
+  it('shows the OFFLINE label and dims the card when disconnected', () => {
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} connected={false} />)
+    const card = screen.getByTestId('player-card')
+    expect(within(card).getByText('OFFLINE')).toBeTruthy()
+    expect(card.className).toContain('opacity-50')
+  })
+
+  it('does not show the OFFLINE label when connected (default)', () => {
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    expect(screen.queryByText('OFFLINE')).toBeNull()
+    expect(screen.getByTestId('player-card').className).not.toContain('opacity-50')
   })
 })
