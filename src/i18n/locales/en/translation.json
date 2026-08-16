@@ -116,6 +116,8 @@
   "event.playerOffline": "{{name}} went offline — a bot will play their turn",
   "event.playerBack": "{{name}} is back — taking back control",
 
+  "log.botName": "{{name}} (bot)",
+
   "setup.title": "Monopoly",
   "setup.yourName": "Your Name",
   "setup.namePlaceholder": "Name",

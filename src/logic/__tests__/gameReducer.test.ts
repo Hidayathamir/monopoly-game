@@ -143,6 +143,34 @@ describe('gameReducer', () => {
     });
   });
 
+  describe('event log bot labeling', () => {
+    it('marks roll entries of a bot-controlled actor with bot: true', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      state = gameReducer(state, { type: GameActionType.RollDice });
+      state = gameReducer(state, { type: GameActionType.DiceAnimated, dice: [4, 3] });
+      const roll = state.eventLog.find((e) => e.key === 'event.rolled');
+      expect(roll?.params?.bot).toBe(true);
+    });
+
+    it('does not mark entries of a human-controlled actor', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.RollDice });
+      state = gameReducer(state, { type: GameActionType.DiceAnimated, dice: [4, 3] });
+      const roll = state.eventLog.find((e) => e.key === 'event.rolled');
+      expect(roll?.params?.bot).toBeUndefined();
+    });
+
+    it('labels the turn entry when the next player is bot-controlled', () => {
+      let state = makeStartedState(2);
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 1, controlled: true });
+      state = { ...state, turnOrder: [0, 1], currentPlayer: 0, dice: [4, 3] };
+      state = gameReducer(state, { type: GameActionType.EndTurn });
+      const turn = state.eventLog.find((e) => e.key === 'event.turn');
+      expect(turn?.params?.bot).toBe(true);
+    });
+  });
+
   describe('ROLL_DICE + DICE_ANIMATED', () => {
     it('moves player forward by dice sum', () => {
       const state = makeStartedState();

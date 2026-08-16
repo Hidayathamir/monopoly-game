@@ -122,7 +122,7 @@ export type Card = {
   effect: CardEffect;
 };
 
-export type LogEntry = { key: string; params?: Record<string, string | number> };
+export type LogEntry = { key: string; params?: Record<string, string | number | boolean> };
 
 export type CardEffect =
   | { action: typeof CardActionType.Collect; amount: number }

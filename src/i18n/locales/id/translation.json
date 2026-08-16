@@ -116,6 +116,8 @@
   "event.playerOffline": "{{name}} offline — bot akan memainkan gilirannya",
   "event.playerBack": "{{name}} kembali — kendali diambil lagi",
 
+  "log.botName": "{{name}} (bot)",
+
   "setup.title": "Monopoli",
   "setup.yourName": "Nama Kamu",
   "setup.namePlaceholder": "Nama",
