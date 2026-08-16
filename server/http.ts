@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join, extname, resolve, relative, isAbsolute } from 'node:path'
 import { WebSocketServer, WebSocket } from 'ws'
 import { RoomManager } from './roomManager'
-import { ClientMessageType } from '../src/types/net'
+import { ClientMessageType, ServerMessageType } from '../src/types/net'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 
 const MIME: Record<string, string> = {
@@ -73,7 +73,7 @@ export function createServer(distDir = 'dist') {
         } else if (msg.type === ClientMessageType.Join) {
           const game = roomManager.get(msg.code)
           if (!game) {
-            send(clientId, { type: 'error', message: 'Ruangan tidak ditemukan' })
+            send(clientId, { type: ServerMessageType.Error, message: 'Ruangan tidak ditemukan' })
             return
           }
           if (game.join(clientId, msg.name)) roomManager.addClient(msg.code, clientId)
