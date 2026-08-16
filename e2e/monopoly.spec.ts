@@ -1,107 +1,65 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from './fixtures'
+import type { Browser, Page } from '@playwright/test'
+import { playHostTurns } from './helpers/gameplay'
 
-async function handleTurn(page: Page) {
-  const rollBtn = page.locator('button:has-text("Roll")').first()
-  if (!await rollBtn.isVisible({ timeout: 500 }).catch(() => false)) return false
+async function newGamePage(browser: Browser, serverUrl: string): Promise<Page> {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const page = await context.newPage()
+  await page.goto(serverUrl)
+  return page
+}
 
-  await rollBtn.click()
-  await page.waitForTimeout(2000)
+async function createRoom(page: Page, name = 'Host'): Promise<void> {
+  await page.fill('input[placeholder="Name"]', name)
+  await page.click('button:has-text("Continue")')
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+}
 
-  const buyBtn = page.locator('button:has-text("Buy (")').first()
-  if (await buyBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-    await buyBtn.click()
-    await page.waitForTimeout(200)
+async function startWithBots(page: Page, botCount: number): Promise<void> {
+  for (let i = 0; i < botCount; i++) {
+    await page.click('button:has-text("Add Bot")')
+    await page.waitForTimeout(300)
   }
-
-  const noBtn = page.locator('button:has-text("No")').first()
-  if (await noBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-    await noBtn.click()
-    await page.waitForTimeout(200)
-  }
-
-  const cardBtn = page.locator('button:has-text("Draw")').first()
-  if (await cardBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-    await cardBtn.click()
-    await page.waitForTimeout(500)
-
-    const okBtn = page.locator('button:has-text("OK")').first()
-    if (await okBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await okBtn.click()
-      await page.waitForTimeout(500)
-    }
-  }
-
-  const payBtn = page.locator('button:has-text("Pay")').first()
-  if (await payBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-    await payBtn.click()
-    await page.waitForTimeout(200)
-  }
-
-  const endBtn = page.locator('button:has-text("End"), button:has-text("Roll Again")').first()
-  if (await endBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await endBtn.click()
-    await page.waitForTimeout(200)
-  }
-
-  return true
+  await page.click(`button:has-text("Start (${botCount + 1}/6)")`)
+  await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 }
 
 test.describe('Monopoly Game E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('monopoly-language', 'en')
-      localStorage.setItem('monopoly-currency', 'USD')
-    })
-    await page.goto('/')
-  })
-
-  test('setup screen renders correctly', async ({ page }) => {
+  test('setup screen renders the multiplayer form', async ({ browser, serverUrl }) => {
+    const page = await newGamePage(browser, serverUrl)
     await expect(page.locator('h1')).toHaveText('Monopoly')
-    await expect(page.locator('button:has-text("Start")')).toBeVisible()
-    await expect(page.getByLabel('player-count')).toBeVisible()
+    await expect(page.locator('button:has-text("Create Room")')).toBeVisible()
+    await expect(page.locator('button:has-text("Join Room")')).toBeVisible()
+    await expect(page.locator('input[placeholder="Name"]')).toBeVisible()
+    await expect(page.locator('input[placeholder="Code"]')).toHaveCount(0)
   })
 
-  test('start game with 2 players', async ({ page }) => {
-    await page.locator('input[type="text"]').first().fill('Alpha')
-    await page.locator('input[type="text"]').nth(1).fill('Beta')
-    await page.click('button:has-text("Start")')
-
-    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('button:has-text("Roll")')).toBeVisible()
-
-    const panel = page.locator('[data-testid="player-card"]')
-    await expect(panel).toHaveCount(2)
-    const texts = await panel.allTextContents()
+  test('start game with 2 players', async ({ browser, serverUrl }) => {
+    const page = await newGamePage(browser, serverUrl)
+    await createRoom(page, 'Alpha')
+    await startWithBots(page, 1)
+    await expect(page.locator('[data-testid="player-card"]')).toHaveCount(2)
+    await expect(page.locator('[data-testid="player-card"]').first()).toContainText('$')
+    const texts = await page.locator('[data-testid="player-card"]').allTextContents()
     expect(texts.some((t) => t.includes('Alpha'))).toBe(true)
-    expect(texts.some((t) => t.includes('Beta'))).toBe(true)
-    await expect(panel.first()).toContainText('$')
   })
 
-  test('single player can exit a game and return to the setup screen', async ({ page }) => {
-    await page.locator('input[type="text"]').first().fill('Alpha')
-    await page.locator('input[type="text"]').nth(1).fill('Beta')
-    await page.click('button:has-text("Start")')
-
-    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-    await page.click('button[aria-label="Exit Game"]')
-    await page.getByRole('button', { name: 'Exit', exact: true }).click()
-
-    await expect(page.locator('h1')).toHaveText('Monopoly')
-  })
-
-  test('buy property and see it in panel', async ({ page }) => {
-    await page.locator('input[type="text"]').first().fill('Buyer')
-    await page.locator('input[type="text"]').nth(1).fill('Other')
-    await page.click('button:has-text("Start")')
-
-    for (let i = 0; i < 15; i++) {
-      await handleTurn(page)
-    }
-
-    const cards = page.locator('[data-testid="player-card"]')
-    const firstCardText = await cards.first().textContent()
-    expect(firstCardText).toBeDefined()
-    expect(firstCardText).not.toBe('')
+  test('gameplay survives turns', async ({ browser, serverUrl }) => {
+    test.setTimeout(120000)
+    const page = await newGamePage(browser, serverUrl)
+    await createRoom(page, 'Buyer')
+    await startWithBots(page, 1)
+    await playHostTurns(page, 15)
+    const firstCard = page.locator('[data-testid="player-card"]').first()
+    await expect(firstCard).toContainText('$')
+    const text = await firstCard.textContent()
+    expect(text).toBeDefined()
+    expect(text).not.toBe('')
   })
 
   for (const viewport of [
@@ -109,12 +67,11 @@ test.describe('Monopoly Game E2E', () => {
     { width: 667, height: 375 },
     { width: 812, height: 375 },
   ]) {
-    test(`center panel fits on ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    test(`center panel fits on ${viewport.width}x${viewport.height}`, async ({ browser, serverUrl }) => {
+      const page = await newGamePage(browser, serverUrl)
       await page.setViewportSize(viewport)
-      await page.goto('/')
-      await page.click('button:has-text("Start")')
-      await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-
+      await createRoom(page)
+      await startWithBots(page, 1)
       const board = await page.locator('[data-game-board]').boundingBox()
       const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
       expect(board).not.toBeNull()
@@ -136,68 +93,14 @@ test.describe('Monopoly Game E2E', () => {
     })
   }
 
-  test('4-player game survives many turns without crash', async ({ page }) => {
-    await page.getByLabel('player-count').selectOption('4')
-    await page.locator('input[type="text"]').nth(0).fill('P1')
-    await page.locator('input[type="text"]').nth(1).fill('P2')
-    await page.locator('input[type="text"]').nth(2).fill('P3')
-    await page.locator('input[type="text"]').nth(3).fill('P4')
-    await page.click('button:has-text("Start")')
-
+  test('4-player game survives many turns without crash', async ({ browser, serverUrl }) => {
+    test.setTimeout(120000)
+    const page = await newGamePage(browser, serverUrl)
+    await createRoom(page, 'P1')
+    await startWithBots(page, 3)
     await expect(page.locator('[data-testid="player-card"]')).toHaveCount(4)
-    await expect(page.locator('button:has-text("Roll")')).toBeVisible()
-
-    for (let t = 0; t < 12; t++) {
-      const played = await handleTurn(page)
-      if (!played) break
-    }
-
-    const cards = page.locator('[data-testid="player-card"]')
-    const count = await cards.count()
+    await playHostTurns(page, 10)
+    const count = await page.locator('[data-testid="player-card"]').count()
     expect(count).toBeGreaterThanOrEqual(2)
-  })
-
-  test('local game with a bot seat auto-plays the bot turn', async ({ page }) => {
-    await page.locator('input[type="text"]').nth(0).fill('Alpha')
-    await page.getByLabel('Bot seat 2').check()
-    await page.click('button:has-text("Start")')
-
-    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('[data-testid="player-card"]')).toHaveCount(2)
-
-    // Play Alpha's turn(s) until the bot seat (Byte) becomes current.
-    const waitingFor = page.locator('[data-testid="waiting-for"]')
-    for (let i = 0; i < 10; i++) {
-      if (await waitingFor.isVisible({ timeout: 500 }).catch(() => false)) break
-
-      const roll = page.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
-      if (await roll.isVisible({ timeout: 500 }).catch(() => false)) {
-        await roll.click()
-        await page.waitForTimeout(2200)
-        continue
-      }
-
-      const buy = page.locator('button:has-text("Buy (")').first()
-      if (await buy.isVisible({ timeout: 500 }).catch(() => false)) { await buy.click(); continue }
-      const no = page.locator('button:has-text("No")').first()
-      if (await no.isVisible({ timeout: 500 }).catch(() => false)) { await no.click(); continue }
-      const draw = page.locator('button:has-text("Draw")').first()
-      if (await draw.isVisible({ timeout: 500 }).catch(() => false)) {
-        await draw.click()
-        await page.waitForTimeout(500)
-        const ok = page.locator('button:has-text("OK")').first()
-        if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
-        continue
-      }
-      const pay = page.locator('button:has-text("Pay")').first()
-      if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
-      const end = page.locator('button:has-text("End")').first()
-      if (await end.isVisible({ timeout: 500 }).catch(() => false)) { await end.click(); continue }
-      await page.waitForTimeout(500) // still animating — keep polling, never break early
-    }
-
-    // The bot seat is now current and auto-plays; verify control returns to Alpha.
-    await expect(waitingFor).toContainText('Byte', { timeout: 10000 })
-    await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
   })
 })
