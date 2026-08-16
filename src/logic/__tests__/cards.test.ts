@@ -22,6 +22,8 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     eventLog: [],
     pendingAction: null,
     justBoughtSpaceId: null,
+    pendingTrades: [],
+    nextTradeId: 0,
     ...overrides,
   };
 }

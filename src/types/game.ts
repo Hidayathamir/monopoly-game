@@ -68,6 +68,7 @@ export const GameActionType = {
   ProposeTrade: 'PROPOSE_TRADE',
   AcceptTrade: 'ACCEPT_TRADE',
   RejectTrade: 'REJECT_TRADE',
+  CancelTrade: 'CANCEL_TRADE',
   DrawCard: 'DRAW_CARD',
   ResolveCard: 'RESOLVE_CARD',
   AttemptJailbreak: 'ATTEMPT_JAILBREAK',
@@ -138,6 +139,8 @@ export type GameState = {
   eventLog: LogEntry[];
   pendingAction: PendingAction | null;
   justBoughtSpaceId: number | null;
+  pendingTrades: PendingTrade[];
+  nextTradeId: number;
 };
 
 export type PendingAction =
@@ -156,6 +159,8 @@ export type TradeOffer = {
   requestCash: number;
 };
 
+export type PendingTrade = TradeOffer & { id: number };
+
 export type GameAction =
   | { type: typeof GameActionType.StartGame; playerCount: number; names: string[]; isBot?: boolean[] }
   | { type: typeof GameActionType.RollDice }
@@ -172,8 +177,9 @@ export type GameAction =
   | { type: typeof GameActionType.Unmortgage; spaceId: number }
   | { type: typeof GameActionType.SellProperty; spaceId: number }
   | { type: typeof GameActionType.ProposeTrade; offer: TradeOffer }
-  | { type: typeof GameActionType.AcceptTrade }
-  | { type: typeof GameActionType.RejectTrade }
+  | { type: typeof GameActionType.AcceptTrade; tradeId: number }
+  | { type: typeof GameActionType.RejectTrade; tradeId: number }
+  | { type: typeof GameActionType.CancelTrade; tradeId: number }
   | { type: typeof GameActionType.DrawCard }
   | { type: typeof GameActionType.ResolveCard }
   | { type: typeof GameActionType.AttemptJailbreak; dice: [number, number] }

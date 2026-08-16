@@ -35,6 +35,12 @@ function buyProperty(state: GameState, playerIndex: number, spaceId: number): Ga
 }
 
 describe('gameReducer', () => {
+  it('initializes an empty trade inbox', () => {
+    const state = createInitialState();
+    expect(state.pendingTrades).toEqual([]);
+    expect(state.nextTradeId).toBe(0);
+  });
+
   describe('START_GAME', () => {
     it('creates players with 1500 each', () => {
       const state = makeStartedState(3);

@@ -69,7 +69,7 @@ describe('useGame jailed player turn', () => {
     expect(s.phase).toBe(GamePhase.Waiting)
 
     vi.stubGlobal('localStorage', {
-      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 7 })),
+      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 8 })),
       setItem: vi.fn(),
       removeItem: vi.fn(),
     })
@@ -114,7 +114,7 @@ describe('useGame bot auto-play', () => {
     vi.spyOn(Math, 'random').mockImplementation(() => (n++ === 0 ? 0 : 0.5))
 
     vi.stubGlobal('localStorage', {
-      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 7 })),
+      getItem: vi.fn(() => JSON.stringify({ ...s, _version: 8 })),
       setItem: vi.fn(),
       removeItem: vi.fn(),
     })

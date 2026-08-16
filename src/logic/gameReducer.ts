@@ -23,6 +23,8 @@ export function createInitialState(): GameState {
     eventLog: [],
     pendingAction: null,
     justBoughtSpaceId: null,
+    pendingTrades: [],
+    nextTradeId: 0,
   };
 }
 
