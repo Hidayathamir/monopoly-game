@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GamePhase, type GameState } from '../types/game'
 import Dice from './Dice'
@@ -6,19 +6,62 @@ import Button from './Button'
 
 interface Props {
   state: GameState
-  onRoll: () => void
+  onRoll: (target: number) => void
   isMyTurn?: boolean
 }
+
+const TICK_MS = 80
+const MIN_TOTAL = 2
+const MAX_TOTAL = 12
 
 export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const { t } = useTranslation()
   const [rolling, setRolling] = useState(false)
+  const [holding, setHolding] = useState(false)
+  const [tickerValue, setTickerValue] = useState(MIN_TOTAL)
+  const directionRef = useRef(1)
   const player = state.players[state.currentPlayer]
 
-  function handleRoll() {
+  useEffect(() => {
+    if (!holding) return
+    const id = setInterval(() => {
+      setTickerValue((v) => {
+        const next = v + directionRef.current
+        if (next > MAX_TOTAL) directionRef.current = -1
+        else if (next < MIN_TOTAL) directionRef.current = 1
+        return next
+      })
+    }, TICK_MS)
+    return () => clearInterval(id)
+  }, [holding])
+
+  function startHold() {
+    if (rolling) return
+    directionRef.current = 1
+    setTickerValue(MIN_TOTAL)
+    setHolding(true)
+  }
+
+  function lockTarget() {
+    if (!holding) return
+    setHolding(false)
     setRolling(true)
-    onRoll()
+    onRoll(tickerValue)
     setTimeout(() => setRolling(false), 500)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault()
+      if (!e.repeat) startHold()
+    }
+  }
+
+  function handleKeyUp(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault()
+      lockTarget()
+    }
   }
 
   const canRoll = state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice === null
@@ -30,8 +73,28 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
         <Dice value={state.dice?.[0]} rolling={rolling} />
         <Dice value={state.dice?.[1]} rolling={rolling} />
       </div>
+      {holding && (
+        <p data-testid="dice-aim" className="text-lg font-bold text-gold">
+          {t('dice.aiming', { target: tickerValue })}
+        </p>
+      )}
       {(canRoll || canRollJail) && isMyTurn && (
-        <Button variant="primary" size="lg" onClick={handleRoll}>
+        <Button
+          variant="primary"
+          size="lg"
+          onPointerDown={(e) => {
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId)
+            } catch {
+              // ignore (e.g. jsdom / synthetic events)
+            }
+            startHold()
+          }}
+          onPointerUp={lockTarget}
+          onPointerCancel={() => setHolding(false)}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+        >
           {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
       )}
