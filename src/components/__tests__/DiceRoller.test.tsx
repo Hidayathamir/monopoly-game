@@ -36,7 +36,7 @@ describe('DiceRoller', () => {
     expect(screen.getByRole('button', { name: 'Roll Again' })).toBeEnabled()
   })
 
-  describe('hold-to-roll control', () => {
+  describe('click-to-stop control', () => {
     beforeEach(() => {
       vi.useFakeTimers()
       window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -54,27 +54,32 @@ describe('DiceRoller', () => {
       vi.useRealTimers()
     })
 
-    it('shows the speedometer and hides the dice while holding', () => {
+    it('shows the speedometer and hides the dice when it is the player turn to roll', () => {
       const onRoll = vi.fn()
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
-      const button = screen.getByRole('button', { name: 'Roll Dice' })
-
-      fireEvent.pointerDown(button)
       expect(screen.getByTestId('speedometer')).toBeInTheDocument()
       expect(screen.queryAllByTestId('dice')).toHaveLength(0)
-      expect(screen.queryByTestId('dice-aim')).toBeNull()
-
-      fireEvent.pointerUp(button)
     })
 
-    it('rolls the locked target after a continuous sweep', () => {
+    it('shows the dice faces instead of the gauge after a roll', () => {
+      const s = { ...makeState(), dice: [3, 4] as [number, number] }
+      renderWithProviders(<DiceRoller state={s} onRoll={() => {}} isMyTurn={true} />)
+      expect(screen.queryByTestId('speedometer')).toBeNull()
+      expect(screen.queryAllByTestId('dice')).toHaveLength(2)
+    })
+
+    it('shows no gauge when it is not the player turn', () => {
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={() => {}} isMyTurn={false} />)
+      expect(screen.queryByTestId('speedometer')).toBeNull()
+    })
+
+    it('stops the needle and rolls the locked target on click', () => {
       const onRoll = vi.fn()
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
       const button = screen.getByRole('button', { name: 'Roll Dice' })
 
-      fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(240)) // value = 2 + 10*(240/800) = 5
-      fireEvent.pointerUp(button)
+      fireEvent.click(button)
 
       expect(onRoll).toHaveBeenCalledTimes(1)
       expect(onRoll).toHaveBeenCalledWith(5)
@@ -83,9 +88,7 @@ describe('DiceRoller', () => {
     it('sweeps continuously (needle moves between whole values)', () => {
       const onRoll = vi.fn()
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
-      const button = screen.getByRole('button', { name: 'Roll Dice' })
 
-      fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(400)) // value = 2 + 10*(400/800) = 7 → top
       expect(needleTip()).toEqual({ x: 70, y: 26 }) // straight up, into the arc
 
@@ -93,7 +96,6 @@ describe('DiceRoller', () => {
       const tip = needleTip()
       expect(tip.x).toBeCloseTo(101.11, 2) // moved up-right, past the apex
       expect(tip.y).toBeCloseTo(38.89, 2)
-      fireEvent.pointerUp(button)
     })
 
     it('turns around at the top boundary without overshooting', () => {
@@ -101,35 +103,20 @@ describe('DiceRoller', () => {
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
       const button = screen.getByRole('button', { name: 'Roll Dice' })
 
-      fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(800)) // apex 12
       const apex = needleTip()
       expect(apex.x).toBeCloseTo(112.5, 1) // 12 → up-right at 15°
       expect(apex.y).toBeCloseTo(58.61, 2)
-      // the needle must be UP (y < 70), never pointing down away from the arc
-      expect(apex.y).toBeLessThan(70)
+      expect(apex.y).toBeLessThan(70) // never pointing down away from the arc
 
       act(() => vi.advanceTimersByTime(80)) // descending: 2 + 10*(880/800) = 11
       const tip = needleTip()
-      expect(tip.x).toBeCloseTo(108.11, 2) // now sweeping back left, still up
+      expect(tip.x).toBeCloseTo(108.11, 2)
       expect(tip.y).toBeCloseTo(48, 1)
       expect(tip.y).toBeLessThan(70)
 
-      fireEvent.pointerUp(button)
+      fireEvent.click(button)
       expect(onRoll).toHaveBeenCalledWith(11)
-    })
-
-    it('rolls the target via keyboard hold', () => {
-      const onRoll = vi.fn()
-      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
-      const button = screen.getByRole('button', { name: 'Roll Dice' })
-
-      fireEvent.keyDown(button, { key: ' ' })
-      act(() => vi.advanceTimersByTime(160)) // value = 2 + 10*(160/800) = 4
-      fireEvent.keyUp(button, { key: ' ' })
-
-      expect(onRoll).toHaveBeenCalledTimes(1)
-      expect(onRoll).toHaveBeenCalledWith(4)
     })
 
     it('falls back to the stepped ticker under prefers-reduced-motion', () => {
@@ -147,7 +134,6 @@ describe('DiceRoller', () => {
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
       const button = screen.getByRole('button', { name: 'Roll Dice' })
 
-      fireEvent.pointerDown(button)
       act(() => vi.advanceTimersByTime(40)) // stepped: no 80ms tick yet → still 2
       const low = needleTip()
       expect(low.x).toBeCloseTo(27.5, 1) // 2 → up-left at 165°
@@ -159,7 +145,7 @@ describe('DiceRoller', () => {
       expect(stepped.x).toBeCloseTo(31.89, 2) // 3 → up-left at 150°
       expect(stepped.y).toBeCloseTo(48, 1)
 
-      fireEvent.pointerUp(button)
+      fireEvent.click(button)
       expect(onRoll).toHaveBeenCalledWith(3)
       window.matchMedia = vi.fn().mockImplementation((query: string) => ({
         matches: false,

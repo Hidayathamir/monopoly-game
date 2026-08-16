@@ -171,7 +171,7 @@
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
   "dice.gauge": "Dice gauge",
-  "dice.holdHint": "Hold to aim, release to roll",
+  "dice.stopHint": "Watch the needle — click to stop",
   "dice.doubles": "Doubles? {{result}} — {{n}} more",
 
   "action.buyPrompt": "Buy {{name}}?",

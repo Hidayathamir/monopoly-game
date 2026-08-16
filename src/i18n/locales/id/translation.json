@@ -171,7 +171,7 @@
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",
   "dice.gauge": "Pengukur dadu",
-  "dice.holdHint": "Tahan untuk membidik, lepas untuk melempar",
+  "dice.stopHint": "Amati jarumnya — klik untuk berhenti",
   "dice.doubles": "Ganda? {{result}} — {{n}}x lagi",
 
   "action.buyPrompt": "Beli {{name}}?",

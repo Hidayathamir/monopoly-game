@@ -26,10 +26,13 @@ function sweepValue(elapsedMs: number): number {
   return MIN_TOTAL + (MAX_TOTAL - MIN_TOTAL) * triangleFraction(elapsedMs)
 }
 
+function msForValue(value: number): number {
+  return ((value - MIN_TOTAL) / (MAX_TOTAL - MIN_TOTAL)) * SWEEP_MS
+}
+
 export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const { t } = useTranslation()
   const [rolling, setRolling] = useState(false)
-  const [holding, setHolding] = useState(false)
   const [aimValue, setAimValue] = useState(MIN_TOTAL)
   const [reducedMotion] = useState(() => {
     const mq = window.matchMedia
@@ -39,8 +42,12 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const directionRef = useRef(1)
   const player = state.players[state.currentPlayer]
 
+  const canRoll = state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice === null
+  const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
+  const canAim = (canRoll || canRollJail) && isMyTurn
+
   useEffect(() => {
-    if (!holding) return
+    if (!canAim) return
     if (reducedMotion) {
       directionRef.current = 1
       const id = setInterval(() => {
@@ -62,51 +69,26 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
       }, STEPPED_TICK_MS)
       return () => clearInterval(id)
     }
-    const start = Date.now()
+    const start = Date.now() - msForValue(aimValueRef.current)
     const id = setInterval(() => {
       const value = sweepValue(Date.now() - start)
       aimValueRef.current = value
       setAimValue(value)
     }, FRAME_MS)
     return () => clearInterval(id)
-  }, [holding, reducedMotion])
+  }, [canAim, reducedMotion])
 
-  function startHold() {
+  function stopAndRoll() {
     if (rolling) return
-    aimValueRef.current = MIN_TOTAL
-    setAimValue(MIN_TOTAL)
-    setHolding(true)
-  }
-
-  function lockTarget() {
-    if (!holding) return
-    setHolding(false)
     setRolling(true)
     onRoll(Math.round(aimValueRef.current))
     setTimeout(() => setRolling(false), 500)
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault()
-      if (!e.repeat) startHold()
-    }
-  }
-
-  function handleKeyUp(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault()
-      lockTarget()
-    }
-  }
-
-  const canRoll = state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice === null
-  const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
-
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex gap-4 justify-center">
-        {holding ? (
+        {canAim ? (
           <Speedometer value={aimValue} label={t('dice.gauge')} />
         ) : (
           <>
@@ -115,30 +97,12 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
           </>
         )}
       </div>
-      {(canRoll || canRollJail) && isMyTurn && (
-        <Button
-          variant="primary"
-          size="lg"
-          onPointerDown={(e) => {
-            try {
-              e.currentTarget.setPointerCapture(e.pointerId)
-            } catch {
-              // ignore (e.g. jsdom / synthetic events)
-            }
-            startHold()
-          }}
-          onPointerUp={lockTarget}
-          onPointerCancel={() => setHolding(false)}
-          onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-          onBlur={() => setHolding(false)}
-        >
+      {canAim && (
+        <Button variant="primary" size="lg" onClick={stopAndRoll}>
           {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
       )}
-      {(canRoll || canRollJail) && isMyTurn && !holding && (
-        <p className="text-sm text-muted text-center">{t('dice.holdHint')}</p>
-      )}
+      {canAim && <p className="text-sm text-muted text-center">{t('dice.stopHint')}</p>}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
         <p className="text-base text-muted text-center">
           {t('dice.doubles', { result: state.dice[0] === state.dice[1] ? t('common.yes') : t('action.no'), n: 3 - player.jailTurns })}
