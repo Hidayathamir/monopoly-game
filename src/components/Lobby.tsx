@@ -1,3 +1,4 @@
+import { ConnectionStatus } from '../types/net'
 import type { LobbyPlayer } from '../types/net'
 import type { NetworkGameApi } from '../hooks/useNetworkGame'
 import { useTranslation } from 'react-i18next'
@@ -26,8 +27,8 @@ export default function Lobby({ game }: Props) {
           <strong className="text-text break-all">{url}</strong>
         </div>
 
-        {status === 'connecting' && <p className="text-muted text-center">{t('lobby.connecting')}</p>}
-        {status === 'disconnected' && <p className="text-red-danger text-center">{t('lobby.disconnected')}</p>}
+        {status === ConnectionStatus.Connecting && <p className="text-muted text-center">{t('lobby.connecting')}</p>}
+        {status === ConnectionStatus.Disconnected && <p className="text-red-danger text-center">{t('lobby.disconnected')}</p>}
         {error && <p className="text-red-danger text-center">{error}</p>}
 
         <div className="flex flex-col gap-1">
