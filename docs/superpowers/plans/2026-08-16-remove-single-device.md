@@ -825,9 +825,11 @@ test.describe('Monopoly Game E2E', () => {
     await createRoom(page, 'Buyer')
     await startWithBots(page, 1)
     await playHostTurns(page, 15)
-    const firstCard = await page.locator('[data-testid="player-card"]').first().textContent()
-    expect(firstCard).toBeDefined()
-    expect(firstCard).not.toBe('')
+    const firstCard = page.locator('[data-testid="player-card"]').first()
+    await expect(firstCard).toContainText('$')
+    const text = await firstCard.textContent()
+    expect(text).toBeDefined()
+    expect(text).not.toBe('')
   })
 
   for (const viewport of [
