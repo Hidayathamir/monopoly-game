@@ -27,11 +27,12 @@ interface Props {
   isMyTurn: boolean
   canTrade?: boolean
   tradesEnabled?: boolean
+  connectedPlayerIds?: Set<number>
   tradeCount: number
   onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
@@ -69,7 +70,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeT
             )}
           </button>
         )}
-        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} tradesEnabled={tradesEnabled} />
+        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} connectedPlayerIds={connectedPlayerIds} tradesEnabled={tradesEnabled} />
         <EventLog log={state.eventLog} />
       </div>
     </div>
