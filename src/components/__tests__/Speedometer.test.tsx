@@ -25,6 +25,11 @@ describe('Speedometer', () => {
     expect(screen.getByText('12')).toBeInTheDocument()
   })
 
+  it('uses the default Dice gauge aria-label when no label is given', () => {
+    renderWithProviders(<Speedometer value={7} />)
+    expect(screen.getByTestId('speedometer').getAttribute('aria-label')).toBe('Dice gauge')
+  })
+
   it('renders 11 tick marks (one per value 2..12)', () => {
     renderWithProviders(<Speedometer value={7} />)
     expect(screen.getAllByTestId('speedometer-tick')).toHaveLength(11)

@@ -16,7 +16,7 @@ function pointOnArc(angleDeg: number, radius: number): [number, number] {
   return [CX + radius * Math.cos(rad), CY - radius * Math.sin(rad)]
 }
 
-export default function Speedometer({ value }: { value: number }) {
+export default function Speedometer({ value, label = 'Dice gauge' }: { value: number; label?: string }) {
   const [arcStartX, arcStartY] = pointOnArc(165, RADIUS)
   const [arcEndX, arcEndY] = pointOnArc(15, RADIUS)
   const needleAngle = valueToAngle(value)
@@ -27,7 +27,7 @@ export default function Speedometer({ value }: { value: number }) {
       viewBox="0 0 140 78"
       className="w-52 h-auto bg-bg-card rounded-xl text-white"
       role="img"
-      aria-label="Dice gauge"
+      aria-label={label}
     >
       <path
         d={`M ${arcStartX} ${arcStartY} A ${RADIUS} ${RADIUS} 0 0 1 ${arcEndX} ${arcEndY}`}

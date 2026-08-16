@@ -170,7 +170,7 @@
 
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",
-  "dice.aiming": "Membidik: {{target}}",
+  "dice.gauge": "Pengukur dadu",
   "dice.holdHint": "Tahan untuk membidik, lepas untuk melempar",
   "dice.doubles": "Ganda? {{result}} — {{n}}x lagi",
 
