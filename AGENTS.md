@@ -30,6 +30,13 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 ## Conventions
 
 - **No TS enums** — `erasableSyntaxOnly: true` across projects; use `const` objects + derived union types (see `src/types/game.ts`). Also `verbatimModuleSyntax: true` → type-only imports must use `import type`. `noUnusedLocals`/`noUnusedParameters` are on.
+- **Enum-like string constants**: Any fixed set of string values (wire message
+  types, phases, action types, statuses, etc.) must be declared as a `const`
+  object with a derived union type (see `src/types/game.ts` and
+  `src/types/net.ts`). Do not use raw string literals in production code where
+  a constant exists; do not introduce TypeScript `enum` (repo enforces
+  `erasableSyntaxOnly`). Wire values are part of the client/server contract and
+  must never change when refactoring.
 - **Semicolons are mixed**: `src/logic/*`, `src/data/*`, `src/types/game.ts` use them; most components/hooks/net/server files omit them. Match the file you're editing; eslint does not enforce.
 - **i18n**: every UI string must exist in both `src/i18n/locales/en/translation.json` and `id/translation.json` (flat keys, `keySeparator: false`). Server-side error strings are hardcoded Indonesian and rendered raw by the client — don't add new hardcoded UI strings; route user-facing text through i18n keys or `LogEntry` keys (see `src/i18n/log.ts`).
 - **Local state persistence**: `useGame` saves state to `localStorage` under `monopoly-game-state`; bump `STATE_VERSION` in `src/hooks/useGame.ts` when the `GameState` shape changes incompatibly.
