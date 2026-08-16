@@ -736,5 +736,16 @@ describe('gameReducer', () => {
       const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
       expect(s1.eventLog).toContainEqual({ key: 'event.toJail', params: { name: 'Alice' } });
     });
+
+    it('proposing a trade does not trigger a card draw', () => {
+      const state = makeStartedState();
+      const s1 = gameReducer(state, {
+        type: GameActionType.ProposeTrade,
+        offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0 },
+      });
+      expect(s1.pendingAction).toBeNull();
+      expect(s1.phase).toBe(GamePhase.Waiting);
+      expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposed', params: { from: 'Alice', to: 'Bob' } });
+    });
   });
 });

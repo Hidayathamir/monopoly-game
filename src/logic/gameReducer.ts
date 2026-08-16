@@ -493,7 +493,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case GameActionType.ProposeTrade: {
       return {
         ...state,
-        pendingAction: { type: PendingActionType.DrawCard, cardType: CardType.Chance },
+        pendingAction: null,
         eventLog: [...state.eventLog, { key: 'event.tradeProposed', params: { from: state.players[state.currentPlayer].name, to: state.players[action.offer.toId].name } }],
       };
     }
