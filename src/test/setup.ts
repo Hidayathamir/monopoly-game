@@ -1,3 +1,6 @@
+import { afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+
 function installMemoryStorageIfNeeded() {
   try {
     if (
@@ -27,3 +30,5 @@ function installMemoryStorageIfNeeded() {
 installMemoryStorageIfNeeded()
 localStorage.setItem('monopoly-language', 'en')
 localStorage.setItem('monopoly-currency', 'USD')
+
+afterEach(cleanup)
