@@ -1,5 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { ID_IDR_ENABLED } from '../config/features'
 import en from './locales/en/translation.json'
 import id from './locales/id/translation.json'
 
@@ -14,12 +15,16 @@ function readSavedLanguage(): string {
   }
 }
 
+export function resolveInitialLanguage(enabled = ID_IDR_ENABLED): string {
+  return enabled ? readSavedLanguage() : DEFAULT_LANGUAGE
+}
+
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     id: { translation: id },
   },
-  lng: readSavedLanguage(),
+  lng: resolveInitialLanguage(),
   fallbackLng: DEFAULT_LANGUAGE,
   keySeparator: false,
   interpolation: { escapeValue: false },
