@@ -170,8 +170,8 @@ export type PendingTrade = TradeOffer & { id: number };
 
 export type GameAction =
   | { type: typeof GameActionType.StartGame; playerCount: number; names: string[]; isBot?: boolean[] }
-  | { type: typeof GameActionType.RollDice }
-  | { type: typeof GameActionType.DiceAnimated; dice: [number, number] }
+  | { type: typeof GameActionType.RollDice; target?: number }
+  | { type: typeof GameActionType.DiceAnimated; dice: [number, number]; target?: number; luck?: number }
   | { type: typeof GameActionType.MoveToken; spaces: number }
   | { type: typeof GameActionType.PassGo }
   | { type: typeof GameActionType.ResolveSpace }

@@ -158,7 +158,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const total = dice[0] + dice[1];
       const newPos = (player.position + total) % 40;
       let newMoney = player.money;
-      const newEventLog = [...state.eventLog, { key: 'event.rolled', params: { name: player.name, d1: dice[0], d2: dice[1], total } }];
+      const aimed = action.target !== undefined && action.luck !== undefined;
+      const rolledEntry: LogEntry = aimed
+        ? { key: 'event.rolledAimed', params: { name: player.name, d1: dice[0], d2: dice[1], total, target: action.target!, luck: action.luck! } }
+        : { key: 'event.rolled', params: { name: player.name, d1: dice[0], d2: dice[1], total } };
+      const newEventLog = [...state.eventLog, rolledEntry];
 
       let passedGo = false
       if (newPos < player.position || newPos === 0) {

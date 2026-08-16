@@ -132,6 +132,25 @@ describe('gameReducer', () => {
       expect(s2.players[0].money).toBe(STARTING_MONEY + GO_SALARY);
     });
 
+    it('logs event.rolledAimed with target and luck when aiming', () => {
+      const state = makeStartedState();
+      const s1 = gameReducer(state, { type: GameActionType.RollDice });
+      const s2 = gameReducer(s1, { type: GameActionType.DiceAnimated, dice: [3, 4], target: 7, luck: 80 });
+      const entry = s2.eventLog[s2.eventLog.length - 1];
+      expect(entry.key).toBe('event.rolledAimed');
+      expect(entry.params).toEqual(expect.objectContaining({ d1: 3, d2: 4, total: 7, target: 7, luck: 80 }));
+    });
+
+    it('logs plain event.rolled without target or luck when not aiming', () => {
+      const state = makeStartedState();
+      const s1 = gameReducer(state, { type: GameActionType.RollDice });
+      const s2 = gameReducer(s1, { type: GameActionType.DiceAnimated, dice: [3, 4] });
+      const entry = s2.eventLog[s2.eventLog.length - 1];
+      expect(entry.key).toBe('event.rolled');
+      expect(entry.params).not.toHaveProperty('target');
+      expect(entry.params).not.toHaveProperty('luck');
+    });
+
     it('doubles gives extra turn', () => {
       const state = makeStartedState();
       const s1 = gameReducer(state, { type: GameActionType.RollDice });
