@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { GamePhase } from '../types/game'
 import { useNetworkGame } from '../hooks/useNetworkGame'
+import { saveSession, clearSession } from '../net/session'
 import Lobby from './Lobby'
 import GameView from './GameView'
 
@@ -24,6 +25,14 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
     if (code === null) create(name)
     else join(code, name)
   }, [code, name, create, join])
+
+  useEffect(() => {
+    if (game.code && name) saveSession({ name, code: game.code })
+  }, [game.code, name, game.state.phase])
+
+  useEffect(() => {
+    if (game.state.phase === GamePhase.GameOver) clearSession()
+  }, [game.state.phase])
 
   if (game.state.phase === GamePhase.Setup) {
     return <Lobby game={game} />

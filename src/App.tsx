@@ -5,6 +5,7 @@ import GameSetup from './components/GameSetup'
 import GameView from './components/GameView'
 import MultiplayerGame, { type JoinInfo } from './components/MultiplayerGame'
 import LanguageCurrencyBar from './components/LanguageCurrencyBar'
+import { loadSession, clearSession } from './net/session'
 
 const Mode = {
   Local: 'local',
@@ -14,10 +15,14 @@ type Mode = (typeof Mode)[keyof typeof Mode] | null
 
 export default function App() {
   const local = useGame()
-  const [mode, setMode] = useState<Mode>(() =>
-    local.state.phase !== GamePhase.Setup ? Mode.Local : null,
-  )
-  const [joinInfo, setJoinInfo] = useState<JoinInfo>({ name: '', code: null })
+  const [mode, setMode] = useState<Mode>(() => {
+    if (loadSession()) return Mode.Multiplayer
+    return local.state.phase !== GamePhase.Setup ? Mode.Local : null
+  })
+  const [joinInfo, setJoinInfo] = useState<JoinInfo>(() => {
+    const session = loadSession()
+    return session ? { name: session.name, code: session.code } : { name: '', code: null }
+  })
 
   function handleStartLocal(players: { name: string; isBot: boolean }[]) {
     local.startGame(players)
@@ -37,7 +42,13 @@ export default function App() {
   if (mode === Mode.Multiplayer) {
     return (
       <>
-        <MultiplayerGame joinInfo={joinInfo} onLeft={() => setMode(null)} />
+        <MultiplayerGame
+          joinInfo={joinInfo}
+          onLeft={() => {
+            clearSession()
+            setMode(null)
+          }}
+        />
         <LanguageCurrencyBar />
       </>
     )
