@@ -1,45 +1,6 @@
-import { test, expect } from '@playwright/test'
-import { spawn, type ChildProcess } from 'node:child_process'
+import { test, expect } from './fixtures'
 
-const PORT = 3123
-let serverProc: ChildProcess | null = null
-
-test.beforeAll(async () => {
-  // Requires `npm run build` first so `dist/` exists (served by the server).
-  serverProc = spawn('npx', ['tsx', 'server/main.ts'], {
-    env: { ...process.env, PORT: String(PORT) },
-    cwd: process.cwd(),
-    stdio: 'ignore',
-    detached: true,
-  })
-  // Wait for the server to start listening.
-  await new Promise((resolve, reject) => {
-    const startedAt = Date.now()
-    const poll = async () => {
-      try {
-        const res = await fetch(`http://localhost:${PORT}/`)
-        if (res.ok) return resolve(undefined)
-      } catch {
-        // server not up yet, poll again
-      }
-      if (Date.now() - startedAt > 10000) return reject(new Error('server did not start'))
-      setTimeout(poll, 200)
-    }
-    poll()
-  })
-})
-
-test.afterAll(() => {
-  if (serverProc?.pid) {
-    try {
-      process.kill(-serverProc.pid, 'SIGTERM')
-    } catch {
-      serverProc.kill()
-    }
-  }
-})
-
-test('two clients create and join a room, then start a game', async ({ browser }) => {
+test('two clients create and join a room, then start a game', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -48,16 +9,14 @@ test('two clients create and join a room, then start a game', async ({ browser }
   const pageA = await context.newPage()
   const pageB = await context.newPage()
 
-  await pageA.goto(`http://localhost:${PORT}/`)
-  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.goto(serverUrl)
   await pageA.fill('input[placeholder="Name"]', 'Host')
   await pageA.click('button:has-text("Continue")')
   const codeLocator = pageA.locator('[data-testid="room-code"]')
   await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
   const code = (await codeLocator.innerText()).trim()
 
-  await pageB.goto(`http://localhost:${PORT}/`)
-  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.goto(serverUrl)
   await pageB.fill('input[placeholder="Name"]', 'Tamu')
   await pageB.click('button:has-text("Join Room")')
   await pageB.fill('input[placeholder="Code"]', code)
@@ -85,7 +44,7 @@ test('two clients create and join a room, then start a game', async ({ browser }
   }
 })
 
-test('a player who refreshes mid-game rejoins the same room', async ({ browser }) => {
+test('a player who refreshes mid-game rejoins the same room', async ({ browser, serverUrl }) => {
   const contextA = await browser.newContext()
   await contextA.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -99,16 +58,14 @@ test('a player who refreshes mid-game rejoins the same room', async ({ browser }
   const pageA = await contextA.newPage()
   const pageB = await contextB.newPage()
 
-  await pageA.goto(`http://localhost:${PORT}/`)
-  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.goto(serverUrl)
   await pageA.fill('input[placeholder="Name"]', 'Host')
   await pageA.click('button:has-text("Continue")')
   const codeLocator = pageA.locator('[data-testid="room-code"]')
   await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
   const code = (await codeLocator.innerText()).trim()
 
-  await pageB.goto(`http://localhost:${PORT}/`)
-  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.goto(serverUrl)
   await pageB.fill('input[placeholder="Name"]', 'Tamu')
   await pageB.click('button:has-text("Join Room")')
   await pageB.fill('input[placeholder="Code"]', code)
@@ -124,7 +81,7 @@ test('a player who refreshes mid-game rejoins the same room', async ({ browser }
   await expect(pageB.getByText('Tamu').first()).toBeVisible()
 })
 
-test('a player can leave the room mid-game and return to the menu', async ({ browser }) => {
+test('a player can leave the room mid-game and return to the menu', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -133,16 +90,14 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
   const pageA = await context.newPage()
   const pageB = await context.newPage()
 
-  await pageA.goto(`http://localhost:${PORT}/`)
-  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.goto(serverUrl)
   await pageA.fill('input[placeholder="Name"]', 'Host')
   await pageA.click('button:has-text("Continue")')
   const codeLocator = pageA.locator('[data-testid="room-code"]')
   await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
   const code = (await codeLocator.innerText()).trim()
 
-  await pageB.goto(`http://localhost:${PORT}/`)
-  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.goto(serverUrl)
   await pageB.fill('input[placeholder="Name"]', 'Tamu')
   await pageB.click('button:has-text("Join Room")')
   await pageB.fill('input[placeholder="Code"]', code)
@@ -153,10 +108,10 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
 
   await pageB.click('button[aria-label="Leave Room"]')
   await pageB.getByRole('button', { name: 'Leave', exact: true }).click()
-  await expect(pageB.locator('button:has-text("Multiplayer")')).toBeVisible({ timeout: 5000 })
+  await expect(pageB.locator('h1')).toHaveText('Monopoly', { timeout: 5000 })
 })
 
-test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
+test('host adds a bot, starts, and the bot auto-plays', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -164,8 +119,7 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
   })
   const page = await context.newPage()
 
-  await page.goto(`http://localhost:${PORT}/`)
-  await page.click('button:has-text("Multiplayer")')
+  await page.goto(serverUrl)
   await page.fill('input[placeholder="Name"]', 'Host')
   await page.click('button:has-text("Continue")')
   const codeLocator = page.locator('[data-testid="room-code"]')
@@ -201,6 +155,8 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
       if (await ok.isVisible({ timeout: 1000 }).catch(() => false)) await ok.click()
       continue
     }
+    const ok = page.locator('button:has-text("OK")').first()
+    if (await ok.isVisible({ timeout: 500 }).catch(() => false)) { await ok.click(); continue }
     const pay = page.locator('button:has-text("Pay")').first()
     if (await pay.isVisible({ timeout: 500 }).catch(() => false)) { await pay.click(); continue }
     const end = page.locator('button:has-text("End")').first()
@@ -213,7 +169,7 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
   await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
 })
 
-test('a player can hold-to-roll without breaking multiplayer', async ({ browser }) => {
+test('a player can hold-to-roll without breaking multiplayer', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -222,16 +178,14 @@ test('a player can hold-to-roll without breaking multiplayer', async ({ browser 
   const pageA = await context.newPage()
   const pageB = await context.newPage()
 
-  await pageA.goto(`http://localhost:${PORT}/`)
-  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.goto(serverUrl)
   await pageA.fill('input[placeholder="Name"]', 'Host')
   await pageA.click('button:has-text("Continue")')
   const codeLocator = pageA.locator('[data-testid="room-code"]')
   await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
   const code = (await codeLocator.innerText()).trim()
 
-  await pageB.goto(`http://localhost:${PORT}/`)
-  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.goto(serverUrl)
   await pageB.fill('input[placeholder="Name"]', 'Tamu')
   await pageB.click('button:has-text("Join Room")')
   await pageB.fill('input[placeholder="Code"]', code)
