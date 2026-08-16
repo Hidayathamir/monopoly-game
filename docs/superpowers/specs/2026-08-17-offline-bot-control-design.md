@@ -120,7 +120,7 @@ Structure change only in intent — the reducer stores a flag, rendering stays i
   forced out, triple doubles, to-jail, taxes, bought, paid rent, cards, build,
   sell, mortgage, trade, turn transitions, bankruptcy):
   ```ts
-  { key: 'event.rolled', params: { name: player.name, bot: player.botControlled, d1, d2, total } }
+  { key: 'event.rolled', params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), d1, d2, total } }
   ```
 - `resolveLogEntry` (`src/i18n/log.ts:10`): if `entry.params.bot`, rewrite
   `params.name` = `t('log.botName', { name })` so i18next renders
