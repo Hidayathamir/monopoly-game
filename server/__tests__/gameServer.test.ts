@@ -307,4 +307,35 @@ describe('GameServer', () => {
     expect(server.getState().dice).toBeNull()
     vi.useRealTimers()
   })
+
+  it('lets the recipient accept a trade even when it is not their turn', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+    } })
+    const tradeId = server.getState().pendingTrades[0].id
+    // c0 is current player; c1 is NOT. The accept must bypass the turn gate.
+    server.handleAction('c1', { type: 'ACCEPT_TRADE', tradeId })
+    expect(server.getState().pendingTrades).toHaveLength(0)
+    expect(server.getState().currentPlayer).toBe(0)
+  })
+
+  it('rejects a trade response from a player who is not a party', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.join('c2', 'Charlie')
+    server.start('c0')
+    server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+    } })
+    const tradeId = server.getState().pendingTrades[0].id
+    server.handleAction('c2', { type: 'ACCEPT_TRADE', tradeId })
+    expect(sent.some((m) => m.type === 'error')).toBe(true)
+    expect(server.getState().pendingTrades).toHaveLength(1)
+  })
 })
