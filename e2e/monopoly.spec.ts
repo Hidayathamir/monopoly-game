@@ -76,6 +76,18 @@ test.describe('Monopoly Game E2E', () => {
     await expect(panel.first()).toContainText('$')
   })
 
+  test('single player can exit a game and return to the setup screen', async ({ page }) => {
+    await page.locator('input[type="text"]').first().fill('Alpha')
+    await page.locator('input[type="text"]').nth(1).fill('Beta')
+    await page.click('button:has-text("Start")')
+
+    await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+    await page.click('button[aria-label="Exit Game"]')
+    await page.getByRole('button', { name: 'Exit', exact: true }).click()
+
+    await expect(page.locator('h1')).toHaveText('Monopoly')
+  })
+
   test('buy property and see it in panel', async ({ page }) => {
     await page.locator('input[type="text"]').first().fill('Buyer')
     await page.locator('input[type="text"]').nth(1).fill('Other')

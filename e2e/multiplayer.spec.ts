@@ -75,6 +75,40 @@ test('two clients create and join a room, then start a game', async ({ browser }
   await expect(pageB.locator('[data-testid="waiting-for"]')).toBeVisible()
 })
 
+test('a player who refreshes mid-game rejoins the same room', async ({ browser }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await context.newPage()
+
+  await pageA.goto(`http://localhost:${PORT}/`)
+  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.fill('input[placeholder="Name"]', 'Host')
+  await pageA.click('button:has-text("Continue")')
+  const codeLocator = pageA.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  const code = (await codeLocator.innerText()).trim()
+
+  await pageB.goto(`http://localhost:${PORT}/`)
+  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.fill('input[placeholder="Name"]', 'Tamu')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+
+  await pageA.click('button:has-text("Start")')
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+  await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  await pageB.reload()
+  // The session in localStorage makes the refreshed page auto-rejoin as Tamu.
+  await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 10000 })
+  await expect(pageB.getByText('Tamu').first()).toBeVisible()
+})
+
 test('a player can leave the room mid-game and return to the menu', async ({ browser }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
