@@ -210,14 +210,71 @@ describe('GameServer', () => {
     expect(server.getPlayers()[0].name).toBe('Charlie')
   })
 
-  it('skips the turn of a player who leaves mid-game', () => {
+  it('hands an offline player to the bot after a 30s grace period', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    expect(server.getState().currentPlayer).toBe(0)
+
+    server.leave('c0')
+    expect(server.getState().currentPlayer).toBe(0) // no auto-skip anymore
+    expect(server.getState().players[0].botControlled).toBe(true)
+    expect(server.getState().eventLog.some((e) => e.key === 'event.playerOffline')).toBe(true)
+
+    vi.advanceTimersByTime(29_000)
+    expect(server.getState().phase).toBe(GamePhase.Waiting) // still inside the grace window
+
+    vi.advanceTimersByTime(1_000) // grace elapsed → bot rolls
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    expect(server.getState().dice).toEqual([1, 4])
+    const roll = server.getState().eventLog.filter((e) => e.key === 'event.rolled').at(-1)
+    expect(roll?.params?.bot).toBe(true)
+
+    vi.advanceTimersByTime(500 + 5 * 150) // RESOLVE_SPACE (space 5 unowned, not passed Go → Waiting)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(700) // next bot step → END_TURN
+    expect(server.getState().currentPlayer).toBe(1)
+    vi.useRealTimers()
+  })
+
+  it('reconnect within the grace period hands control back to the human', () => {
+    vi.useFakeTimers()
     const { server } = setup()
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
     expect(server.getState().currentPlayer).toBe(0)
+
     server.leave('c0')
-    expect(server.getState().currentPlayer).toBe(1)
+    expect(server.getState().players[0].botControlled).toBe(true)
+
+    server.join('c9', 'Alice') // rejoins well within the 30s grace
+    expect(server.getState().players[0].botControlled).toBe(false)
+    expect(server.getState().currentPlayer).toBe(0)
+    expect(server.getState().eventLog.some((e) => e.key === 'event.playerBack')).toBe(true)
+
+    vi.advanceTimersByTime(30_000) // stale grace timer fires but the slot is connected → no roll
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+    expect(server.getState().dice).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('ignores SET_BOT_CONTROL sent by a client', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    const before = server.getState().players[0].botControlled
+    server.handleAction('c0', { type: 'SET_BOT_CONTROL', playerId: 0, controlled: false })
+    expect(server.getState().players[0].botControlled).toBe(before)
+    expect(server.getState().eventLog.filter((e) => e.key === 'event.playerBack')).toHaveLength(0)
   })
 
   it('lets a mid-game leaver reclaim their slot by name', () => {
