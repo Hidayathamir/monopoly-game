@@ -74,9 +74,12 @@ holding:
   - Linear (not eased) keeps the value a simple invertible function of time,
     so tests can assert exact values at exact times; the needle reads smooth
     at 60fps because its angle updates every frame.
-- Drive with `requestAnimationFrame` while `holding`; each frame compute
-  `aimValue` and store it in state to re-render the `Speedometer`. The
-  re-render cost is a tiny focused tree (a few SVG nodes), acceptable.
+- Drive with a ~60fps `setInterval` (16ms) while `holding` (instead of
+  `requestAnimationFrame`, because `Date.now()` and intervals are faked
+  deterministically by vitest while rAF timestamps are not); each tick
+  compute `aimValue` from `Date.now() − start` and store it in state to
+  re-render the `Speedometer`. The re-render cost is a tiny focused tree (a
+  few SVG nodes), acceptable.
 - Start each hold at `aimValue = 2` (needle at the left end), matching the
   current ticker's reset behavior.
 - `lockTarget()`: `onRoll(Math.round(aimValue))`, clamped to 2–12 by the
