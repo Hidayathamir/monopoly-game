@@ -85,6 +85,78 @@ describe('DiceRoller', () => {
       expect(onRoll).toHaveBeenCalledWith(5)
     })
 
+    it('locks the target on primary pointer press', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      act(() => vi.advanceTimersByTime(240)) // value = 2 + 10*(240/800) = 5
+      fireEvent.pointerDown(button, { button: 0 })
+
+      expect(onRoll).toHaveBeenCalledTimes(1)
+      expect(onRoll).toHaveBeenCalledWith(5)
+    })
+
+    it('ignores non-primary pointer presses', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      act(() => vi.advanceTimersByTime(240))
+      fireEvent.pointerDown(button, { button: 2 })
+
+      expect(onRoll).not.toHaveBeenCalled()
+    })
+
+    it('ignores pointer-driven clicks (detail > 0)', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      act(() => vi.advanceTimersByTime(240))
+      fireEvent.click(button, { detail: 1 })
+
+      expect(onRoll).not.toHaveBeenCalled()
+    })
+
+    it('does not double-roll when a press is followed by its compat click', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      act(() => vi.advanceTimersByTime(240))
+      fireEvent.pointerDown(button, { button: 0 })
+      fireEvent.click(button) // detail 0 → keyboard path, blocked by the rolling guard
+
+      expect(onRoll).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not re-roll after the button is held past the rolling reset', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      fireEvent.pointerDown(button, { button: 0 })
+      act(() => vi.advanceTimersByTime(600)) // 500ms rolling reset fires
+      fireEvent.click(button, { detail: 1 }) // mouse-up after the long hold
+
+      expect(onRoll).toHaveBeenCalledTimes(1)
+    })
+
+    it('freezes the needle at the locked value after pressing', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      act(() => vi.advanceTimersByTime(240)) // needle at 5
+      const before = needleTip()
+      fireEvent.pointerDown(button, { button: 0 })
+      act(() => vi.advanceTimersByTime(400)) // sweep must be frozen now
+
+      expect(needleTip()).toEqual(before)
+      expect(onRoll).toHaveBeenCalledWith(5)
+    })
+
     it('sweeps continuously (needle moves between whole values)', () => {
       const onRoll = vi.fn()
       renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)

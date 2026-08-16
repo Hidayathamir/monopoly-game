@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GamePhase, type GameState } from '../types/game'
 import Dice from './Dice'
@@ -12,7 +13,6 @@ interface Props {
 }
 
 const SWEEP_MS = 800
-const FRAME_MS = 16
 const MIN_TOTAL = 2
 const MAX_TOTAL = 12
 const STEPPED_TICK_MS = 80
@@ -39,6 +39,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
     return mq ? mq('(prefers-reduced-motion: reduce)').matches : false
   })
   const aimValueRef = useRef(MIN_TOTAL)
+  const rollingRef = useRef(false)
   const directionRef = useRef(1)
   const player = state.players[state.currentPlayer]
 
@@ -47,7 +48,11 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const canAim = (canRoll || canRollJail) && isMyTurn
 
   useEffect(() => {
-    if (!canAim) return
+    aimValueRef.current = aimValue
+  }, [aimValue])
+
+  useEffect(() => {
+    if (!canAim || rolling) return
     if (reducedMotion) {
       directionRef.current = 1
       const id = setInterval(() => {
@@ -55,34 +60,47 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
           const next = v + directionRef.current
           if (next > MAX_TOTAL) {
             directionRef.current = -1
-            aimValueRef.current = MAX_TOTAL
             return MAX_TOTAL
           }
           if (next < MIN_TOTAL) {
             directionRef.current = 1
-            aimValueRef.current = MIN_TOTAL
             return MIN_TOTAL
           }
-          aimValueRef.current = next
           return next
         })
       }, STEPPED_TICK_MS)
       return () => clearInterval(id)
     }
     const start = Date.now() - msForValue(aimValueRef.current)
-    const id = setInterval(() => {
+    let rafId = 0
+    const tick = () => {
       const value = sweepValue(Date.now() - start)
-      aimValueRef.current = value
       setAimValue(value)
-    }, FRAME_MS)
-    return () => clearInterval(id)
-  }, [canAim, reducedMotion])
+      rafId = requestAnimationFrame(tick)
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [canAim, rolling, reducedMotion])
 
   function stopAndRoll() {
-    if (rolling) return
+    if (rollingRef.current) return
+    rollingRef.current = true
     setRolling(true)
     onRoll(Math.round(aimValueRef.current))
-    setTimeout(() => setRolling(false), 500)
+    setTimeout(() => {
+      rollingRef.current = false
+      setRolling(false)
+    }, 500)
+  }
+
+  function handlePointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (e.button !== 0) return
+    stopAndRoll()
+  }
+
+  function handleClick(e: ReactMouseEvent<HTMLButtonElement>) {
+    if (e.detail !== 0) return
+    stopAndRoll()
   }
 
   return (
@@ -98,7 +116,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
         )}
       </div>
       {canAim && (
-        <Button variant="primary" size="lg" onClick={stopAndRoll}>
+        <Button variant="primary" size="lg" onPointerDown={handlePointerDown} onClick={handleClick}>
           {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
       )}
