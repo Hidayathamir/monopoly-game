@@ -234,18 +234,10 @@ export class GameServer {
       return
     }
     const slotIndex = this.slots.findIndex((s) => s.clientId === clientId)
-    if (action.type === 'ACCEPT_TRADE' || action.type === 'REJECT_TRADE') {
+    if (action.type === 'ACCEPT_TRADE' || action.type === 'REJECT_TRADE' || action.type === 'CANCEL_TRADE') {
       const trade = this.state.pendingTrades.find((t) => t.id === action.tradeId)
-      if (trade && trade.toId === slotIndex) {
-        this.dispatch(action)
-        return
-      }
-      this.events.send(clientId, { type: 'error', message: 'Bukan giliranmu' })
-      return
-    }
-    if (action.type === 'CANCEL_TRADE') {
-      const trade = this.state.pendingTrades.find((t) => t.id === action.tradeId)
-      if (trade && trade.fromId === slotIndex) {
+      const expected = action.type === 'CANCEL_TRADE' ? trade?.fromId : trade?.toId
+      if (trade && expected === slotIndex) {
         this.dispatch(action)
         return
       }
