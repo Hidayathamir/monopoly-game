@@ -5,9 +5,9 @@ interface WorkerFixtures {
   serverUrl: string
 }
 
-export const test = base.extend<{}, WorkerFixtures>({
+export const test = base.extend<object, WorkerFixtures>({
   serverUrl: [
-    async ({}, use, workerInfo) => {
+    async (_fixtures, use, workerInfo) => {
       const server = await startServer(4000 + workerInfo.workerIndex)
       await use(server.url)
       server.close()
