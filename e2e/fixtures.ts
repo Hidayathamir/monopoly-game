@@ -7,7 +7,8 @@ interface WorkerFixtures {
 
 export const test = base.extend<object, WorkerFixtures>({
   serverUrl: [
-    async (_fixtures, use, workerInfo) => {
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use, workerInfo) => {
       const server = await startServer(4000 + workerInfo.workerIndex)
       await use(server.url)
       server.close()
