@@ -212,3 +212,45 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser }) => {
   await expect(waitingFor).toContainText('Droid', { timeout: 10000 })
   await expect(page.locator('button:has-text("Roll")').first()).toBeVisible({ timeout: 30000 })
 })
+
+test('a player can hold-to-roll without breaking multiplayer', async ({ browser }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await context.newPage()
+
+  await pageA.goto(`http://localhost:${PORT}/`)
+  await pageA.click('button:has-text("Multiplayer")')
+  await pageA.fill('input[placeholder="Name"]', 'Host')
+  await pageA.click('button:has-text("Continue")')
+  const codeLocator = pageA.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  const code = (await codeLocator.innerText()).trim()
+
+  await pageB.goto(`http://localhost:${PORT}/`)
+  await pageB.click('button:has-text("Multiplayer")')
+  await pageB.fill('input[placeholder="Name"]', 'Tamu')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+
+  await pageA.click('button:has-text("Start")')
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  // Hold the roll button ~400ms, then release → a target locks and a roll resolves.
+  const roll = pageA.locator('button:has-text("Roll")')
+  const hostRolls = await roll.isVisible()
+  const current = hostRolls ? pageA : pageB
+  const roller = current.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
+  const box = await roller.boundingBox()
+  if (box) {
+    await current.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await current.mouse.down()
+    await current.waitForTimeout(400)
+    await current.mouse.up()
+  }
+  await expect(current.locator('[data-testid="dice-pip"]').first()).toBeVisible({ timeout: 5000 })
+})
