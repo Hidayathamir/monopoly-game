@@ -227,7 +227,7 @@ and the constructor (lines 40-44):
 
 ```ts
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
-    this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false });
+    this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.code = opts?.code ?? ''
