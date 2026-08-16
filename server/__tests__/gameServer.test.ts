@@ -266,6 +266,34 @@ describe('GameServer', () => {
     vi.useRealTimers()
   })
 
+  it('does not let a concurrent action cancel the offline player grace period', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    expect(server.getState().currentPlayer).toBe(0)
+
+    server.leave('c0') // Alice offline; grace timer scheduled (30s)
+    expect(server.getState().players[0].botControlled).toBe(true)
+
+    // A different player disconnects and reconnects during Alice's grace window — each
+    // dispatches an action (SetBotControl), which previously rescheduled the bot to 700ms.
+    server.disconnect('c1')
+    server.join('c9', 'Bob')
+    expect(server.getState().players[1].botControlled).toBe(false)
+
+    vi.advanceTimersByTime(700) // the old buggy behavior would roll here
+    expect(server.getState().phase).toBe(GamePhase.Waiting) // still inside the grace window
+    expect(server.getState().dice).toBeNull()
+
+    vi.advanceTimersByTime(29_300) // grace elapsed → bot rolls
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+    vi.useRealTimers()
+  })
+
   it('ignores SET_BOT_CONTROL sent by a client', () => {
     vi.useFakeTimers()
     const { server } = setup()

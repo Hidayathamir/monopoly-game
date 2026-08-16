@@ -40,6 +40,7 @@ export class GameServer {
   private hostSlotIndex = 0
   private botSteps = 0
   private drivenPlayerId: number | null = null
+  private botTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
     this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
@@ -354,10 +355,14 @@ export class GameServer {
   }
 
   private driveBots(): void {
-    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
+    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) {
+      this.clearBotTimer()
+      return
+    }
     const currentPlayer = this.state.currentPlayer
     const slot = this.slots[currentPlayer]
     if (!slot) {
+      this.clearBotTimer()
       this.botSteps = 0
       this.drivenPlayerId = null
       return
@@ -365,23 +370,27 @@ export class GameServer {
     const botControlled = this.state.players[currentPlayer]?.botControlled === true
     const isDriveable = slot.isBot || (!slot.connected && botControlled)
     if (!isDriveable) {
+      this.clearBotTimer()
       this.botSteps = 0
       this.drivenPlayerId = null
       return
     }
     const action = decideBotAction(this.state)
     if (!action) {
+      this.clearBotTimer()
       this.botSteps = 0
       return
     }
     if (this.botSteps >= 100) return
+    if (this.botTimer !== null) return
     this.botSteps++
     const isRealBot = slot.isBot
     const isFresh = this.drivenPlayerId !== currentPlayer
     if (isFresh) this.drivenPlayerId = currentPlayer
     const delay = !isRealBot && isFresh ? BOT_GRACE_MS : BOT_STEP_MS
 
-    setTimeout(() => {
+    this.botTimer = setTimeout(() => {
+      this.botTimer = null
       if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
       const current = this.slots[currentPlayer]
       const stillBotControlled = this.state.players[currentPlayer]?.botControlled === true
@@ -393,6 +402,13 @@ export class GameServer {
       if (actionNow.type === GameActionType.RollDice) this.startRoll()
       else this.dispatch(actionNow)
     }, delay)
+  }
+
+  private clearBotTimer(): void {
+    if (this.botTimer !== null) {
+      clearTimeout(this.botTimer)
+      this.botTimer = null
+    }
   }
 
   private broadcast(): void {
