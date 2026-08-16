@@ -69,10 +69,20 @@ test('two clients create and join a room, then start a game', async ({ browser }
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-  await expect(pageA.locator('button:has-text("Roll")')).toBeVisible({ timeout: 5000 })
-  await expect(pageA.locator('[data-testid="waiting-for"]')).toHaveCount(0)
-  await expect(pageB.locator('button:has-text("Roll")')).toHaveCount(0)
-  await expect(pageB.locator('[data-testid="waiting-for"]')).toBeVisible()
+  // Turn order is randomized, so either player may roll first; the other waits.
+  const hostRoll = pageA.locator('button:has-text("Roll")')
+  const tamuRoll = pageB.locator('button:has-text("Roll")')
+  const exactlyOneCanRoll = async () =>
+    (await hostRoll.isVisible()) !== (await tamuRoll.isVisible())
+  await expect.poll(exactlyOneCanRoll, { timeout: 5000 }).toBe(true)
+  const hostRolls = await hostRoll.isVisible()
+  const tamuRolls = await tamuRoll.isVisible()
+  expect(hostRolls !== tamuRolls).toBe(true)
+  if (hostRolls) {
+    await expect(pageB.locator('[data-testid="waiting-for"]')).toBeVisible()
+  } else {
+    await expect(pageA.locator('[data-testid="waiting-for"]')).toBeVisible()
+  }
 })
 
 test('a player who refreshes mid-game rejoins the same room', async ({ browser }) => {
