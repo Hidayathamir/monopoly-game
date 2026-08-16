@@ -42,6 +42,7 @@ function makeState(overrides: Partial<GameState> = {}, player: Player = makePlay
     justBoughtSpaceId: null,
     pendingTrades: [],
     nextTradeId: 0,
+    tradesEnabled: false,
     ...overrides,
   };
 }

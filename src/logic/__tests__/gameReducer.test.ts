@@ -3,9 +3,9 @@ import { gameReducer, createInitialState } from '../gameReducer';
 import { GamePhase, GameActionType, PendingActionType, type GameState } from '../../types/game';
 import { STARTING_MONEY, GO_SALARY, SELL_RATE } from '../../data/board';
 
-function makeStartedState(playerCount = 2): GameState {
+function makeStartedState(playerCount = 2, initialState: GameState = createInitialState()): GameState {
   const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
-  const s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount, names });
+  const s = gameReducer(initialState, { type: GameActionType.StartGame, playerCount, names });
   return { ...s, turnOrder: s.players.map((_, i) => i), currentPlayer: 0 };
 }
 
@@ -40,6 +40,7 @@ describe('gameReducer', () => {
     const state = createInitialState();
     expect(state.pendingTrades).toEqual([]);
     expect(state.nextTradeId).toBe(0);
+    expect(state.tradesEnabled).toBe(false);
   });
 
   describe('START_GAME', () => {
@@ -890,7 +891,7 @@ describe('gameReducer', () => {
 
 describe('trade negotiation', () => {
   function makeSubjects() {
-    let state = makeStartedState();
+    let state = makeStartedState(2, createInitialState({ tradesEnabled: true }));
     state = buyProperty(state, 0, 1);
     state = buyProperty(state, 1, 3);
     state = setMoney(state, 0, 2000);
@@ -985,5 +986,46 @@ describe('trade negotiation', () => {
     expect(s1.eventLog).toContainEqual({ key: 'event.tradeRejected', params: { from: 'Alice', to: 'Bob' } });
     expect(s1.board[1].owner).toBe(0);
     expect(s1.board[3].owner).toBe(1);
+  });
+});
+
+describe('trade feature disabled', () => {
+  function makeSubjectsWithTrade() {
+    let state = makeStartedState();
+    state = buyProperty(state, 0, 1);
+    state = buyProperty(state, 1, 3);
+    state = setMoney(state, 0, 2000);
+    state = setMoney(state, 1, 2000);
+    return { ...state, pendingTrades: [{ id: 0, fromId: 0, toId: 1, offerProperties: [], offerCash: 50, requestProperties: [], requestCash: 0 }] };
+  }
+
+  it('PROPOSE_TRADE is a no-op when trades are disabled', () => {
+    const state = makeStartedState();
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 50, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.nextTradeId).toBe(0);
+    expect(s1.eventLog).not.toContainEqual(expect.objectContaining({ key: 'event.tradeProposed' }));
+  });
+
+  it('ACCEPT_TRADE is a no-op when trades are disabled', () => {
+    const state = makeSubjectsWithTrade();
+    const s1 = gameReducer(state, { type: GameActionType.AcceptTrade, tradeId: 0 });
+    expect(s1.pendingTrades).toHaveLength(1);
+    expect(s1.players[0].money).toBe(state.players[0].money);
+    expect(s1.players[1].money).toBe(state.players[1].money);
+    expect(s1.eventLog).not.toContainEqual(expect.objectContaining({ key: 'event.tradeAccepted' }));
+  });
+
+  it('REJECT_TRADE and CANCEL_TRADE are no-ops when trades are disabled', () => {
+    const state = makeSubjectsWithTrade();
+    const s1 = gameReducer(state, { type: GameActionType.RejectTrade, tradeId: 0 });
+    expect(s1.pendingTrades).toHaveLength(1);
+    expect(s1.eventLog).not.toContainEqual(expect.objectContaining({ key: 'event.tradeRejected' }));
+    const s2 = gameReducer(state, { type: GameActionType.CancelTrade, tradeId: 0 });
+    expect(s2.pendingTrades).toHaveLength(1);
+    expect(s2.eventLog).not.toContainEqual(expect.objectContaining({ key: 'event.tradeCancelled' }));
   });
 });

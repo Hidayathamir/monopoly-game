@@ -24,7 +24,7 @@ interface Slot {
 const MAX_PLAYERS = 6
 
 export class GameServer {
-  private state: GameState = createInitialState()
+  private state: GameState
   private slots: Slot[] = Array.from({ length: MAX_PLAYERS }, () => ({
     clientId: null,
     name: null,
@@ -37,7 +37,8 @@ export class GameServer {
   private hostSlotIndex = 0
   private botSteps = 0
 
-  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string }) {
+  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
+    this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.code = opts?.code ?? ''

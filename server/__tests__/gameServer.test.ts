@@ -3,7 +3,7 @@ import { GameServer } from '../gameServer'
 import { GamePhase } from '../../src/types/game'
 import type { ServerMessage } from '../../src/types/net'
 
-function setup(opts?: { rng?: () => number; code?: string }) {
+function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
   vi.spyOn(Math, 'random').mockReturnValue(0.5)
   const sent: ServerMessage[] = []
   const server = new GameServer(
@@ -332,7 +332,7 @@ describe('GameServer', () => {
   })
 
   it('lets the recipient accept a trade even when it is not their turn', () => {
-    const { server } = setup()
+    const { server } = setup({ tradesEnabled: true })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -348,7 +348,7 @@ describe('GameServer', () => {
   })
 
   it('rejects a PROPOSE_TRADE whose fromId is not the sender', () => {
-    const { server, sent } = setup()
+    const { server, sent } = setup({ tradesEnabled: true })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -360,7 +360,7 @@ describe('GameServer', () => {
   })
 
   it('lets the recipient reject a trade even when it is not their turn', () => {
-    const { server } = setup()
+    const { server } = setup({ tradesEnabled: true })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
@@ -376,7 +376,7 @@ describe('GameServer', () => {
   })
 
   it('rejects a trade response from a player who is not a party', () => {
-    const { server, sent } = setup()
+    const { server, sent } = setup({ tradesEnabled: true })
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.join('c2', 'Charlie')

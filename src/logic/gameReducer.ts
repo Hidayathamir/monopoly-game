@@ -9,7 +9,7 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-export function createInitialState(): GameState {
+export function createInitialState({ tradesEnabled = false }: { tradesEnabled?: boolean } = {}): GameState {
   return {
     phase: GamePhase.Setup,
     players: [],
@@ -27,6 +27,7 @@ export function createInitialState(): GameState {
     justBoughtSpaceId: null,
     pendingTrades: [],
     nextTradeId: 0,
+    tradesEnabled,
   };
 }
 
@@ -503,6 +504,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.ProposeTrade: {
+      if (!state.tradesEnabled) return state;
       const offer = action.offer;
       const from = state.players[offer.fromId];
       const to = state.players[offer.toId];
@@ -531,6 +533,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.AcceptTrade: {
+      if (!state.tradesEnabled) return state;
       const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
       if (!trade) return state;
       const from = state.players[trade.fromId];
@@ -552,6 +555,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.RejectTrade: {
+      if (!state.tradesEnabled) return state;
       const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
       if (!trade) return state;
       return {
@@ -562,6 +566,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case GameActionType.CancelTrade: {
+      if (!state.tradesEnabled) return state;
       const trade = state.pendingTrades.find((t) => t.id === action.tradeId);
       if (!trade) return state;
       return {

@@ -148,6 +148,7 @@ export type GameState = {
   justBoughtSpaceId: number | null;
   pendingTrades: PendingTrade[];
   nextTradeId: number;
+  tradesEnabled: boolean;
 };
 
 export type PendingAction =
