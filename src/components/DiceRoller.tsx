@@ -27,8 +27,14 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
     const id = setInterval(() => {
       setTickerValue((v) => {
         const next = v + directionRef.current
-        if (next > MAX_TOTAL) directionRef.current = -1
-        else if (next < MIN_TOTAL) directionRef.current = 1
+        if (next > MAX_TOTAL) {
+          directionRef.current = -1
+          return MAX_TOTAL
+        }
+        if (next < MIN_TOTAL) {
+          directionRef.current = 1
+          return MIN_TOTAL
+        }
         return next
       })
     }, TICK_MS)

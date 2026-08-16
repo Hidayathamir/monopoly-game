@@ -64,5 +64,24 @@ describe('DiceRoller', () => {
       expect(onRoll).toHaveBeenCalledWith(4)
       vi.useRealTimers()
     })
+
+    it('clamps the ticker at the top boundary (12)', () => {
+      vi.useFakeTimers()
+      const onRoll = vi.fn()
+      renderWithProviders(<DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />)
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+
+      fireEvent.pointerDown(button)
+      act(() => vi.advanceTimersByTime(800)) // 10 ticks: 2 → 12
+      expect(screen.getByTestId('dice-aim')).toHaveTextContent('Aiming: 12')
+
+      act(() => vi.advanceTimersByTime(80)) // would try 13
+      expect(screen.getByTestId('dice-aim')).toHaveTextContent('Aiming: 12')
+
+      fireEvent.pointerUp(button)
+      expect(onRoll).toHaveBeenCalledTimes(1)
+      expect(onRoll).toHaveBeenCalledWith(12)
+      vi.useRealTimers()
+    })
   })
 })
