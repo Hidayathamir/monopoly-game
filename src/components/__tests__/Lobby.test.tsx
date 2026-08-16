@@ -74,4 +74,17 @@ describe('Lobby', () => {
     renderWithProviders(<Lobby game={makeGame({ hostPlayerId: 0, playerId: 1 })} />)
     expect(screen.queryByRole('button', { name: 'Add Bot' })).toBeNull()
   })
+
+  it('dims the row of a disconnected player', () => {
+    renderWithProviders(<Lobby game={makeGame({
+      lobby: [
+        { id: 0, name: 'Host', connected: true, isBot: false },
+        { id: 1, name: 'Gone', connected: false, isBot: false },
+      ],
+    })} />)
+    const goneRow = screen.getByText(/Gone/).closest('div')!
+    expect(goneRow.className).toContain('opacity-50')
+    const hostRow = screen.getByText('Host').closest('div')!
+    expect(hostRow.className).not.toContain('opacity-50')
+  })
 })
