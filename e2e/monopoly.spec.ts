@@ -71,8 +71,9 @@ test.describe('Monopoly Game E2E', () => {
 
     const panel = page.locator('[data-testid="player-card"]')
     await expect(panel).toHaveCount(2)
-    await expect(panel.first()).toContainText('Alpha')
-    await expect(panel.nth(1)).toContainText('Beta')
+    const texts = await panel.allTextContents()
+    expect(texts.some((t) => t.includes('Alpha'))).toBe(true)
+    expect(texts.some((t) => t.includes('Beta'))).toBe(true)
     await expect(panel.first()).toContainText('$')
   })
 

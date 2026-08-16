@@ -27,7 +27,7 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
   }, [code, name, create, join])
 
   useEffect(() => {
-    if (game.code && name) saveSession({ name, code: game.code })
+    if (game.state.phase !== GamePhase.Setup && game.code && name) saveSession({ name, code: game.code })
   }, [game.code, name, game.state.phase])
 
   useEffect(() => {

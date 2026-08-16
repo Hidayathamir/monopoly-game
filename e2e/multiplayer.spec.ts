@@ -76,13 +76,18 @@ test('two clients create and join a room, then start a game', async ({ browser }
 })
 
 test('a player who refreshes mid-game rejoins the same room', async ({ browser }) => {
-  const context = await browser.newContext()
-  await context.addInitScript(() => {
+  const contextA = await browser.newContext()
+  await contextA.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
     localStorage.setItem('monopoly-currency', 'USD')
   })
-  const pageA = await context.newPage()
-  const pageB = await context.newPage()
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await contextA.newPage()
+  const pageB = await contextB.newPage()
 
   await pageA.goto(`http://localhost:${PORT}/`)
   await pageA.click('button:has-text("Multiplayer")')
