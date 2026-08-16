@@ -171,6 +171,7 @@
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",
   "dice.aiming": "Membidik: {{target}}",
+  "dice.holdHint": "Tahan untuk membidik, lepas untuk melempar",
   "dice.doubles": "Ganda? {{result}} — {{n}}x lagi",
 
   "action.buyPrompt": "Beli {{name}}?",

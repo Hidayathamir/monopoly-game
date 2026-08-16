@@ -58,7 +58,8 @@ rollControlledDice(target: number, rng: () => number): { dice: [number, number];
    `d1 + d2 = t`.
 
 At luck 0 this is exactly standard 2d6 (each of the 36 ordered pairs equally
-likely); at luck 100 the total is always `target`.
+likely); at luck 100 the result is maximally concentrated at the target —
+mostly the target, occasionally adjacent totals.
 
 ### 2. Hold-and-release UI — `src/components/DiceRoller.tsx`
 
@@ -110,7 +111,7 @@ unchanged.
 
 - `src/logic/__tests__/controlledDice.test.ts` (NEW) — deterministic rng:
   - luck 0 ≈ standard 2d6 distribution;
-  - luck 100 always samples the target total;
+  - luck 100 concentrates results at the target (mostly the target, occasionally adjacent totals);
   - mid-luck frequencies cluster near target;
   - sampled pair always sums to the sampled total, values within 1–6.
 - `src/components/__tests__/DiceRoller.test.tsx` — hold runs the ticker,

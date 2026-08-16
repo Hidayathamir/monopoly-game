@@ -171,6 +171,7 @@
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
   "dice.aiming": "Aiming: {{target}}",
+  "dice.holdHint": "Hold to aim, release to roll",
   "dice.doubles": "Doubles? {{result}} — {{n}} more",
 
   "action.buyPrompt": "Buy {{name}}?",

@@ -100,9 +100,13 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
           onPointerCancel={() => setHolding(false)}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
+          onBlur={() => setHolding(false)}
         >
           {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
+      )}
+      {(canRoll || canRollJail) && isMyTurn && !holding && (
+        <p className="text-sm text-muted text-center">{t('dice.holdHint')}</p>
       )}
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
         <p className="text-base text-muted text-center">

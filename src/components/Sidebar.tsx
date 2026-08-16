@@ -10,7 +10,7 @@ import EventLog from './EventLog'
 
 interface Props {
   state: GameState
-  onRoll: () => void
+  onRoll: (target?: number) => void
   onEndTurn: () => void
   onProposeTrade: (playerId: number) => void
   onDrawCard: () => void
