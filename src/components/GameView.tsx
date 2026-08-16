@@ -13,7 +13,8 @@ export default function GameView({ game, onLeave, exitKeys }: { game: GameApi; o
   const isMyTurn = game.myPlayerId === null
     ? !state.players[state.currentPlayer]?.isBot
     : game.myPlayerId === state.currentPlayer
-  const canTrade = isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
+  const tradesEnabled = state.tradesEnabled
+  const canTrade = tradesEnabled && isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTrades, setShowTrades] = useState(false)
   const tradeCount = state.pendingTrades.filter((tr) =>
@@ -37,6 +38,7 @@ export default function GameView({ game, onLeave, exitKeys }: { game: GameApi; o
           onEndTurn={game.endTurn}
           onProposeTrade={(id: number) => setTradeTargetId(id)}
           canTrade={canTrade}
+          tradesEnabled={tradesEnabled}
           onDrawCard={game.drawCard}
           onBuyProperty={game.buyProperty}
           onDeclineBuy={game.declineBuy}

@@ -27,6 +27,7 @@ function makeProps() {
     onEndTurn: noop,
     onProposeTrade: noop,
     canTrade: true,
+    tradesEnabled: true,
     onDrawCard: noop,
     onBuyProperty: noop,
     onDeclineBuy: noop,
@@ -77,5 +78,10 @@ describe('Sidebar', () => {
     renderWithProviders(<Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} tradeCount={3} />)
     expect(screen.getByText('Trades')).toBeVisible()
     expect(screen.getByText('3')).toBeVisible()
+  })
+
+  it('hides the trades button when trades are disabled', () => {
+    renderWithProviders(<Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} tradesEnabled={false} />)
+    expect(screen.queryByText('Trades')).toBeNull()
   })
 })

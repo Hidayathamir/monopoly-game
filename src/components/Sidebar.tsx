@@ -26,11 +26,12 @@ interface Props {
   exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string }
   isMyTurn: boolean
   canTrade?: boolean
+  tradesEnabled?: boolean
   tradeCount: number
   onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
@@ -54,19 +55,21 @@ export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeT
             {t('turn.waitingFor', { name: state.players[state.currentPlayer].name })}
           </p>
         )}
-        <button
-          type="button"
-          onClick={onOpenTrades}
-          className="relative w-full py-1.5 rounded-lg border border-border bg-bg-dark text-sm font-semibold hover:opacity-90"
-        >
-          {t('trade.inbox')}
-          {tradeCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-danger text-white text-xs font-bold rounded-full px-1.5">
-              {tradeCount}
-            </span>
-          )}
-        </button>
-        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} />
+        {tradesEnabled && (
+          <button
+            type="button"
+            onClick={onOpenTrades}
+            className="relative w-full py-1.5 rounded-lg border border-border bg-bg-dark text-sm font-semibold hover:opacity-90"
+          >
+            {t('trade.inbox')}
+            {tradeCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-danger text-white text-xs font-bold rounded-full px-1.5">
+                {tradeCount}
+              </span>
+            )}
+          </button>
+        )}
+        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} tradesEnabled={tradesEnabled} />
         <EventLog log={state.eventLog} />
       </div>
     </div>

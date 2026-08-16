@@ -36,9 +36,10 @@ interface PlayerCardProps {
   canTrade?: boolean
   currentPlayerId?: number
   onProposeTrade?: (playerId: number) => void
+  tradesEnabled?: boolean
 }
 
-export default function PlayerCard({ player, isCurrent, color, diff, board, canTrade = true, currentPlayerId, onProposeTrade }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, color, diff, board, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
@@ -106,6 +107,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, canT
             canTrade={canTrade}
             currentPlayerId={currentPlayerId}
             onProposeTrade={handleTrade}
+            tradesEnabled={tradesEnabled}
           />,
           document.body,
         )
@@ -114,7 +116,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, canT
   )
 }
 
-function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade }: {
+function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade, tradesEnabled }: {
   player: Player
   owned: Space[]
   color: string
@@ -124,6 +126,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, c
   canTrade: boolean
   currentPlayerId?: number
   onProposeTrade?: () => void
+  tradesEnabled: boolean
 }) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
@@ -168,7 +171,7 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, c
       {owned.length === 0 && (
         <div className="text-sm text-muted italic">{t('card.noProperties')}</div>
       )}
-      {player.id !== currentPlayerId && (
+      {player.id !== currentPlayerId && tradesEnabled && (
         <Button size="sm" disabled={!canTrade} onClick={onProposeTrade} className="w-full mt-2">
           {t('action.trade')}
         </Button>

@@ -77,6 +77,11 @@ describe('PlayerCard popup trade button', () => {
     expect(screen.getByRole('button', { name: /Trade/ })).toBeDisabled()
   })
 
+  it('hides the Trade button when trades are disabled', () => {
+    openPopup({ tradesEnabled: false })
+    expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
+  })
+
   it('calls onProposeTrade with the hovered player id and closes the popup', () => {
     const onProposeTrade = vi.fn()
     openPopup({ onProposeTrade })

@@ -8,9 +8,10 @@ interface Props {
   playerColors: string[]
   onProposeTrade: (playerId: number) => void
   canTrade: boolean
+  tradesEnabled?: boolean
 }
 
-export default function PlayerPanel({ state, playerColors, onProposeTrade, canTrade }: Props) {
+export default function PlayerPanel({ state, playerColors, onProposeTrade, canTrade, tradesEnabled = true }: Props) {
   const { t } = useTranslation()
   const { players, currentPlayer, board } = state
   const prevMoney = useRef<Record<number, number>>({})
@@ -46,6 +47,7 @@ export default function PlayerPanel({ state, playerColors, onProposeTrade, canTr
               diff={diffs[player.id] ?? null}
               board={board}
               canTrade={canTrade && !player.bankrupt}
+              tradesEnabled={tradesEnabled}
               currentPlayerId={currentPlayer}
               onProposeTrade={onProposeTrade}
             />
