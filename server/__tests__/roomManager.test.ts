@@ -49,4 +49,15 @@ describe('RoomManager', () => {
     rm.removeClient('c1')
     expect(rm.get(code)).toBeDefined()
   })
+
+  it('seeds created games with tradesEnabled from config (default false)', () => {
+    const { rm } = setup()
+    expect(rm.create().game.getState().tradesEnabled).toBe(false)
+  })
+
+  it('seeds created games with tradesEnabled true', () => {
+    const sent: { clientId: string; message: ServerMessage }[] = []
+    const rm = new RoomManager({ send: (clientId, message) => sent.push({ clientId, message }) }, { tradesEnabled: true })
+    expect(rm.create().game.getState().tradesEnabled).toBe(true)
+  })
 })

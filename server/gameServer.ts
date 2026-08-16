@@ -239,6 +239,16 @@ export class GameServer {
   }
 
   handleAction(clientId: ClientId, action: GameAction): void {
+    if (
+      !this.state.tradesEnabled &&
+      (action.type === GameActionType.ProposeTrade ||
+        action.type === GameActionType.AcceptTrade ||
+        action.type === GameActionType.RejectTrade ||
+        action.type === GameActionType.CancelTrade)
+    ) {
+      this.events.send(clientId, { type: ServerMessageType.Error, message: 'Fitur pertukaran tidak tersedia' })
+      return
+    }
     if (action.type === GameActionType.RollDice) {
       this.roll(clientId, action.target)
       return

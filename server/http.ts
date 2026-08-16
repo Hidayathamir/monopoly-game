@@ -16,7 +16,7 @@ const MIME: Record<string, string> = {
   '.json': 'application/json',
 }
 
-export function createServer(distDir = 'dist') {
+export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean }) {
   const root = resolve(distDir)
   const sockets = new Map<string, WebSocket>()
   let nextId = 1
@@ -26,7 +26,7 @@ export function createServer(distDir = 'dist') {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg))
   }
 
-  const roomManager = new RoomManager({ send })
+  const roomManager = new RoomManager({ send }, { tradesEnabled: opts?.tradesEnabled ?? false })
 
   const httpServer = createHttpServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost')

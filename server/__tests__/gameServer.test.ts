@@ -389,4 +389,16 @@ describe('GameServer', () => {
     expect(sent.some((m) => m.type === 'error')).toBe(true)
     expect(server.getState().pendingTrades).toHaveLength(1)
   })
+
+  it('rejects trade actions when trades are disabled', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+    } })
+    expect(sent.some((m) => m.type === 'error' && m.message === 'Fitur pertukaran tidak tersedia')).toBe(true)
+    expect(server.getState().pendingTrades).toHaveLength(0)
+  })
 })

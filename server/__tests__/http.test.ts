@@ -95,4 +95,11 @@ describe('http server', () => {
     const traversal = await fetch(`http://localhost:${port}/../../etc/passwd`)
     expect(traversal.status).toBeGreaterThanOrEqual(400)
   })
+
+  it('seeds rooms with the configured tradesEnabled flag', () => {
+    const enabled = createServer(dir, { tradesEnabled: true })
+    expect(enabled.roomManager.create().game.getState().tradesEnabled).toBe(true)
+    const disabled = createServer(dir)
+    expect(disabled.roomManager.create().game.getState().tradesEnabled).toBe(false)
+  })
 })
