@@ -8,12 +8,11 @@ interface Props {
   state: GameState
   onPropose: (offer: TradeOffer) => void
   onClose: () => void
-  targetPlayerId?: number
+  targetPlayerId: number
 }
 
 export default function TradeModal({ state, onPropose, onClose, targetPlayerId }: Props) {
   const { t } = useTranslation()
-  const [targetPlayer, setTargetPlayer] = useState<number | null>(targetPlayerId ?? null)
   const [offerProperties, setOfferProperties] = useState<number[]>([])
   const [offerCash, setOfferCash] = useState(0)
   const [requestProperties] = useState<number[]>([])
@@ -24,8 +23,7 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   )
 
   function handlePropose() {
-    const toId = targetPlayerId ?? targetPlayer
-    if (toId === null) return
+    const toId = targetPlayerId
     onPropose({
       fromId: state.currentPlayer,
       toId,
@@ -41,22 +39,7 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
       <h3 className="text-2xl text-gold m-0">{t('trade.title')}</h3>
       <div className="flex flex-col gap-1">
         <label className="text-base text-text-dim">{t('trade.with')}</label>
-        {targetPlayerId !== undefined ? (
-          <p className="text-base text-gold">{state.players[targetPlayerId]?.name}</p>
-        ) : (
-          <select
-            value={targetPlayer ?? ''}
-            onChange={(e) => setTargetPlayer(Number(e.target.value))}
-            className="p-2 rounded-md border border-border bg-input-bg text-text"
-          >
-            <option value="">{t('trade.selectPlayer')}</option>
-            {state.players
-              .filter((p) => p.id !== state.currentPlayer && !p.bankrupt)
-              .map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-          </select>
-        )}
+        <p className="text-base text-gold">{state.players[targetPlayerId]?.name}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
