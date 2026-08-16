@@ -5,7 +5,8 @@ import { STARTING_MONEY, GO_SALARY } from '../../data/board';
 
 function makeStartedState(playerCount = 2): GameState {
   const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
-  return gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount, names });
+  const s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount, names });
+  return { ...s, turnOrder: s.players.map((_, i) => i), currentPlayer: 0 };
 }
 
 function setMoney(state: GameState, playerIndex: number, money: number): GameState {
@@ -49,7 +50,40 @@ describe('gameReducer', () => {
       expect(state.players[1].money).toBe(STARTING_MONEY);
       expect(state.players[2].name).toBe('Charlie');
       expect(state.phase).toBe(GamePhase.Waiting);
-      expect(state.currentPlayer).toBe(0);
+      expect(state.turnOrder).toEqual(expect.arrayContaining(state.players.map((_, i) => i)));
+      expect(state.currentPlayer).toBe(state.turnOrder[0]);
+    });
+
+    it('turnOrder is a permutation of every player id', () => {
+      const state = makeStartedState(4);
+      expect([...state.turnOrder].sort()).toEqual([0, 1, 2, 3]);
+    });
+
+    it('advances through turnOrder and wraps around', () => {
+      let state = makeStartedState(3);
+      state = { ...state, turnOrder: [2, 0, 1], currentPlayer: 2 };
+      state = { ...state, currentPlayer: state.turnOrder[0] };
+      const s1 = gameReducer(state, { type: GameActionType.EndTurn });
+      expect(s1.currentPlayer).toBe(0);
+      state = { ...state, currentPlayer: 1 };
+      const s2 = gameReducer(state, { type: GameActionType.EndTurn });
+      expect(s2.currentPlayer).toBe(2);
+    });
+
+    it('getNextPlayer skips bankrupt players in turn order', () => {
+      let state = makeStartedState(3);
+      state = {
+        ...state,
+        turnOrder: [0, 1, 2],
+        currentPlayer: 0,
+        players: [
+          state.players[0],
+          { ...state.players[1], bankrupt: true },
+          state.players[2],
+        ],
+      };
+      const s1 = gameReducer(state, { type: GameActionType.EndTurn });
+      expect(s1.currentPlayer).toBe(2);
     });
 
     it('stamps isBot flags from the action (default false)', () => {

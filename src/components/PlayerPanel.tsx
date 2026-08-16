@@ -34,7 +34,8 @@ export default function PlayerPanel({ state, playerColors, onProposeTrade, canTr
     <div className="w-full">
       <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">{t('panel.players')}</div>
       <div className="flex flex-wrap gap-2 justify-center">
-        {players.map((player) => {
+        {(state.turnOrder.length > 0 ? state.turnOrder : players.map((p) => p.id)).map((id) => {
+          const player = players[id]
           const isCurrent = player.id === currentPlayer
           return (
             <PlayerCard

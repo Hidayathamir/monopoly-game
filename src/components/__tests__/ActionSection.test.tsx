@@ -15,7 +15,8 @@ const actions = {
 }
 
 function makeState(): GameState {
-  return gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
+  const s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
+  return { ...s, turnOrder: [0, 1], currentPlayer: 0 }
 }
 
 afterEach(cleanup)

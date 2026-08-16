@@ -15,6 +15,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
       },
     ],
     currentPlayer: 0,
+    turnOrder: [0],
     board: [],
     chanceDeck: [],
     communityDeck: [],

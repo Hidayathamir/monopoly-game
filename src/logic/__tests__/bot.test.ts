@@ -29,6 +29,7 @@ function makeState(overrides: Partial<GameState> = {}, player: Player = makePlay
     phase: GamePhase.Waiting,
     players: [player],
     currentPlayer: 0,
+    turnOrder: [0],
     board: createInitialBoard(),
     chanceDeck: [],
     communityDeck: [],

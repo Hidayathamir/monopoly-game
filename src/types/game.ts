@@ -134,6 +134,7 @@ export type CardEffect =
 export type GameState = {
   phase: GamePhase;
   players: Player[];
+  turnOrder: number[];
   currentPlayer: number;
   board: Space[];
   chanceDeck: Card[];

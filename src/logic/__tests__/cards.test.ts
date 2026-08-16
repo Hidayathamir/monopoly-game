@@ -12,6 +12,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
       { id: 1, name: 'Bob', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false },
     ],
     currentPlayer: 0,
+    turnOrder: [0],
     board: createInitialBoard(),
     chanceDeck: [],
     communityDeck: [],

@@ -9,7 +9,7 @@ import { renderWithProviders } from '../../test/test-utils'
 
 function makeState(money: number): GameState {
   const s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
-  return { ...s, players: s.players.map((p, i) => i === 0 ? { ...p, money, properties: [8] } : p) }
+  return { ...s, turnOrder: [0, 1], currentPlayer: 0, players: s.players.map((p, i) => i === 0 ? { ...p, money, properties: [8] } : p) }
 }
 
 afterEach(cleanup)

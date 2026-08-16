@@ -52,6 +52,7 @@ describe('useGame jailed player turn', () => {
   })
 
   it('does not auto-skip a jailed player\'s turn', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
     // Drive Alice into jail via triple doubles, then let Bob end his turn so it is Alice's turn again.
     let s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
     s = gameReducer(s, { type: GameActionType.RollDice })

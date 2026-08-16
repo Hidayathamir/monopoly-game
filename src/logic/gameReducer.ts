@@ -13,6 +13,7 @@ export function createInitialState(): GameState {
   return {
     phase: GamePhase.Setup,
     players: [],
+    turnOrder: [],
     currentPlayer: 0,
     board: createInitialBoard(),
     chanceDeck: shuffle([...CHANCE_CARDS]),
@@ -48,11 +49,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isBot: action.isBot?.[i] ?? false,
         });
       }
+      const turnOrder = shuffle(Array.from({ length: action.playerCount }, (_, i) => i));
       return {
         ...state,
         phase: GamePhase.Waiting,
         players,
-        currentPlayer: 0,
+        turnOrder,
+        currentPlayer: turnOrder[0],
         eventLog: [{ key: 'event.gameStarted' }],
       };
     }
@@ -735,13 +738,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 }
 
 function getNextPlayer(state: GameState): number {
-  let next = (state.currentPlayer + 1) % state.players.length;
-  let safety = 0;
-  while (state.players[next]?.bankrupt && safety < state.players.length) {
-    next = (next + 1) % state.players.length;
-    safety++;
+  const order = state.turnOrder.length > 0 ? state.turnOrder : state.players.map((_, i) => i);
+  const idx = order.indexOf(state.currentPlayer);
+  for (let i = 1; i <= order.length; i++) {
+    const id = order[(idx + i) % order.length];
+    if (!state.players[id]?.bankrupt) return id;
   }
-  return next;
+  return state.currentPlayer;
 }
 
 function isTradeValid(state: GameState, trade: PendingTrade): boolean {

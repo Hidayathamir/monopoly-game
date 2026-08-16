@@ -34,4 +34,18 @@ describe('PlayerPanel', () => {
     )
     expect(screen.getAllByText(/^\+/).length).toBeGreaterThan(0)
   })
+
+  it('renders players in turn order', () => {
+    const s = makeState(1000, 0)
+    renderWithProviders(
+      <PlayerPanel
+        state={{ ...s, turnOrder: [1, 0], currentPlayer: 1 }}
+        playerColors={COLORS}
+        onProposeTrade={() => {}}
+        canTrade
+      />,
+    )
+    const names = screen.getAllByText(/Alice|Bob/).map((el) => el.textContent)
+    expect(names.indexOf('Bob')).toBeLessThan(names.indexOf('Alice'))
+  })
 })

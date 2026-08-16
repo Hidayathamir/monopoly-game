@@ -4,6 +4,7 @@ import { GamePhase } from '../../src/types/game'
 import type { ServerMessage } from '../../src/types/net'
 
 function setup(opts?: { rng?: () => number; code?: string }) {
+  vi.spyOn(Math, 'random').mockReturnValue(0.5)
   const sent: ServerMessage[] = []
   const server = new GameServer(
     {
@@ -17,7 +18,10 @@ function setup(opts?: { rng?: () => number; code?: string }) {
 }
 
 describe('GameServer', () => {
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
 
   it('assigns slot 0 to the first joiner and slot 1 to the second', () => {
     const { server, sent } = setup()
