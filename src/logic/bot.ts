@@ -6,7 +6,7 @@ import { isMonopoly } from './rent';
 
 export function decideBotAction(state: GameState): GameAction | null {
   const player = state.players[state.currentPlayer];
-  if (!player.isBot || state.phase === GamePhase.GameOver) return null;
+  if ((!player.isBot && !player.botControlled) || state.phase === GamePhase.GameOver) return null;
 
   const pending = state.pendingAction;
   if (pending) {
