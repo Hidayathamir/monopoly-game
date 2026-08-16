@@ -1,4 +1,4 @@
-import { GamePhase, PendingActionType, type GameState } from '../types/game'
+import { CardType, GamePhase, PendingActionType, SpaceType, type GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import { JAIL_FINE, getHouseCost } from '../data/board'
@@ -81,7 +81,7 @@ export default function ActionSection({
     return (
       <div className="flex flex-col gap-1.5 w-full items-stretch">
         <div className="flex flex-col gap-1 items-center">
-          <p className="text-base my-[3px] text-center">{t('card.' + (pending.card.id >= 100 ? 'community' : 'chance') + '.' + pending.card.id)}</p>
+          <p className="text-base my-[3px] text-center">{t('card.' + (pending.card.id >= 100 ? CardType.Community : CardType.Chance) + '.' + pending.card.id)}</p>
           <p className="text-base text-muted text-center">{t('action.clickToContinue')}</p>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function ActionSection({
   const space = state.board[player.position]
   const canBuild =
     state.dice !== null &&
-    space?.type === 'property' &&
+    space?.type === SpaceType.Property &&
     space.owner === state.currentPlayer &&
     space.houses < 5 &&
     !space.mortgaged &&

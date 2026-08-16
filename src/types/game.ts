@@ -29,6 +29,12 @@ export const CardActionType = {
 } as const;
 export type CardActionType = (typeof CardActionType)[keyof typeof CardActionType];
 
+export const TaxType = {
+  Income: 'income',
+  Luxury: 'luxury',
+} as const;
+export type TaxType = (typeof TaxType)[keyof typeof TaxType];
+
 export const GamePhase = {
   Setup: 'setup',
   Waiting: 'waiting',
@@ -105,7 +111,7 @@ export type Space = {
   owner: number | null;
   houses: number;
   mortgaged: boolean;
-  taxType?: 'income' | 'luxury';
+  taxType?: TaxType;
 };
 
 export type Card = {

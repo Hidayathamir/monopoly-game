@@ -1,4 +1,4 @@
-import { type GameState, type Space } from '../types/game'
+import { SpaceType, TaxType, type GameState, type Space } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
@@ -21,7 +21,7 @@ export default function PropertyTooltip({
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const owner = space.owner !== null ? state.players[space.owner] : null
-  const isBuyable = space.type === 'property' || space.type === 'railroad' || space.type === 'utility'
+  const isBuyable = space.type === SpaceType.Property || space.type === SpaceType.Railroad || space.type === SpaceType.Utility
   const isOwned = space.owner === state.currentPlayer
   const nextHouseCost = getHouseCost(space, space.houses)
   const unmortgageCost = Math.floor((space.price ?? 0) / 2 * 1.1)
@@ -34,15 +34,15 @@ export default function PropertyTooltip({
         <strong>{t('board.space.' + space.id)}</strong>
       </div>
       {space.mortgaged && <div className="text-sm text-red-danger font-bold">{t('tooltip.mortgaged')}</div>}
-      {space.type === 'go' && (
+      {space.type === SpaceType.Go && (
         <div className="text-sm text-text-dim">{t('tooltip.passGo', { amount: formatMoney(GO_SALARY) })}</div>
       )}
-      {space.type === 'freeParking' && (
+      {space.type === SpaceType.FreeParking && (
         <div className="text-sm text-text-dim">{t('tooltip.jackpot', { amount: formatMoney(state.freeParkingPot) })}</div>
       )}
-      {space.type === 'tax' && (
+      {space.type === SpaceType.Tax && (
         <div className="text-sm text-text-dim">
-          {space.taxType === 'income'
+          {space.taxType === TaxType.Income
             ? t('tooltip.incomeTax')
             : t('tooltip.flatTax', { amount: formatMoney(space.price) })}
         </div>
@@ -50,7 +50,7 @@ export default function PropertyTooltip({
       {isBuyable && space.price && (
         <>
           <div className="text-sm text-text-dim m-0.5">{t('tooltip.price')}<strong className="text-green-money">{formatMoney(space.price)}</strong></div>
-          {space.rent && space.type === 'property' && (
+          {space.rent && space.type === SpaceType.Property && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">{t('tooltip.baseRent')}{formatMoney(space.rent[0])}</div>
               <div className="text-text-dim">1 {t('tooltip.house')}: {formatMoney(space.rent[1])}</div>
@@ -60,7 +60,7 @@ export default function PropertyTooltip({
               <div className="text-text-dim">{t('tooltip.hotelWord')}: {formatMoney(space.rent[space.rent.length - 1])}</div>
             </div>
           )}
-          {space.rent && space.type === 'railroad' && (
+          {space.rent && space.type === SpaceType.Railroad && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">{t('tooltip.railroad1')}{formatMoney(space.rent[0])}</div>
               <div className="text-text-dim">{t('tooltip.railroad2')}{formatMoney(space.rent[1])}</div>
@@ -68,13 +68,13 @@ export default function PropertyTooltip({
               <div className="text-text-dim">{t('tooltip.railroad4')}{formatMoney(space.rent[3])}</div>
             </div>
           )}
-          {space.type === 'utility' && (
+          {space.type === SpaceType.Utility && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm">
               <div className="text-text-dim">{t('tooltip.utility1')}</div>
               <div className="text-text-dim">{t('tooltip.utility2')}</div>
             </div>
           )}
-          {space.type === 'property' && space.owner !== null && space.houses === 0 && isMonopoly(space.owner, state.board, space) && (
+          {space.type === SpaceType.Property && space.owner !== null && space.houses === 0 && isMonopoly(space.owner, state.board, space) && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm text-gold font-semibold">
               {t('tooltip.monopoly', { amount: formatMoney((space.rent?.[0] ?? 0) * 2) })}
             </div>

@@ -21,7 +21,7 @@ export default function CardModal({ state, isMyTurn, onResolve }: Props) {
         {t(pending.card.type === CardType.Chance ? 'cardmodal.chance' : 'cardmodal.community')}
       </h3>
       <p className="text-xl p-4 bg-bg-dark rounded-lg text-center">
-        {t('card.' + (pending.card.type === CardType.Chance ? 'chance' : 'community') + '.' + pending.card.id)}
+        {t('card.' + (pending.card.type === CardType.Chance ? CardType.Chance : CardType.Community) + '.' + pending.card.id)}
       </p>
       <Modal.Actions>
         {isMyTurn ? (

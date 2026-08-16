@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import type { GameState } from '../types/game'
+import { SpaceType, type GameState } from '../types/game'
 import PropertyTooltip from './PropertyTooltip'
 
 interface Props {
@@ -25,14 +25,14 @@ function getCellPosition(id: number): { gridColumn: number; gridRow: number } | 
   return { gridColumn: 11, gridRow: 2 + (id - 31) }
 }
 
-const TYPE_BG: Record<string, string> = {
-  go: 'bg-cell-go',
-  jail: 'bg-cell-jail',
-  goToJail: 'bg-cell-jail',
-  freeParking: 'bg-cell-free-parking',
-  tax: 'bg-cell-tax',
-  chance: 'bg-cell-chance',
-  community: 'bg-cell-community',
+const TYPE_BG: Partial<Record<SpaceType, string>> = {
+  [SpaceType.Go]: 'bg-cell-go',
+  [SpaceType.Jail]: 'bg-cell-jail',
+  [SpaceType.GoToJail]: 'bg-cell-jail',
+  [SpaceType.FreeParking]: 'bg-cell-free-parking',
+  [SpaceType.Tax]: 'bg-cell-tax',
+  [SpaceType.Chance]: 'bg-cell-chance',
+  [SpaceType.Community]: 'bg-cell-community',
 }
 
 const HIDE_DELAY = 400
@@ -128,8 +128,8 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
               'border border-border text-sm flex flex-col items-center justify-center relative overflow-hidden p-0.5 select-none',
               'hover:bg-bg-cell-hover hover:z-[2]',
               TYPE_BG[space.type] ?? 'bg-bg-cell',
-              space.type === 'chance' ? '[&_.cell-name]:text-gold' : '',
-              space.type === 'community' ? '[&_.cell-name]:text-[#40c0f0]' : '',
+              space.type === SpaceType.Chance ? '[&_.cell-name]:text-gold' : '',
+              space.type === SpaceType.Community ? '[&_.cell-name]:text-[#40c0f0]' : '',
             ].join(' ')}
             style={{
               ...(pos ? { gridColumn: pos.gridColumn, gridRow: pos.gridRow } : {}),

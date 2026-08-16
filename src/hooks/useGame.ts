@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useEffect, useRef } from 'react'
-import { GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
+import { GameActionType, GamePhase, PendingActionType, type GameAction, type TradeOffer } from '../types/game'
 import { gameReducer, createInitialState } from '../logic/gameReducer'
 import { decideBotAction } from '../logic/bot'
 
@@ -35,7 +35,7 @@ export function useGame() {
 
   const startGame = useCallback((players: { name: string; isBot: boolean }[]) => {
     dispatch({
-      type: 'START_GAME',
+      type: GameActionType.StartGame,
       playerCount: players.length,
       names: players.map((p) => p.name),
       isBot: players.map((p) => p.isBot),
@@ -48,14 +48,14 @@ export function useGame() {
   }, [])
 
   const roll = useCallback(() => {
-    dispatch({ type: 'ROLL_DICE' })
+    dispatch({ type: GameActionType.RollDice })
     const d1 = Math.floor(Math.random() * 6) + 1
     const d2 = Math.floor(Math.random() * 6) + 1
     const total = d1 + d2
     const animDuration = 500 + total * 150
     setTimeout(() => {
-      dispatch({ type: 'DICE_ANIMATED', dice: [d1, d2] })
-      setTimeout(() => dispatch({ type: 'RESOLVE_SPACE' }), animDuration)
+      dispatch({ type: GameActionType.DiceAnimated, dice: [d1, d2] })
+      setTimeout(() => dispatch({ type: GameActionType.ResolveSpace }), animDuration)
     }, 500)
   }, [])
 
@@ -70,41 +70,41 @@ export function useGame() {
       if (!current?.isBot || stateRef.current.phase === GamePhase.GameOver) return
       const action = decideBotAction(stateRef.current)
       if (!action) return
-      if (action.type === 'ROLL_DICE') roll()
+      if (action.type === GameActionType.RollDice) roll()
       else send(action)
     }, 600)
     return () => clearTimeout(timer)
   }, [state, roll, send])
 
-  const buyProperty = useCallback(() => send({ type: 'BUY_PROPERTY' }), [send])
-  const declineBuy = useCallback(() => send({ type: 'DECLINE_BUY' }), [send])
-  const payRent = useCallback(() => send({ type: 'PAY_RENT' }), [send])
-  const buildHouse = useCallback((spaceId: number) => send({ type: 'BUILD_HOUSE', spaceId }), [send])
-  const sellHouse = useCallback((spaceId: number) => send({ type: 'SELL_HOUSE', spaceId }), [send])
-  const mortgage = useCallback((spaceId: number) => send({ type: 'MORTGAGE', spaceId }), [send])
-  const unmortgage = useCallback((spaceId: number) => send({ type: 'UNMORTGAGE', spaceId }), [send])
-  const sellProperty = useCallback((spaceId: number) => send({ type: 'SELL_PROPERTY', spaceId }), [send])
-  const proposeTrade = useCallback((offer: TradeOffer) => send({ type: 'PROPOSE_TRADE', offer }), [send])
-  const acceptTrade = useCallback((tradeId: number) => send({ type: 'ACCEPT_TRADE', tradeId }), [send])
-  const rejectTrade = useCallback((tradeId: number) => send({ type: 'REJECT_TRADE', tradeId }), [send])
-  const cancelTrade = useCallback((tradeId: number) => send({ type: 'CANCEL_TRADE', tradeId }), [send])
-  const drawCard = useCallback(() => send({ type: 'DRAW_CARD' }), [send])
-  const resolveCard = useCallback(() => send({ type: 'RESOLVE_CARD' }), [send])
-  const endTurn = useCallback(() => send({ type: 'END_TURN' }), [send])
-  const declareBankruptcy = useCallback(() => send({ type: 'DECLARE_BANKRUPTCY' }), [send])
-  const skipAction = useCallback(() => send({ type: 'SKIP_ACTION' }), [send])
-  const payJailFine = useCallback(() => send({ type: 'PAY_JAIL_FINE' }), [send])
-  const useGetOutOfJailFree = useCallback(() => send({ type: 'USE_GET_OUT_OF_JAIL_FREE' }), [send])
+  const buyProperty = useCallback(() => send({ type: GameActionType.BuyProperty }), [send])
+  const declineBuy = useCallback(() => send({ type: GameActionType.DeclineBuy }), [send])
+  const payRent = useCallback(() => send({ type: GameActionType.PayRent }), [send])
+  const buildHouse = useCallback((spaceId: number) => send({ type: GameActionType.BuildHouse, spaceId }), [send])
+  const sellHouse = useCallback((spaceId: number) => send({ type: GameActionType.SellHouse, spaceId }), [send])
+  const mortgage = useCallback((spaceId: number) => send({ type: GameActionType.Mortgage, spaceId }), [send])
+  const unmortgage = useCallback((spaceId: number) => send({ type: GameActionType.Unmortgage, spaceId }), [send])
+  const sellProperty = useCallback((spaceId: number) => send({ type: GameActionType.SellProperty, spaceId }), [send])
+  const proposeTrade = useCallback((offer: TradeOffer) => send({ type: GameActionType.ProposeTrade, offer }), [send])
+  const acceptTrade = useCallback((tradeId: number) => send({ type: GameActionType.AcceptTrade, tradeId }), [send])
+  const rejectTrade = useCallback((tradeId: number) => send({ type: GameActionType.RejectTrade, tradeId }), [send])
+  const cancelTrade = useCallback((tradeId: number) => send({ type: GameActionType.CancelTrade, tradeId }), [send])
+  const drawCard = useCallback(() => send({ type: GameActionType.DrawCard }), [send])
+  const resolveCard = useCallback(() => send({ type: GameActionType.ResolveCard }), [send])
+  const endTurn = useCallback(() => send({ type: GameActionType.EndTurn }), [send])
+  const declareBankruptcy = useCallback(() => send({ type: GameActionType.DeclareBankruptcy }), [send])
+  const skipAction = useCallback(() => send({ type: GameActionType.SkipAction }), [send])
+  const payJailFine = useCallback(() => send({ type: GameActionType.PayJailFine }), [send])
+  const useGetOutOfJailFree = useCallback(() => send({ type: GameActionType.UseGetOutOfJailFree }), [send])
 
   useEffect(() => {
     if (state.phase === GamePhase.Resolving && !state.pendingAction) {
-      dispatch({ type: 'RESOLVE_SPACE' })
+      dispatch({ type: GameActionType.ResolveSpace })
     }
   }, [state.phase, state.pendingAction])
 
   useEffect(() => {
     if (state.pendingAction?.type === PendingActionType.DrawCard) {
-      const t = setTimeout(() => dispatch({ type: 'DRAW_CARD' }), 300)
+      const t = setTimeout(() => dispatch({ type: GameActionType.DrawCard }), 300)
       return () => clearTimeout(t)
     }
   }, [state.pendingAction])
