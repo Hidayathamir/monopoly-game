@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { GameApi, TradeOffer } from '../types/game'
+import { GamePhase, type GameApi, type TradeOffer } from '../types/game'
 import GameBoard from './GameBoard'
 import Sidebar from './Sidebar'
 import TradeModal from './Modals/TradeModal'
@@ -12,7 +12,8 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
   const isMyTurn = game.myPlayerId === null
     ? !state.players[state.currentPlayer]?.isBot
     : game.myPlayerId === state.currentPlayer
-  const [showTrade, setShowTrade] = useState(false)
+  const canTrade = isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
+  const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
 
   return (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
@@ -29,7 +30,8 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
           isMyTurn={isMyTurn}
           onRoll={game.roll}
           onEndTurn={game.endTurn}
-          onProposeTrade={() => setShowTrade(true)}
+          onProposeTrade={(id: number) => setTradeTargetId(id)}
+          canTrade={canTrade}
           onDrawCard={game.drawCard}
           onBuyProperty={game.buyProperty}
           onDeclineBuy={game.declineBuy}
@@ -45,14 +47,15 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
       <BankruptcyModal state={state} isMyTurn={isMyTurn} onClose={game.skipAction} onBankruptcy={game.declareBankruptcy} />
       <GameOverModal state={state} onReset={game.resetGame} />
-      {showTrade && (
+      {tradeTargetId !== null && (
         <TradeModal
           state={state}
+          targetPlayerId={tradeTargetId}
           onPropose={(offer: TradeOffer) => {
             game.proposeTrade(offer)
-            setShowTrade(false)
+            setTradeTargetId(null)
           }}
-          onClose={() => setShowTrade(false)}
+          onClose={() => setTradeTargetId(null)}
         />
       )}
     </div>
