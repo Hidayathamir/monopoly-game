@@ -15,11 +15,15 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   const { t } = useTranslation()
   const [offerProperties, setOfferProperties] = useState<number[]>([])
   const [offerCash, setOfferCash] = useState(0)
-  const [requestProperties] = useState<number[]>([])
+  const [requestProperties, setRequestProperties] = useState<number[]>([])
   const [requestCash, setRequestCash] = useState(0)
 
   const currentProps = state.board.filter(
     (s) => s.owner === state.currentPlayer && !s.mortgaged && s.houses === 0
+  )
+
+  const targetProps = state.board.filter(
+    (s) => s.owner === targetPlayerId && !s.mortgaged && s.houses === 0
   )
 
   function handlePropose() {
@@ -68,6 +72,21 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
           <label className="text-base flex items-center gap-1 text-text-dim">
             {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
+          {targetProps.map((s) => (
+            <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
+              <input
+                type="checkbox"
+                checked={requestProperties.includes(s.id)}
+                onChange={() =>
+                  setRequestProperties((prev) =>
+                    prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id]
+                  )
+                }
+                className="mr-1"
+              />
+              {t('board.space.' + s.id)}
+            </label>
+          ))}
         </div>
       </div>
       <Modal.Actions>
