@@ -1,5 +1,5 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
-import { createInitialBoard, getHouseCost, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
+import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
@@ -696,20 +696,42 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case GameActionType.DeclareBankruptcy: {
       const player = state.players[state.currentPlayer];
+      const pending = state.pendingAction;
+      const creditorId =
+        pending?.type === PendingActionType.Bankruptcy
+          ? state.board[pending.spaceId]?.owner ?? null
+          : null;
+
+      let liquidationTotal = Math.max(0, player.money);
       const newBoard = state.board.map((s) => {
-        if (s.owner === player.id) {
-          return { ...s, owner: null, houses: 0, mortgaged: false };
+        if (s.owner !== player.id) return s;
+        if (s.houses > 0) liquidationTotal += Math.floor(getTotalHouseInvestment(s) * HOUSE_SELL_RATE);
+        if (s.mortgaged) {
+          liquidationTotal += Math.floor((s.price ?? 0) * MORTGAGED_SELL_EXTRA);
+        } else {
+          liquidationTotal += Math.floor((s.price ?? 0) * SELL_RATE);
         }
-        return s;
+        return { ...s, owner: null, houses: 0, mortgaged: false };
       });
-      const newPlayers = [...state.players];
-      newPlayers[state.currentPlayer] = {
-        ...player,
-        money: 0,
-        properties: [],
-        bankrupt: true,
-      };
+
+      const newPlayers = state.players.map((p, i) => {
+        if (i === state.currentPlayer) {
+          return { ...p, money: 0, properties: [], bankrupt: true, getOutOfJailFreeCards: 0 };
+        }
+        if (creditorId !== null && i === creditorId) {
+          return { ...p, money: p.money + liquidationTotal };
+        }
+        return p;
+      });
+
       const activePlayers = newPlayers.filter((p) => !p.bankrupt);
+      const baseLog: LogEntry[] = [{ key: 'event.bankruptcy', params: { name: player.name } }];
+      const transferLog: LogEntry | null =
+        creditorId !== null
+          ? { key: 'event.bankruptcyTransfer', params: { name: player.name, creditor: newPlayers[creditorId].name, amount: liquidationTotal } }
+          : null;
+      const logs: LogEntry[] = [...baseLog, ...(transferLog ? [transferLog] : [])];
+
       if (activePlayers.length <= 1) {
         return {
           ...state,
@@ -717,18 +739,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           board: newBoard,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, { key: 'event.bankruptcyWin', params: { name: player.name, winner: activePlayers[0]?.name ?? '' } }],
+          eventLog: [...state.eventLog, ...logs, { key: 'event.bankruptcyWin', params: { name: player.name, winner: activePlayers[0]?.name ?? '' } }],
         };
       }
-      const winnerIdx = newPlayers.indexOf(activePlayers[0]);
+      const next = getNextPlayer({ ...state, board: newBoard, players: newPlayers });
       return {
         ...state,
         phase: GamePhase.Waiting,
         board: newBoard,
         players: newPlayers,
-        currentPlayer: winnerIdx,
+        currentPlayer: next,
         pendingAction: null,
-        eventLog: [...state.eventLog, { key: 'event.bankruptcy', params: { name: player.name } }],
+        dice: null,
+        doublesCount: 0,
+        lastMoveSteps: null,
+        eventLog: [...state.eventLog, ...logs, { key: 'event.turn', params: { name: newPlayers[next].name } }],
       };
     }
 

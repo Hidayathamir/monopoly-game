@@ -112,6 +112,7 @@
   "event.movedBack": "{{name}} menarik kartu {{cardId}} dan mundur ke {{spaceId}}",
   "event.bankruptcy": "{{name}} bangkrut!",
   "event.bankruptcyWin": "{{name}} bangkrut! {{winner}} menang!",
+  "event.bankruptcyTransfer": "Aset {{name}} dilikuidasi untuk {{creditor}} sebesar {{amount}}",
 
   "setup.title": "Monopoli",
   "setup.singleDevice": "Satu Perangkat",

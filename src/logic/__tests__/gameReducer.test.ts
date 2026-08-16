@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { gameReducer, createInitialState } from '../gameReducer';
 import { GamePhase, GameActionType, PendingActionType, type GameState } from '../../types/game';
-import { STARTING_MONEY, GO_SALARY } from '../../data/board';
+import { STARTING_MONEY, GO_SALARY, SELL_RATE } from '../../data/board';
 
 function makeStartedState(playerCount = 2): GameState {
   const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
@@ -442,6 +442,63 @@ describe('gameReducer', () => {
       expect(s1.phase).toBe(GamePhase.GameOver);
       expect(s1.players[1].bankrupt).toBe(true);
       expect(s1.currentPlayer).toBe(0);
+    });
+
+    it('resets dice so the next player gets a fresh turn', () => {
+      let state = makeStartedState(3);
+      state = { ...state, dice: [3, 4], doublesCount: 1, lastMoveSteps: 7 };
+      const s1 = gameReducer(state, { type: GameActionType.DeclareBankruptcy });
+      expect(s1.dice).toBeNull();
+      expect(s1.doublesCount).toBe(0);
+      expect(s1.lastMoveSteps).toBeNull();
+    });
+
+    it('passes the turn to the next player in turn order, not the first active player', () => {
+      let state = makeStartedState(3);
+      state = { ...state, turnOrder: [0, 1, 2], currentPlayer: 1 };
+      const s1 = gameReducer(state, { type: GameActionType.DeclareBankruptcy });
+      expect(s1.players[1].bankrupt).toBe(true);
+      expect(s1.currentPlayer).toBe(2);
+      expect(s1.eventLog).toContainEqual({ key: 'event.turn', params: { name: 'Charlie' } });
+    });
+
+    it('pays the creditor the liquidated assets', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 3);
+      state = setMoney(state, 0, 100);
+      const creditor = 1;
+      const pending = { type: PendingActionType.Bankruptcy, amount: 9999, spaceId: 1 };
+      state = {
+        ...state,
+        board: state.board.map((s) => (s.id === 1 ? { ...s, owner: creditor } : s)),
+        players: state.players.map((p, i) => (i === creditor ? { ...p, properties: [1] } : p)),
+        pendingAction: pending,
+      };
+      const s1 = gameReducer(state, { type: GameActionType.DeclareBankruptcy });
+      const liquidatedProperty = Math.floor((state.board[3].price ?? 0) * SELL_RATE);
+      expect(s1.players[0].bankrupt).toBe(true);
+      expect(s1.players[0].money).toBe(0);
+      expect(s1.board[3].owner).toBeNull();
+      expect(s1.players[1].money).toBe(STARTING_MONEY + 100 + liquidatedProperty);
+      expect(s1.eventLog).toContainEqual({
+        key: 'event.bankruptcyTransfer',
+        params: { name: 'Alice', creditor: 'Bob', amount: 100 + liquidatedProperty },
+      });
+    });
+
+    it('winner receives the liquidated cash when only the creditor remains', () => {
+      let state = makeStartedState();
+      state = setMoney(state, 0, 50);
+      state = {
+        ...state,
+        board: state.board.map((s) => (s.id === 1 ? { ...s, owner: 1 } : s)),
+        players: [{ ...state.players[0], money: 50 }, state.players[1]],
+        pendingAction: { type: PendingActionType.Bankruptcy, amount: 9999, spaceId: 1 },
+      };
+      const s1 = gameReducer(state, { type: GameActionType.DeclareBankruptcy });
+      expect(s1.phase).toBe(GamePhase.GameOver);
+      expect(s1.players[1].bankrupt).toBe(false);
+      expect(s1.players[1].money).toBe(STARTING_MONEY + 50);
     });
   });
 

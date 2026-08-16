@@ -112,6 +112,7 @@
   "event.movedBack": "{{name}} drew {{cardId}} and moved back to {{spaceId}}",
   "event.bankruptcy": "{{name}} went bankrupt!",
   "event.bankruptcyWin": "{{name}} went bankrupt! {{winner}} wins!",
+  "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
 
   "setup.title": "Monopoly",
   "setup.singleDevice": "Single Device",
