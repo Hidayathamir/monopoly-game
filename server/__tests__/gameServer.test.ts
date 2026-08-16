@@ -267,14 +267,19 @@ describe('GameServer', () => {
   })
 
   it('ignores SET_BOT_CONTROL sent by a client', () => {
+    vi.useFakeTimers()
     const { server } = setup()
     server.join('c0', 'Alice')
     server.join('c1', 'Bob')
     server.start('c0')
-    const before = server.getState().players[0].botControlled
-    server.handleAction('c0', { type: 'SET_BOT_CONTROL', playerId: 0, controlled: false })
-    expect(server.getState().players[0].botControlled).toBe(before)
+
+    server.disconnect('c1') // server legitimately bot-controls player 1
+    expect(server.getState().players[1].botControlled).toBe(true)
+
+    server.handleAction('c0', { type: 'SET_BOT_CONTROL', playerId: 1, controlled: false }) // a client tries to clear it
+    expect(server.getState().players[1].botControlled).toBe(true) // guard blocks it
     expect(server.getState().eventLog.filter((e) => e.key === 'event.playerBack')).toHaveLength(0)
+    vi.useRealTimers()
   })
 
   it('lets a mid-game leaver reclaim their slot by name', () => {
