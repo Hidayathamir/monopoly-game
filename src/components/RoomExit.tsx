@@ -6,19 +6,27 @@ import Modal from './Modals/Modal'
 interface Props {
   onLeave: () => void
   variant?: 'icon' | 'button'
+  labelKey?: string
+  titleKey?: string
+  messageKey?: string
+  confirmKey?: string
 }
 
-export default function RoomExit({ onLeave, variant = 'button' }: Props) {
+export default function RoomExit({ onLeave, variant = 'button', labelKey, titleKey, messageKey, confirmKey }: Props) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
+  const label = t(labelKey ?? 'lobby.leaveRoom')
+  const title = t(titleKey ?? 'confirm.leaveTitle')
+  const message = t(messageKey ?? 'confirm.leaveMessage')
+  const confirmLabel = t(confirmKey ?? 'confirm.leave')
 
   return (
     <div className={variant === 'icon' ? 'flex flex-col items-center' : 'flex flex-col items-stretch gap-1.5 w-full'}>
       {variant === 'icon' ? (
         <button
           type="button"
-          aria-label={t('lobby.leaveRoom')}
-          title={t('lobby.leaveRoom')}
+          aria-label={label}
+          title={label}
           onClick={() => setConfirming(true)}
           className="flex items-center justify-center bg-bg-dark/80 border border-border-light rounded-lg px-2 py-1 text-sm text-text cursor-pointer hover:opacity-90"
         >
@@ -26,19 +34,19 @@ export default function RoomExit({ onLeave, variant = 'button' }: Props) {
         </button>
       ) : (
         <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
-          {t('lobby.leaveRoom')}
+          {label}
         </Button>
       )}
       {confirming && (
         <Modal onClose={() => setConfirming(false)}>
-          <h3 className="text-2xl text-gold m-0">{t('confirm.leaveTitle')}</h3>
-          <p className="text-base text-text">{t('confirm.leaveMessage')}</p>
+          <h3 className="text-2xl text-gold m-0">{title}</h3>
+          <p className="text-base text-text">{message}</p>
           <Modal.Actions>
             <Button variant="secondary" onClick={() => setConfirming(false)}>
               {t('confirm.cancel')}
             </Button>
             <Button variant="danger" onClick={onLeave}>
-              {t('confirm.leave')}
+              {confirmLabel}
             </Button>
           </Modal.Actions>
         </Modal>

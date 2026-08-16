@@ -36,4 +36,20 @@ describe('RoomExit', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Leave' }))
     expect(onLeave).toHaveBeenCalledTimes(1)
   })
+
+  it('uses the provided copy keys for the exit button and modal', () => {
+    renderWithProviders(
+      <RoomExit
+        onLeave={() => {}}
+        variant="icon"
+        labelKey="exit.label"
+        titleKey="exit.title"
+        messageKey="exit.message"
+        confirmKey="exit.confirm"
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Exit Game' }))
+    expect(screen.getByText('Leave the current game? Progress will be lost and a new game will start.')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Exit' }))
+  })
 })

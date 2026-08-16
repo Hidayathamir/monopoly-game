@@ -23,13 +23,14 @@ interface Props {
   onUseGetOutOfJailFree: () => void
   onBuild: (spaceId: number) => void
   onLeave?: () => void
+  exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string }
   isMyTurn: boolean
   canTrade?: boolean
   tradeCount: number
   onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canTrade = true, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
@@ -41,7 +42,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, onProposeTrade, canT
           <TurnHeader state={state} />
           {onLeave && (
             <div className="absolute top-0 right-0">
-              <RoomExit onLeave={onLeave} variant="icon" />
+              <RoomExit onLeave={onLeave} variant="icon" {...exitKeys} />
             </div>
           )}
         </div>

@@ -8,7 +8,7 @@ import CardModal from './Modals/CardModal'
 import BankruptcyModal from './Modals/BankruptcyModal'
 import GameOverModal from './Modals/GameOverModal'
 
-export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: () => void }) {
+export default function GameView({ game, onLeave, exitKeys }: { game: GameApi; onLeave?: () => void; exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string } }) {
   const { state } = game
   const isMyTurn = game.myPlayerId === null
     ? !state.players[state.currentPlayer]?.isBot
@@ -47,6 +47,7 @@ export default function GameView({ game, onLeave }: { game: GameApi; onLeave?: (
           onUseGetOutOfJailFree={game.useGetOutOfJailFree}
           onBuild={game.buildHouse}
           onLeave={onLeave}
+          exitKeys={exitKeys}
           tradeCount={tradeCount}
           onOpenTrades={() => setShowTrades(true)}
         />

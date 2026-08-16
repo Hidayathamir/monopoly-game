@@ -263,6 +263,11 @@
   "trade.accept": "Terima",
   "trade.reject": "Tolak",
 
+  "exit.label": "Keluar Permainan",
+  "exit.title": "Keluar Permainan",
+  "exit.message": "Keluar dari permainan saat ini? Progres akan hilang dan permainan baru akan dimulai.",
+  "exit.confirm": "Keluar",
+
   "settings.language": "Bahasa",
   "settings.currency": "Mata Uang",
   "settings.toggle": "Pengaturan",

@@ -263,6 +263,11 @@
   "trade.accept": "Accept",
   "trade.reject": "Reject",
 
+  "exit.label": "Exit Game",
+  "exit.title": "Exit Game",
+  "exit.message": "Leave the current game? Progress will be lost and a new game will start.",
+  "exit.confirm": "Exit",
+
   "settings.language": "Language",
   "settings.currency": "Currency",
   "settings.toggle": "Settings",

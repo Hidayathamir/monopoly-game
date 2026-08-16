@@ -56,7 +56,11 @@ export default function App() {
 
   return (
     <>
-      <GameView game={local} />
+      <GameView
+        game={local}
+        onLeave={local.resetGame}
+        exitKeys={{ labelKey: 'exit.label', titleKey: 'exit.title', messageKey: 'exit.message', confirmKey: 'exit.confirm' }}
+      />
       <LanguageCurrencyBar />
     </>
   )
