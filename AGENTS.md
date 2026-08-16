@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a Node WebSocket server for multiplayer. Indonesian and English i18n (default Indonesian).
+Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a Node WebSocket server for multiplayer. Indonesian and English i18n (default English; currency USD).
 
 ## Commands
 
@@ -16,7 +16,8 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 
 - **Shared game logic**: `src/logic/gameReducer.ts` (the reducer + `createInitialState`) is the single source of truth for rules. It runs on the client for local mode (`src/hooks/useGame.ts`) and on the server, authoritatively, for multiplayer (`server/gameServer.ts`). New rules/actions go in `src/logic` + `src/types/game.ts` and must work in both contexts.
 - **Multiplayer**: Node server (`server/`) uses `tsx` and the `ws` lib. `RoomManager` issues 5-char join codes; `GameServer` owns state per room (max 6 players) and broadcasts full `GameState` snapshots over JSON. Server rejects actions out of turn. Board/card data lives in `src/data/*.json`; shared types in `src/types/*`.
-- **Server/client contract**: `src/types/net.ts` defines `ClientMessage`/`ServerMessage`. Server sends full state snapshots; client applies them directly in `src/hooks/useNetworkGame.ts`.
+- **Server/client contract**: `src/types/net.ts` defines `ClientMessage`/`ServerMessage`. Server sends full state snapshots; the client's `src/net/client.ts` (`GameClient`) wraps the WebSocket and `src/hooks/useNetworkGame.ts` applies snapshots directly.
+- **Bots**: `src/logic/bot.ts` (`decideBotAction`) drives bot seats locally and on the server; `src/data/bots.ts` supplies `BOT_NAMES`. Bot turns auto-play through the same reducer in both modes.
 - **Two tsconfig projects beyond the app/node split**: `tsconfig.server.json` compiles `server/` plus `src/{types,logic,data,utils}` (no DOM); `tsconfig.app.json` covers `src/`. `npm run build`/`typecheck` build all via project references.
 
 ## Tests
@@ -24,7 +25,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 - **Vitest**: config lives inside `vite.config.ts` (setup `src/test/setup.ts`, excludes `e2e/**`). Unit tests colocated in `__tests__/` dirs next to source.
 - `src/test/setup.ts` installs an in-memory `localStorage` if absent and pins language/currency to `en`/`USD`. Components using i18n/currency must be rendered with `renderWithProviders` from `src/test/test-utils.tsx`.
 - **Playwright** (`e2e/`): config auto-starts Vite dev on port 4173. **`e2e/multiplayer.spec.ts` additionally spawns `tsx server/main.ts` on port 3123 which serves `dist/` — run `npm run build` first or the multiplayer spec fails** (`dist/` is gitignored).
-- e2e tests targeting English UI set `localStorage` (`monopoly-language` = `en`) via `addInitScript`; the default language is Indonesian. UI test hooks: `data-testid`s (`sidebar`, `room-code`, `player-card`, `waiting-for`, ...), `aria-label`s, and visible button text.
+- e2e tests targeting English UI set `localStorage` (`monopoly-language` = `en`) via `addInitScript`; the default language is English. UI test hooks: `data-testid`s (`sidebar`, `room-code`, `player-card`, `waiting-for`, ...), `aria-label`s, and visible button text.
 - Multiplayer e2e uses the real server + two browser contexts sharing nothing; don't skip the `dist/` requirement.
 
 ## Conventions
