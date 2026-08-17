@@ -324,10 +324,10 @@ git commit -m "refactor: use LogEventKey consts in cards"
 
 - [ ] **Step 1: Write the failing test**
 
-Add to `src/types/__tests__/enums.test.ts` — add `Currency` to the imports (it lives in `src/data/currency.ts`):
+Add to `src/types/__tests__/enums.test.ts` — add `Currency` to the imports (it lives in `src/data/currency.ts`; note the path from `src/types/__tests__/` is `../../data/currency`):
 
 ```ts
-import { Currency } from '../data/currency';
+import { Currency } from '../../data/currency';
 ```
 
 (Keep the existing import block from `'../game'` as-is.) Add inside the `test('wire values are locked...', ...)` block, after the `LogEventKey` assertion:
