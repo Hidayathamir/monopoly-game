@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import i18n from '../index';
-import { resolveLogEntry } from '../log';
+import { cardKeyForId, resolveLogEntry } from '../log';
 import type { LogEntry } from '../../types/game';
 
 function formatMoney(n: number | undefined): string {
@@ -21,5 +21,15 @@ describe('resolveLogEntry', () => {
   it('renders the offline notice with the player name', () => {
     const entry: LogEntry = { key: 'event.playerOffline', params: { name: 'hp' } };
     expect(resolveLogEntry(entry, i18n.t.bind(i18n), formatMoney)).toBe('hp went offline — a bot will play their turn');
+  });
+});
+
+describe('cardKeyForId', () => {
+  it('routes community cards (id >= 100) to the community key space', () => {
+    expect(cardKeyForId(101)).toBe('card.community.101');
+  });
+
+  it('routes chance cards to the chance key space', () => {
+    expect(cardKeyForId(1)).toBe('card.chance.1');
   });
 });

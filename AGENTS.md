@@ -40,7 +40,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
   a constant exists; do not introduce TypeScript `enum` (repo enforces
   `erasableSyntaxOnly`). Wire values are part of the client/server contract and
   must never change when refactoring.
-- **Semicolons are mixed**: `src/logic/*`, `src/data/*`, `src/types/game.ts` use them; most components/hooks/net/server files omit them. Match the file you're editing; eslint does not enforce.
+- **Semicolons are mixed**: `src/logic/*`, `src/types/game.ts`, and most of `src/data/*` (`board.ts`, `cards.ts`, `bots.ts`) use them; `src/data/currency.ts`, `src/data/players.ts`, and most components/hooks/net/server files omit them. Match the file you're editing; eslint does not enforce.
 - **i18n**: every UI string must exist in both `src/i18n/locales/en/translation.json` and `id/translation.json` (flat keys, `keySeparator: false`). Server-side error strings are hardcoded Indonesian and rendered raw by the client — don't add new hardcoded UI strings; route user-facing text through i18n keys or `LogEntry` keys (see `src/i18n/log.ts`).
 - **Multiplayer session persistence**: the client stores the active room session under `monopoly-mp-session` (`src/net/session.ts`) so a refresh auto-rejoins the same room.
 - **Design workflow**: specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/` (dated). Before implementing a feature, check for the latest related spec/plan there.
