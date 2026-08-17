@@ -16,7 +16,10 @@ interface Props {
 
 export default function GameBoard({ state, isMyTurn, children, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   return (
-    <div className="flex items-center justify-center w-screen h-screen">
+    <div
+      className="flex items-center justify-center w-screen h-screen select-none"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div data-game-board className="relative w-[calc(100vw-16px)] h-[calc(100vh-16px)] flex-shrink-0 overflow-hidden">
         <BoardGrid
           state={state}
