@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import type { GameState } from '../types/game'
 import { PLAYER_OFFSETS } from '../data/players'
+import { useSound } from '../audio/SoundContext'
+import { SoundId } from '../audio/soundEngine'
 
 interface Props {
   state: GameState
@@ -43,6 +45,7 @@ export function getPath(from: number, to: number, backward: boolean): number[] {
 }
 
 export default function PlayerTokens({ state, playerColors }: Props) {
+  const play = useSound()
   const { players } = state
   const [displayPositions, setDisplayPositions] = useState<Record<number, number>>({})
   const prevTargets = useRef<Record<number, number>>({})
@@ -64,6 +67,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
       const path = getPath(displayPositions[player.id] ?? prevTarget, player.position, backward)
       function step(index: number) {
         if (index >= path.length) { animating.current[player.id] = false; return }
+        play(SoundId.TokenStep)
         setDisplayPositions((prev) => ({ ...prev, [player.id]: path[index] }))
         setTimeout(() => step(index + 1), 150)
       }
