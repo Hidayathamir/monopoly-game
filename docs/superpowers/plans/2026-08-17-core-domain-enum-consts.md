@@ -23,12 +23,13 @@
 
 **Files:**
 - Modify: `src/types/game.ts`
+- Modify: `src/logic/logEntries.ts`
 - Modify: `src/types/__tests__/enums.test.ts`
 - Test: `src/types/__tests__/enums.test.ts`
 
 **Interfaces:**
 - Consumes: nothing new.
-- Produces: `LogEventKey` const object (45 keys) + same-named derived union type; `LogEntry.key` typed as `LogEventKey`.
+- Produces: `LogEventKey` const object (45 keys) + same-named derived union type; `LogEntry.key` typed as `LogEventKey`; `actorEntry(key: LogEventKey, ...)` and `turnEntry(...)` whose `key` param is narrowed to `LogEventKey`. `logEntries.ts` is converted here (not Task 3) because narrowing `LogEntry.key` immediately breaks `npm run typecheck` on `actorEntry`'s `key: string` parameter — the two-file Task 1 commit and the typecheck must pass together.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -125,20 +126,34 @@ Then narrow the `LogEntry` type (line ~126):
 export type LogEntry = { key: LogEventKey; params?: Record<string, string | number | boolean> };
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [ ] **Step 4: Narrow `logEntries.ts` (required for typecheck to pass)**
+
+`src/logic/logEntries.ts` builds `LogEntry` objects; its `key` parameter is typed `string` and no longer assignable to `LogEntry.key`. Convert it here (semicolons):
+
+Replace the import (line 1):
+
+```ts
+import { LogEventKey, type LogEntry, type Player } from '../types/game';
+```
+
+Replace the `actorEntry` signature `key: string` (line 4) with `key: LogEventKey`.
+
+Replace line 16 `key: 'event.turn'` → `key: LogEventKey.Turn`
+
+- [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run src/types/__tests__/enums.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Typecheck**
+- [ ] **Step 6: Typecheck**
 
 Run: `npm run typecheck`
-Expected: PASS — existing `'event.*'` literals in `gameReducer.ts`/`cards.ts`/`logEntries.ts` still assign to `LogEventKey`, and all log keys already exist (verified: the 45 keys in the const exactly match translation + production usage).
+Expected: PASS — existing `'event.*'` literals in `gameReducer.ts`/`cards.ts` still assign to `LogEventKey`, and all log keys already exist (verified: the 45 keys in the const exactly match translation + production usage).
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/types/game.ts src/types/__tests__/enums.test.ts
+git add src/types/game.ts src/logic/logEntries.ts src/types/__tests__/enums.test.ts
 git commit -m "feat: add LogEventKey const and type LogEntry.key with it"
 ```
 
@@ -238,30 +253,17 @@ git commit -m "refactor: use LogEventKey and TaxType consts in gameReducer"
 
 ---
 
-### Task 3: Replace `event.*` literals in `cards.ts` and `logEntries.ts`
+### Task 3: Replace `event.*` literals in `cards.ts`
 
 **Files:**
 - Modify: `src/logic/cards.ts`
-- Modify: `src/logic/logEntries.ts`
 - Test: `src/logic/__tests__/cards.test.ts`
 
 **Interfaces:**
-- Consumes: `LogEventKey` value import from `'../types/game'`.
-- Produces: `actorEntry(key: LogEventKey, player: Player, extra?: Record<string, string | number>)` and `turnEntry(...)` — key param narrowed from `key: string` to `LogEventKey`.
+- Consumes: `LogEventKey` value import from `'../types/game'` (const defined in Task 1). `actorEntry(key: LogEventKey, player: Player, extra?: Record<string, string | number>)` (narrowed in Task 1).
+- Produces: no new exports.
 
-- [ ] **Step 1: `logEntries.ts` — import + narrow + replace literal**
-
-Replace the import (line 1) with:
-
-```ts
-import { LogEventKey, type LogEntry, type Player } from '../types/game';
-```
-
-Replace the `actorEntry` signature (line 4) `key: string` with `key: LogEventKey`.
-
-Replace line 16 `key: 'event.turn'` → `key: LogEventKey.Turn`
-
-- [ ] **Step 2: `cards.ts` — import + replace literals**
+- [ ] **Step 1: `cards.ts` — import + replace literals**
 
 Replace the import (line 1) with:
 
@@ -286,24 +288,24 @@ Do a global find-and-replace of each exact literal:
 Line 109 is a ternary — replace its two branches, keeping the structure:
 `actorEntry(isBackward ? 'event.movedBack' : 'event.movedForward', player, { spaceId, cardId })` → `actorEntry(isBackward ? LogEventKey.MovedBack : LogEventKey.MovedForward, player, { spaceId, cardId })`
 
-- [ ] **Step 3: Verify no raw literals remain**
+- [ ] **Step 2: Verify no raw literals remain**
 
 Run:
 ```bash
-grep -nE "'event\.[a-z]+'" src/logic/cards.ts src/logic/logEntries.ts
+grep -nE "'event\.[a-z]+'" src/logic/cards.ts
 ```
 Expected: no matches.
 
-- [ ] **Step 4: Typecheck + cards/log tests**
+- [ ] **Step 3: Typecheck + cards tests**
 
-Run: `npm run typecheck && npx vitest run src/logic/__tests__/cards.test.ts src/logic/__tests__/gameReducer.test.ts`
+Run: `npm run typecheck && npx vitest run src/logic/__tests__/cards.test.ts`
 Expected: PASS all.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/logic/cards.ts src/logic/logEntries.ts
-git commit -m "refactor: use LogEventKey consts in cards and logEntries"
+git add src/logic/cards.ts
+git commit -m "refactor: use LogEventKey consts in cards"
 ```
 
 ---
@@ -464,6 +466,6 @@ If Task 5's `npm run build` produced only `dist/` (gitignored), there is nothing
 
 ## Self-Review
 
-- **Spec coverage**: Task 1 = spec §1 (`LogEventKey` + `LogEntry.key`), §4 (`LogEventKey` lock). Task 2 = spec §1 report on `gameReducer` + spec §3 (`'income'` → `TaxType.Income`). Task 3 = spec §1 report on `cards`/`logEntries`. Task 4 = spec §2 (`Currency` const + `CurrencyContext`) + §4 (`Currency` lock). Task 5 = spec §3 (`cardKeyForId`). Task 6 = spec **Verification**. No spec section is left without a task.
+- **Spec coverage**: Task 1 = spec §1 (`LogEventKey` + `LogEntry.key`, plus the required `logEntries.ts` signature narrowing), §4 (`LogEventKey` lock). Task 2 = spec §1 report on `gameReducer` + spec §3 (`'income'` → `TaxType.Income`). Task 3 = spec §1 report on `cards`. Task 4 = spec §2 (`Currency` const + `CurrencyContext`) + §4 (`Currency` lock). Task 5 = spec §3 (`cardKeyForId`). Task 6 = spec **Verification**. No spec section is left without a task.
 - **Placeholder scan**: every replacement is enumerated in a mapping table or explicit code block; the const definitions and test additions are full code. No "TBD"/"similar to".
-- **Type consistency**: `LogEventKey.*` names match the const defined in Task 1 across all tasks; the 45-value `LogEventKey` test array matches the const declaration order in Task 1; `Currency.USD`/`Currency.IDR` match the Task 4 const. `actorEntry` is narrowed to `LogEventKey` in Task 3 after the const exists in Task 1, so no task depends on a type from a later task.
+- **Type consistency**: `LogEventKey.*` names match the const defined in Task 1 across all tasks; the 45-value `LogEventKey` test array matches the const declaration order in Task 1; `Currency.USD`/`Currency.IDR` match the Task 4 const. `actorEntry` is narrowed to `LogEventKey` in Task 1 (where the const exists and where typecheck requires it), so no task depends on a type from a later task.
