@@ -81,9 +81,27 @@ A module (not a React component) holding a lazy singleton:
 ### 2. Event-log → sound mapping — `src/audio/soundMap.ts`
 
 A pure function `soundForLogKey(key: LogEventKey): SoundId | null` with an
-exhaustive mapping (see table in review); keys not mapped (or mapped to
-`null`) are silent. This file is the single place that knows which event makes
-which sound, and it is fully unit-testable without an AudioContext.
+exhaustive mapping; keys not mapped (or mapped to `null`) are silent. The
+groupings (subject to ear-test tuning in the plan):
+
+- Dice land: `Rolled`, `RolledAimed`, `DoublesAgain`, `JailFailed` → `diceLand`
+- Money gain: `PassedGo`, `CardCollect`, `CardCollectPlayers`,
+  `FreeParkingJackpot` → `moneyGain`
+- Money loss: `PaidRent`, `CardPay`, `IncomeTax`, `LuxuryTax`,
+  `CardStreetRepairs`, `SoldHouse`, `SoldToBank`, `BankruptcyTransfer` →
+  `moneyLoss`
+- Buy/build: `Bought` → `buy`; `BuiltHouse`, `BuiltHotel` → `build`
+- Cards: `MovedForward`, `MovedBack`, `GotJailCard` → `card`
+- Jail: `ToJail`, `CardToJail` → `jail`; `PaidJailFine`, `UsedJailCard`,
+  `JailBreakDoubles` → `moneyGain`
+- Trade: `TradeProposed`, `TradeAccepted` → `trade`
+- End: `Bankruptcy` → `bankruptcy`; `BankruptcyWin` → `win`
+- Start: `GameStarted` → `gameStart`
+- Silent: `Turn`, `PlayerOffline`, `PlayerBack`, `ReconnectWait`,
+  `MustCircleBoard`, `OwnerInJail`, `MonopolyRent`, plus anything unmapped
+
+This file is the single place that knows which event makes which sound, and it
+is fully unit-testable without an AudioContext.
 
 ### 3. Game-sound hook — `src/audio/useGameSounds.ts`
 
