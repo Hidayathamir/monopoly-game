@@ -2,7 +2,7 @@ import { SpaceType, TaxType, type GameState, type Space } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
-import { isMonopoly } from '../logic/rent'
+import { isMonopoly, calculatePropertyRent } from '../logic/rent'
 import Button from './Button'
 
 interface Props {
@@ -74,9 +74,9 @@ export default function PropertyTooltip({
               <div className="text-text-dim">{t('tooltip.utility2')}</div>
             </div>
           )}
-          {space.type === SpaceType.Property && space.owner !== null && space.houses === 0 && isMonopoly(space.owner, state.board, space) && (
+          {space.type === SpaceType.Property && space.owner !== null && isMonopoly(space.owner, state.board, space) && (
             <div className="my-1 p-1 bg-bg-darker rounded text-sm text-gold font-semibold">
-              {t('tooltip.monopoly', { amount: formatMoney((space.rent?.[0] ?? 0) * 2) })}
+              {t('tooltip.monopoly', { amount: formatMoney(calculatePropertyRent(space) * 2) })}
             </div>
           )}
           {space.houseCost && <div className="text-sm text-text-dim">{t('tooltip.nextHouse')}{formatMoney(nextHouseCost)}</div>}
