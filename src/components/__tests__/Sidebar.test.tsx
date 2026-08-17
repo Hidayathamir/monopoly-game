@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
-import { cleanup, screen, within } from '@testing-library/react'
-import { afterEach, describe, it, expect } from 'vitest'
+import { cleanup, screen, within, fireEvent } from '@testing-library/react'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import Sidebar from '../Sidebar'
 import { renderWithProviders } from '../../test/test-utils'
 import { gameReducer, createInitialState } from '../../logic/gameReducer'
 import { GameActionType, type GameState } from '../../types/game'
+import { SoundProvider } from '../../audio/SoundContext'
+
+const { playSoundMock } = vi.hoisted(() => ({ playSoundMock: vi.fn() }))
+vi.mock('../../audio/soundEngine', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('../../audio/soundEngine')>()
+  return { ...mod, playSound: playSoundMock }
+})
 
 const noop = () => {}
 
@@ -88,5 +95,16 @@ describe('Sidebar', () => {
   it('shows OFFLINE on a disconnected player card', () => {
     renderWithProviders(<Sidebar state={makeState()} isMyTurn onLeave={noop} {...makeProps()} connectedPlayerIds={new Set([1])} />)
     expect(screen.getByText('OFFLINE')).toBeTruthy()
+  })
+
+  it('plays a click sound when opening the trade inbox', () => {
+    playSoundMock.mockClear()
+    renderWithProviders(
+      <SoundProvider>
+        <Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} />
+      </SoundProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Trades' }))
+    expect(playSoundMock).toHaveBeenCalledWith('click')
   })
 })

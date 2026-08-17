@@ -7,6 +7,8 @@ import RoomExit from './RoomExit'
 import PlayerPanel from './PlayerPanel'
 import ActionSection from './ActionSection'
 import EventLog from './EventLog'
+import { useSound } from '../audio/SoundContext'
+import { SoundId } from '../audio/soundEngine'
 
 interface Props {
   state: GameState
@@ -34,6 +36,7 @@ interface Props {
 
 export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
+  const play = useSound()
   return (
     <div className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none">
       <div
@@ -59,7 +62,10 @@ export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeT
         {tradesEnabled && (
           <button
             type="button"
-            onClick={onOpenTrades}
+            onClick={() => {
+              onOpenTrades()
+              play(SoundId.Click)
+            }}
             className="relative w-full py-1.5 rounded-lg border border-border bg-bg-dark text-sm font-semibold hover:opacity-90"
           >
             {t('trade.inbox')}

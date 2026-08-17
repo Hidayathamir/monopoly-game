@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import type { LogEntry } from '../types/game'
 import { useCurrency } from '../i18n/CurrencyContext'
 import { resolveLogEntry } from '../i18n/log'
+import { useSound } from '../audio/SoundContext'
+import { SoundId } from '../audio/soundEngine'
 
 interface Props {
   log: LogEntry[]
@@ -13,6 +15,7 @@ export default function EventLog({ log }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
+  const play = useSound()
 
   useEffect(() => {
     if (ref.current) ref.current.scrollTop = ref.current.scrollHeight
@@ -41,7 +44,10 @@ export default function EventLog({ log }: Props) {
       {log.length > 2 && (
         <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => {
+            setExpanded(!expanded)
+            play(SoundId.Click)
+          }}
           className="text-xs text-gold mt-1 hover:opacity-80"
         >
           {expanded ? t('eventlog.collapse') : t('eventlog.expand')}
