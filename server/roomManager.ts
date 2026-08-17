@@ -51,6 +51,7 @@ export class RoomManager {
       const players = game.getPlayers()
       const hostName = players[game.getHostPlayerId()]?.name ?? null
       const playerCount = players.filter((p) => p.name !== null).length
+      if (playerCount === 0) continue
       infos.push({ code, hostName, playerCount, phase: game.getState().phase })
     }
     return infos

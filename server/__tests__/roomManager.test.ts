@@ -72,6 +72,15 @@ describe('RoomManager', () => {
     expect(list[0]).toEqual({ code, hostName: 'Alice', playerCount: 1, phase: GamePhase.Setup })
   })
 
+  it('omits rooms with no players from the list', () => {
+    const { rm } = setup()
+    const { code, game } = rm.create()
+    expect(rm.list()).toHaveLength(0)
+    rm.addClient(code, 'c1')
+    game.join('c1', 'Alice')
+    expect(rm.list()).toHaveLength(1)
+  })
+
   it('reports an in-game room in the list', () => {
     const { rm } = setup()
     const { code, game } = rm.create()
@@ -81,7 +90,7 @@ describe('RoomManager', () => {
     game.join('c2', 'Bob')
     game.start('c1')
     const list = rm.list()
-    expect(list[0].phase).not.toBe(GamePhase.Setup)
+    expect(list[0].phase).toBe(GamePhase.Waiting)
     expect(list[0].playerCount).toBe(2)
   })
 })

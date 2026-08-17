@@ -123,6 +123,7 @@ describe('http server', () => {
     expect(mine).toBeDefined()
     expect(mine?.hostName).toBe('Alice')
     expect(mine?.playerCount).toBe(1)
+    expect(mine?.phase).toBe('setup')
     ws.close()
   })
 
