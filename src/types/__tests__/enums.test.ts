@@ -17,7 +17,7 @@ test('wire values are locked for all enum-like consts', () => {
     'UNMORTGAGE', 'SELL_PROPERTY', 'PROPOSE_TRADE', 'ACCEPT_TRADE', 'REJECT_TRADE',
     'CANCEL_TRADE', 'DRAW_CARD', 'RESOLVE_CARD', 'ATTEMPT_JAILBREAK', 'END_TURN',
     'DECLARE_BANKRUPTCY', 'COLLECT_FREE_PARKING', 'SKIP_ACTION', 'PAY_JAIL_FINE',
-    'USE_GET_OUT_OF_JAIL_FREE', 'SET_BOT_CONTROL',
+    'USE_GET_OUT_OF_JAIL_FREE', 'SET_BOT_CONTROL', 'SET_RECONNECT_GRACE',
   ]);
   expect(Object.values(ClientMessageType)).toEqual(['create', 'join', 'start', 'leave', 'addBot', 'removeBot', 'action']);
   expect(Object.values(ServerMessageType)).toEqual(['welcome', 'lobby', 'state', 'left', 'error']);
