@@ -26,6 +26,7 @@ export function createInitialState({ tradesEnabled = false }: { tradesEnabled?: 
     eventLog: [],
     pendingAction: null,
     justBoughtSpaceId: null,
+    builtThisStop: false,
     reconnectGrace: null,
     pendingTrades: [],
     nextTradeId: 0,
@@ -69,6 +70,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         phase: GamePhase.Rolling,
         justBoughtSpaceId: null,
+        builtThisStop: false,
       };
     }
 
@@ -412,7 +414,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const space = state.board[action.spaceId];
       const player = state.players[state.currentPlayer];
       const cost = getHouseCost(space, space.houses);
-      if (space.houses >= 5 || cost === 0 || player.money < cost) return state;
+      if (
+        space.id !== player.position ||
+        space.owner !== state.currentPlayer ||
+        state.dice === null ||
+        state.pendingAction !== null ||
+        space.houses >= 5 ||
+        space.mortgaged ||
+        cost === 0 ||
+        player.money < cost ||
+        space.id === state.justBoughtSpaceId
+      ) return state;
       const newHouses = space.houses + 1;
       const newMoney = player.money - cost;
       const newBoard = [...state.board];
@@ -426,6 +438,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         board: newBoard,
         players: newPlayers,
         pendingAction: null,
+        builtThisStop: true,
         eventLog: [...state.eventLog, actorEntry(space.houses === 4 ? LogEventKey.BuiltHotel : LogEventKey.BuiltHouse, player, { spaceId: space.id, amount: cost })],
       };
     }

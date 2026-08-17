@@ -200,6 +200,7 @@ export type GameState = {
   eventLog: LogEntry[];
   pendingAction: PendingAction | null;
   justBoughtSpaceId: number | null;
+  builtThisStop: boolean;
   reconnectGrace: ReconnectGrace | null;
   pendingTrades: PendingTrade[];
   nextTradeId: number;

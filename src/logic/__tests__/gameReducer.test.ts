@@ -405,47 +405,69 @@ describe('gameReducer', () => {
   });
 
   describe('BUILD_HOUSE', () => {
-    it('builds a house on owned property', () => {
-      let state = makeStartedState();
+    function landedOnOwnProperty(state: GameState): GameState {
       state = buyProperty(state, 0, 1);
+      state = setPosition(state, 0, 1);
+      return { ...state, dice: [2, 3] };
+    }
+
+    it('builds a house on the property the player is standing on', () => {
+      let state = landedOnOwnProperty(makeStartedState());
 
       state = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(state.board[1].houses).toBe(1);
       expect(state.players[0].money).toBe(STARTING_MONEY - 60 - 25);
+      expect(state.builtThisStop).toBe(true);
     });
 
     it('cannot build if not enough money', () => {
-      let state = makeStartedState();
+      let state = landedOnOwnProperty(makeStartedState());
       state = setMoney(state, 0, 10);
-      state = buyProperty(state, 0, 1);
-      state = { ...state, players: [{ ...state.players[0], money: 10 }] };
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(0);
     });
 
     it('builds hotel at 5 houses', () => {
-      let state = makeStartedState();
-      state = buyProperty(state, 0, 1);
-      state = {
-        ...state,
-        board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)),
-      };
+      let state = landedOnOwnProperty(makeStartedState());
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)) };
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(5);
     });
 
     it('cannot build beyond hotel (6+)', () => {
-      let state = makeStartedState();
-      state = buyProperty(state, 0, 1);
-      state = {
-        ...state,
-        board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 5 } : s)),
-      };
+      let state = landedOnOwnProperty(makeStartedState());
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 5 } : s)) };
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(5);
+    });
+
+    it('cannot build when not standing on the property', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 1);
+      state = { ...state, dice: [2, 3] };
+
+      const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
+      expect(s1.board[1].houses).toBe(0);
+    });
+
+    it('cannot build before rolling', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 1);
+      state = setPosition(state, 0, 1);
+
+      const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
+      expect(s1.board[1].houses).toBe(0);
+    });
+
+    it('cannot build on a mortgaged property', () => {
+      let state = landedOnOwnProperty(makeStartedState());
+      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, mortgaged: true } : s)) };
+
+      const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
+      expect(s1.board[1].houses).toBe(0);
     });
   });
 
@@ -963,6 +985,8 @@ describe('gameReducer', () => {
     it('build house produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
+      state = setPosition(state, 0, 1);
+      state = { ...state, dice: [2, 3] };
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.eventLog).toContainEqual({ key: 'event.builtHouse', params: { name: 'Alice', spaceId: 1, amount: 25 } });
     });
@@ -970,7 +994,8 @@ describe('gameReducer', () => {
     it('build hotel produces correct message', () => {
       let state = makeStartedState();
       state = buyProperty(state, 0, 1);
-      state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)) };
+      state = setPosition(state, 0, 1);
+      state = { ...state, dice: [2, 3], board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 4 } : s)) };
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.eventLog).toContainEqual({ key: 'event.builtHotel', params: { name: 'Alice', spaceId: 1, amount: 150 } });
     });
