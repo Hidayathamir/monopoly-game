@@ -139,13 +139,43 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
             onMouseEnter={(e) => handleEnter(space.id, e)}
             onMouseLeave={handleLeave}
           >
-            <div className="text-xs text-center font-semibold leading-tight text-text-dim">{t('board.space.' + space.id)}</div>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={(e) => e.preventDefault()}
+              className="cell-name m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-xs text-center font-semibold leading-tight text-text-dim"
+            >
+              {t('board.space.' + space.id)}
+            </button>
             {space.houses > 0 && space.houses < 5 && (
-              <div className="text-xs tracking-[-1px]">{'🏠'.repeat(space.houses)}</div>
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={(e) => e.preventDefault()}
+                className="m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-xs tracking-[-1px]"
+              >
+                {'🏠'.repeat(space.houses)}
+              </button>
             )}
-            {space.houses === 5 && <div className="text-base">🏨</div>}
+            {space.houses === 5 && (
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={(e) => e.preventDefault()}
+                className="m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-base"
+              >
+                🏨
+              </button>
+            )}
             {space.mortgaged && (
-              <div className="absolute top-px right-0.5 text-xs bg-red-danger text-white rounded-sm px-0.5 font-bold">M</div>
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={(e) => e.preventDefault()}
+                className="m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none absolute top-px right-0.5 text-xs bg-red-danger text-white rounded-sm px-0.5 font-bold"
+              >
+                M
+              </button>
             )}
             {owner && (
               <div
