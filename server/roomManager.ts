@@ -1,6 +1,6 @@
 import { GameServer } from './gameServer'
 import { ServerMessageType } from '../src/types/net'
-import type { ServerMessage } from '../src/types/net'
+import type { RoomInfo, ServerMessage } from '../src/types/net'
 
 export type ClientId = string
 
@@ -43,6 +43,17 @@ export class RoomManager {
 
   get(code: string): GameServer | undefined {
     return this.rooms.get(code)
+  }
+
+  list(): RoomInfo[] {
+    const infos: RoomInfo[] = []
+    for (const [code, game] of this.rooms) {
+      const players = game.getPlayers()
+      const hostName = players[game.getHostPlayerId()]?.name ?? null
+      const playerCount = players.filter((p) => p.name !== null).length
+      infos.push({ code, hostName, playerCount, phase: game.getState().phase })
+    }
+    return infos
   }
 
   gameFor(clientId: ClientId): GameServer | undefined {

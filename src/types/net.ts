@@ -1,6 +1,8 @@
-import type { GameState, GameAction } from './game'
+import type { GameState, GameAction, GamePhase } from './game'
 
 export type LobbyPlayer = { id: number; name: string | null; connected: boolean; isBot: boolean }
+
+export type RoomInfo = { code: string; hostName: string | null; playerCount: number; phase: GamePhase }
 
 export const ConnectionStatus = {
   Connecting: 'connecting',

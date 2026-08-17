@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { RoomManager } from '../roomManager'
+import { GamePhase } from '../../src/types/game'
 import type { ServerMessage } from '../../src/types/net'
 
 function setup() {
@@ -59,5 +60,28 @@ describe('RoomManager', () => {
     const sent: { clientId: string; message: ServerMessage }[] = []
     const rm = new RoomManager({ send: (clientId, message) => sent.push({ clientId, message }) }, { tradesEnabled: true })
     expect(rm.create().game.getState().tradesEnabled).toBe(true)
+  })
+
+  it('lists a lobby room snapshot with host, player count, and phase', () => {
+    const { rm } = setup()
+    const { code, game } = rm.create()
+    rm.addClient(code, 'c1')
+    game.join('c1', 'Alice')
+    const list = rm.list()
+    expect(list).toHaveLength(1)
+    expect(list[0]).toEqual({ code, hostName: 'Alice', playerCount: 1, phase: GamePhase.Setup })
+  })
+
+  it('reports an in-game room in the list', () => {
+    const { rm } = setup()
+    const { code, game } = rm.create()
+    rm.addClient(code, 'c1')
+    rm.addClient(code, 'c2')
+    game.join('c1', 'Alice')
+    game.join('c2', 'Bob')
+    game.start('c1')
+    const list = rm.list()
+    expect(list[0].phase).not.toBe(GamePhase.Setup)
+    expect(list[0].playerCount).toBe(2)
   })
 })
