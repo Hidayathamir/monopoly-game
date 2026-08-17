@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import {
-  CardActionType, CardType, GameActionType, GamePhase, PendingActionType, SpaceType, TaxType,
+  CardActionType, CardType, GameActionType, GamePhase, LogEventKey, PendingActionType, SpaceType, TaxType,
 } from '../game';
 import { ClientMessageType, ConnectionStatus, ServerMessageType } from '../net';
 
@@ -22,4 +22,17 @@ test('wire values are locked for all enum-like consts', () => {
   expect(Object.values(ClientMessageType)).toEqual(['create', 'join', 'start', 'leave', 'addBot', 'removeBot', 'action']);
   expect(Object.values(ServerMessageType)).toEqual(['welcome', 'lobby', 'state', 'left', 'error']);
   expect(Object.values(ConnectionStatus)).toEqual(['connecting', 'connected', 'disconnected']);
+  expect(Object.values(LogEventKey)).toEqual([
+    'event.gameStarted', 'event.turn', 'event.rolled', 'event.rolledAimed', 'event.passedGo',
+    'event.jailBreakDoubles', 'event.jailForcedOut', 'event.jailFailed', 'event.tripleDoubles',
+    'event.toJail', 'event.freeParkingJackpot', 'event.incomeTax', 'event.luxuryTax',
+    'event.ownerInJail', 'event.monopolyRent', 'event.mustCircleBoard', 'event.bought',
+    'event.paidRent', 'event.builtHouse', 'event.builtHotel', 'event.soldHouse',
+    'event.mortgaged', 'event.unmortgaged', 'event.soldToBank', 'event.tradeProposed',
+    'event.tradeAccepted', 'event.tradeRejected', 'event.tradeCancelled', 'event.paidJailFine',
+    'event.usedJailCard', 'event.doublesAgain', 'event.cardCollect', 'event.cardPay',
+    'event.cardToJail', 'event.gotJailCard', 'event.cardCollectPlayers', 'event.cardStreetRepairs',
+    'event.movedForward', 'event.movedBack', 'event.bankruptcy', 'event.bankruptcyWin',
+    'event.bankruptcyTransfer', 'event.playerOffline', 'event.playerBack', 'event.reconnectWait',
+  ]);
 });

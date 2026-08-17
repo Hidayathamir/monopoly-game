@@ -89,6 +89,55 @@ export const GameActionType = {
 } as const;
 export type GameActionType = (typeof GameActionType)[keyof typeof GameActionType];
 
+export const LogEventKey = {
+  GameStarted: 'event.gameStarted',
+  Turn: 'event.turn',
+  Rolled: 'event.rolled',
+  RolledAimed: 'event.rolledAimed',
+  PassedGo: 'event.passedGo',
+  JailBreakDoubles: 'event.jailBreakDoubles',
+  JailForcedOut: 'event.jailForcedOut',
+  JailFailed: 'event.jailFailed',
+  TripleDoubles: 'event.tripleDoubles',
+  ToJail: 'event.toJail',
+  FreeParkingJackpot: 'event.freeParkingJackpot',
+  IncomeTax: 'event.incomeTax',
+  LuxuryTax: 'event.luxuryTax',
+  OwnerInJail: 'event.ownerInJail',
+  MonopolyRent: 'event.monopolyRent',
+  MustCircleBoard: 'event.mustCircleBoard',
+  Bought: 'event.bought',
+  PaidRent: 'event.paidRent',
+  BuiltHouse: 'event.builtHouse',
+  BuiltHotel: 'event.builtHotel',
+  SoldHouse: 'event.soldHouse',
+  Mortgaged: 'event.mortgaged',
+  Unmortgaged: 'event.unmortgaged',
+  SoldToBank: 'event.soldToBank',
+  TradeProposed: 'event.tradeProposed',
+  TradeAccepted: 'event.tradeAccepted',
+  TradeRejected: 'event.tradeRejected',
+  TradeCancelled: 'event.tradeCancelled',
+  PaidJailFine: 'event.paidJailFine',
+  UsedJailCard: 'event.usedJailCard',
+  DoublesAgain: 'event.doublesAgain',
+  CardCollect: 'event.cardCollect',
+  CardPay: 'event.cardPay',
+  CardToJail: 'event.cardToJail',
+  GotJailCard: 'event.gotJailCard',
+  CardCollectPlayers: 'event.cardCollectPlayers',
+  CardStreetRepairs: 'event.cardStreetRepairs',
+  MovedForward: 'event.movedForward',
+  MovedBack: 'event.movedBack',
+  Bankruptcy: 'event.bankruptcy',
+  BankruptcyWin: 'event.bankruptcyWin',
+  BankruptcyTransfer: 'event.bankruptcyTransfer',
+  PlayerOffline: 'event.playerOffline',
+  PlayerBack: 'event.playerBack',
+  ReconnectWait: 'event.reconnectWait',
+} as const;
+export type LogEventKey = (typeof LogEventKey)[keyof typeof LogEventKey];
+
 export type Player = {
   id: number;
   name: string;
@@ -123,7 +172,7 @@ export type Card = {
   effect: CardEffect;
 };
 
-export type LogEntry = { key: string; params?: Record<string, string | number | boolean> };
+export type LogEntry = { key: LogEventKey; params?: Record<string, string | number | boolean> };
 
 export type ReconnectGrace = { playerId: number; until: number };
 
