@@ -108,6 +108,24 @@ describe('http server', () => {
     expect(traversal.status).toBeGreaterThanOrEqual(400)
   })
 
+  it('GET /rooms returns the room list as JSON', async () => {
+    const ws = await connect()
+    const welcome = waitFor(ws, 'welcome')
+    ws.send(JSON.stringify({ type: 'create', name: 'Alice' }))
+    const msg = await welcome
+    const code = msg.type === 'welcome' ? msg.code : ''
+
+    const res = await fetch(`http://localhost:${port}/rooms`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('application/json')
+    const rooms = (await res.json()) as Array<{ code: string; hostName: string; playerCount: number; phase: string }>
+    const mine = rooms.find((r) => r.code === code)
+    expect(mine).toBeDefined()
+    expect(mine?.hostName).toBe('Alice')
+    expect(mine?.playerCount).toBe(1)
+    ws.close()
+  })
+
   it('seeds rooms with the configured tradesEnabled flag', () => {
     const enabled = createServer(dir, { tradesEnabled: true })
     expect(enabled.roomManager.create().game.getState().tradesEnabled).toBe(true)

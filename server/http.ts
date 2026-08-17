@@ -30,6 +30,11 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean 
 
   const httpServer = createHttpServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost')
+    if (url.pathname === '/rooms' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(roomManager.list()))
+      return
+    }
     const pathname = url.pathname === '/' ? 'index.html' : url.pathname
     const filePath = join(root, pathname)
     const within = relative(root, filePath)
