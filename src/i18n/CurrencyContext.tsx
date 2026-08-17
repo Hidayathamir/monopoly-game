@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { ID_IDR_ENABLED } from '../config/features'
-import { DEFAULT_CURRENCY, formatMoney as formatMoneyFor, type Currency } from '../data/currency'
+import { Currency, DEFAULT_CURRENCY, formatMoney as formatMoneyFor } from '../data/currency'
 
 const STORAGE_KEY = 'monopoly-currency'
 
@@ -17,7 +17,7 @@ export function readSavedCurrency(enabled = ID_IDR_ENABLED): Currency {
   if (!enabled) return DEFAULT_CURRENCY
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return saved === 'IDR' || saved === 'USD' ? saved : DEFAULT_CURRENCY
+    return saved === Currency.IDR || saved === Currency.USD ? saved : DEFAULT_CURRENCY
   } catch {
     return DEFAULT_CURRENCY
   }

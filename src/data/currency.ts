@@ -1,4 +1,8 @@
-export type Currency = 'USD' | 'IDR'
+export const Currency = {
+  USD: 'USD',
+  IDR: 'IDR',
+} as const
+export type Currency = (typeof Currency)[keyof typeof Currency]
 
 export interface CurrencyDef {
   code: Currency

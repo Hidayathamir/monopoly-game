@@ -3,6 +3,7 @@ import {
   CardActionType, CardType, GameActionType, GamePhase, LogEventKey, PendingActionType, SpaceType, TaxType,
 } from '../game';
 import { ClientMessageType, ConnectionStatus, ServerMessageType } from '../net';
+import { Currency } from '../../data/currency';
 
 test('wire values are locked for all enum-like consts', () => {
   expect(Object.values(SpaceType)).toEqual(['property', 'railroad', 'utility', 'chance', 'community', 'tax', 'go', 'jail', 'goToJail', 'freeParking']);
@@ -35,4 +36,5 @@ test('wire values are locked for all enum-like consts', () => {
     'event.movedForward', 'event.movedBack', 'event.bankruptcy', 'event.bankruptcyWin',
     'event.bankruptcyTransfer', 'event.playerOffline', 'event.playerBack', 'event.reconnectWait',
   ]);
+  expect(Object.values(Currency)).toEqual(['USD', 'IDR']);
 });
