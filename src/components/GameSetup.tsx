@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
+import { useRoomList } from '../hooks/useRoomList'
+import { GamePhase } from '../types/game'
 
 const MpAction = {
   Create: 'create',
@@ -18,9 +20,14 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
   const [myName, setMyName] = useState('')
   const [roomCode, setRoomCode] = useState('')
   const [mpAction, setMpAction] = useState<MpAction>(MpAction.Create)
+  const { rooms, error } = useRoomList()
+
+  function resolveName() {
+    return myName.trim() || t('lobby.player')
+  }
 
   function handleSubmit() {
-    const name = myName.trim() || t('lobby.player')
+    const name = resolveName()
     if (mpAction === MpAction.Create) onCreate(name)
     else onJoin(name, roomCode.trim().toUpperCase())
   }
@@ -75,6 +82,37 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
           {t('setup.continue')}
         </Button>
       </div>
+      {!error && (
+        <div className="bg-bg-card px-10 py-[30px] rounded-xl flex flex-col gap-4 min-w-[360px]">
+          <h2 className="text-xl text-gold m-0">{t('setup.openRooms')}</h2>
+          {rooms.length === 0 ? (
+            <p className="text-base text-muted" data-testid="no-rooms">
+              {t('setup.noRooms')}
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2" data-testid="room-list">
+              {rooms.map((room) => (
+                <li key={room.code}>
+                  <button
+                    type="button"
+                    data-testid="room-row"
+                    onClick={() => onJoin(resolveName(), room.code)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
+                  >
+                    <span>{room.hostName ?? '—'}</span>
+                    <span className="text-muted text-sm">
+                      {t('setup.playerCount', { n: room.playerCount, max: 6 })}
+                    </span>
+                    <span className="text-muted text-sm">
+                      {room.phase === GamePhase.Setup ? t('setup.statusLobby') : t('setup.statusInGame')}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }

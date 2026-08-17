@@ -127,6 +127,11 @@
   "setup.roomCode": "Room Code",
   "setup.codePlaceholder": "Code",
   "setup.continue": "Continue",
+  "setup.openRooms": "Open Rooms",
+  "setup.noRooms": "No open rooms yet",
+  "setup.playerCount": "{{n}}/{{max}}",
+  "setup.statusLobby": "Lobby",
+  "setup.statusInGame": "In game",
 
   "lobby.title": "Lobby",
   "lobby.roomCode": "Room Code:",

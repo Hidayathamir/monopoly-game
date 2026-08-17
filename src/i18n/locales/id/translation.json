@@ -127,6 +127,11 @@
   "setup.roomCode": "Kode Ruangan",
   "setup.codePlaceholder": "Kode",
   "setup.continue": "Lanjut",
+  "setup.openRooms": "Ruangan Terbuka",
+  "setup.noRooms": "Belum ada ruangan terbuka",
+  "setup.playerCount": "{{n}}/{{max}}",
+  "setup.statusLobby": "Lobi",
+  "setup.statusInGame": "Sedang Bermain",
 
   "lobby.title": "Lobi",
   "lobby.roomCode": "Kode Ruangan:",
