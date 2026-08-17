@@ -1,10 +1,10 @@
 import type { TFunction } from 'i18next'
-import type { LogEntry } from '../types/game'
+import { CardType, type LogEntry } from '../types/game'
 
 const MONEY_PARAM_KEYS = new Set(['amount', 'money', 'perHouse', 'perHotel', 'perPlayer'])
 
 export function cardKeyForId(id: number): string {
-  return id >= 100 ? `card.community.${id}` : `card.chance.${id}`
+  return id >= 100 ? `card.${CardType.Community}.${id}` : `card.${CardType.Chance}.${id}`
 }
 
 export function resolveLogEntry(
