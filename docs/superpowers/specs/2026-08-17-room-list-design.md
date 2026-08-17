@@ -39,8 +39,9 @@ rooms and join by clicking a row, without typing a room code. Manual code entry 
   - A row per room: host name, player count (`n/6`), status badge (Lobby / In game).
   - Each row is a button; clicking calls the existing `onJoin(name, code)` with that
     room's code. The name field typed by the player is used.
-  - In-game rows may be visually disabled; the server still rejects a join attempt
-    if the game started (its message is rendered by the client as today).
+  - Rows are always clickable; the server is the source of truth and rejects a
+    join attempt to an in-game room with its existing message (rendered by the
+    client as today). No client-side join disabling.
   - Empty state: "No open rooms yet" when the server returns zero rooms.
   - Server unreachable: the list section hides quietly; no crash.
 - New i18n keys in both `en` and `id` locales: list title, status labels
