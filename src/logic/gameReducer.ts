@@ -311,7 +311,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               rent = calculateUtilityRentFromBoard(space.owner, state.board, space.id, state.dice ?? [1, 1]);
             } else {
               rent = calculatePropertyRent(space);
-              monopoly = space.houses === 0 && isMonopoly(space.owner, state.board, space);
+              monopoly = isMonopoly(space.owner, state.board, space);
               if (monopoly) rent *= 2;
             }
 
