@@ -39,9 +39,10 @@
 - Modify: `src/logic/__tests__/cards.test.ts:7-31`
 - Modify: `src/logic/__tests__/bot.test.ts:28-49`
 - Modify: `src/components/__tests__/TurnHeader.test.tsx:8-34`
+- Modify: `src/logic/gameReducer.ts:13-33` (`createInitialState`)
 
 **Interfaces:**
-- Produces: `export type ReconnectGrace = { playerId: number; until: number }`; `GameState.reconnectGrace: ReconnectGrace | null`; `GameActionType.SetReconnectGrace = 'SET_RECONNECT_GRACE'`; `GameAction` union entry `{ type: typeof GameActionType.SetReconnectGrace; playerId: number; until: number | null }`.
+- Produces: `export type ReconnectGrace = { playerId: number; until: number }`; `GameState.reconnectGrace: ReconnectGrace | null`; `GameActionType.SetReconnectGrace = 'SET_RECONNECT_GRACE'`; `GameAction` union entry `{ type: typeof GameActionType.SetReconnectGrace; playerId: number; until: number | null }`; `createInitialState()` returns `reconnectGrace: null`.
 
 - [ ] **Step 1: Add the `ReconnectGrace` type**
 
@@ -92,16 +93,26 @@ Example (`cards.test.ts`):
     tradesEnabled: false,
 ```
 
-- [ ] **Step 6: Typecheck**
+- [ ] **Step 6: Add `reconnectGrace: null` to `createInitialState`**
+
+In `src/logic/gameReducer.ts`, in `createInitialState`, after `justBoughtSpaceId: null,` (line 28), add:
+
+```ts
+    reconnectGrace: null,
+```
+
+(This keeps `createInitialState` returning a valid `GameState` now that the field is required — it must land here in Task 1, not in Task 2.)
+
+- [ ] **Step 7: Typecheck**
 
 Run: `npm run typecheck`
 Expected: PASS (no errors).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add src/types/game.ts src/logic/__tests__/cards.test.ts src/logic/__tests__/bot.test.ts src/components/__tests__/TurnHeader.test.tsx
-git commit -m "chore(types): add ReconnectGrace + SetReconnectGrace to shared game types"
+git add src/types/game.ts src/logic/gameReducer.ts src/logic/__tests__/cards.test.ts src/logic/__tests__/bot.test.ts src/components/__tests__/TurnHeader.test.tsx
+git commit -m "chore: add ReconnectGrace + SetReconnectGrace to shared game state"
 ```
 
 ---
@@ -155,28 +166,12 @@ In `src/logic/__tests__/gameReducer.test.ts`, inside the `describe('SET_BOT_CONT
   });
 ```
 
-Also add a test to the `StartGame` describe block (after the `initializes botControlled to false` test at line 112):
-
-```ts
-    it('initializes reconnectGrace to null', () => {
-      expect(createInitialState().reconnectGrace).toBeNull();
-    });
-```
-
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run src/logic/__tests__/gameReducer.test.ts`
-Expected: FAIL — `state.reconnectGrace` is `undefined` (type error under `tsc`, runtime `undefined`).
+Expected: FAIL — the `SetReconnectGrace` case is not implemented, so `state.reconnectGrace` stays `null` and the `event.reconnectWait` log is never appended.
 
-- [ ] **Step 3: Add `reconnectGrace: null` to `createInitialState`**
-
-In `src/logic/gameReducer.ts`, in `createInitialState`, after `justBoughtSpaceId: null,` (line 28), add:
-
-```ts
-    reconnectGrace: null,
-```
-
-- [ ] **Step 4: Add the `SetReconnectGrace` reducer case**
+- [ ] **Step 3: Add the `SetReconnectGrace` reducer case**
 
 In `src/logic/gameReducer.ts`, immediately before `case GameActionType.SetBotControl:` (line 773), insert:
 
@@ -196,7 +191,7 @@ In `src/logic/gameReducer.ts`, immediately before `case GameActionType.SetBotCon
     }
 ```
 
-- [ ] **Step 5: Clear grace on reconnect in `SetBotControl`**
+- [ ] **Step 4: Clear grace on reconnect in `SetBotControl`**
 
 In `src/logic/gameReducer.ts`, in the `SetBotControl` case (lines 779-783), add a `reconnectGrace` key to the returned object so it reads:
 
@@ -209,12 +204,12 @@ In `src/logic/gameReducer.ts`, in the `SetBotControl` case (lines 779-783), add 
       };
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [ ] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run src/logic/__tests__/gameReducer.test.ts`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/logic/gameReducer.ts src/logic/__tests__/gameReducer.test.ts
