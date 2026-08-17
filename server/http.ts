@@ -59,6 +59,11 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
         res.end(JSON.stringify({ message: 'invalid JSON body' }))
         return
       }
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ message: 'invalid JSON body' }))
+        return
+      }
       const { code, state } = parsed
       if (typeof code !== 'string' || !code || !state) {
         res.writeHead(400, { 'Content-Type': 'application/json' })

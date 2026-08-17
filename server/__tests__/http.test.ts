@@ -150,6 +150,21 @@ describe('http server', () => {
     expect(res.status).toBe(403)
   })
 
+  it('POST /seed rejects a null JSON body with 400', async () => {
+    const created = createServer(dir, { seedEnabled: true })
+    const server = created.httpServer
+    await new Promise<void>((resolve) => server.listen(0, resolve))
+    const seedPort = (server.address() as AddressInfo).port
+
+    const res = await fetch(`http://localhost:${seedPort}/seed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(null),
+    })
+    expect(res.status).toBe(400)
+    server.close()
+  })
+
   it('POST /seed seeds a room and broadcasts the state when enabled', async () => {
     const created = createServer(dir, { seedEnabled: true })
     const server = created.httpServer
