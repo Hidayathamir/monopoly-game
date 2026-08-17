@@ -85,6 +85,7 @@ export const GameActionType = {
   PayJailFine: 'PAY_JAIL_FINE',
   UseGetOutOfJailFree: 'USE_GET_OUT_OF_JAIL_FREE',
   SetBotControl: 'SET_BOT_CONTROL',
+  SetReconnectGrace: 'SET_RECONNECT_GRACE',
 } as const;
 export type GameActionType = (typeof GameActionType)[keyof typeof GameActionType];
 
@@ -124,6 +125,8 @@ export type Card = {
 
 export type LogEntry = { key: string; params?: Record<string, string | number | boolean> };
 
+export type ReconnectGrace = { playerId: number; until: number };
+
 export type CardEffect =
   | { action: typeof CardActionType.Collect; amount: number }
   | { action: typeof CardActionType.Pay; amount: number }
@@ -148,6 +151,7 @@ export type GameState = {
   eventLog: LogEntry[];
   pendingAction: PendingAction | null;
   justBoughtSpaceId: number | null;
+  reconnectGrace: ReconnectGrace | null;
   pendingTrades: PendingTrade[];
   nextTradeId: number;
   tradesEnabled: boolean;
@@ -199,7 +203,8 @@ export type GameAction =
   | { type: typeof GameActionType.SkipAction }
   | { type: typeof GameActionType.PayJailFine }
   | { type: typeof GameActionType.UseGetOutOfJailFree }
-  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean };
+  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean }
+  | { type: typeof GameActionType.SetReconnectGrace; playerId: number; until: number | null };
 
 export type GameApi = {
   state: GameState;

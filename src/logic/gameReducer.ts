@@ -26,6 +26,7 @@ export function createInitialState({ tradesEnabled = false }: { tradesEnabled?: 
     eventLog: [],
     pendingAction: null,
     justBoughtSpaceId: null,
+    reconnectGrace: null,
     pendingTrades: [],
     nextTradeId: 0,
     tradesEnabled,
