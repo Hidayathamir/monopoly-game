@@ -1,8 +1,12 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import { useSound } from '../audio/SoundContext'
+import { SoundId, type SoundId as SoundIdType } from '../audio/soundEngine'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'success' | 'secondary' | 'danger' | 'start'
   size?: 'sm' | 'md' | 'lg'
+  sound?: SoundIdType | null
+  children?: ReactNode
 }
 
 const variantClasses: Record<string, string> = {
@@ -25,8 +29,15 @@ export default function Button({
   className = '',
   disabled,
   children,
+  sound,
+  onClick,
   ...props
 }: ButtonProps) {
+  const play = useSound()
+  function handleClick(e: MouseEvent<HTMLButtonElement>) {
+    if (sound !== null) play(sound ?? SoundId.Click)
+    onClick?.(e)
+  }
   return (
     <button
       className={[
@@ -37,6 +48,7 @@ export default function Button({
         className,
       ].join(' ')}
       disabled={disabled}
+      onClick={handleClick}
       {...props}
     >
       {children}
