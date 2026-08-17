@@ -30,15 +30,29 @@ describe('PropertyTooltip', () => {
     expect(screen.getByRole('button', { name: /Redeem/ })).toBeEnabled()
   })
 
-  it('shows monopoly 2x notice when owner has full color group with no houses', () => {
+  it('shows monopoly 2x notice when owner has full color group', () => {
     const s = makeState(100)
     const board = s.board.map((b) => {
       if (b.color === '#8B4513' && b.type === 'property') return { ...b, owner: 0 }
       return b
     })
-    const space = { ...board[1], houses: 0, owner: 0 }
-    renderWithProviders(<PropertyTooltip space={space} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />)
+    // 0 houses — notice shows
+    const space0 = { ...board[1], houses: 0, owner: 0 }
+    const { unmount } = renderWithProviders(
+      <PropertyTooltip space={space0} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />
+    )
     expect(screen.getByText(/Complete group/)).toBeTruthy()
+    unmount()
+
+    // 2 houses — notice still shows, with the doubled amount
+    const space2 = { ...board[1], houses: 2, owner: 0 }
+    renderWithProviders(
+      <PropertyTooltip space={space2} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />
+    )
+    const notice = screen.getByText(/Complete group/)
+    expect(notice).toBeTruthy()
+    // Salvador 2-house rent 30 × 2 = $60
+    expect(notice).toHaveTextContent('$60')
   })
 
   it('shows 75% payout on unmortgaged Sell to Bank button', () => {
