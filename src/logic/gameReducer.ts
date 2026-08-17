@@ -1,4 +1,4 @@
-import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
+import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, LogEventKey, TaxType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
 import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
@@ -60,7 +60,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players,
         turnOrder,
         currentPlayer: turnOrder[0],
-        eventLog: [{ key: 'event.gameStarted' }],
+        eventLog: [{ key: LogEventKey.GameStarted }],
       };
     }
 
@@ -88,11 +88,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const total = dice[0] + dice[1];
           const newPos = (player.position + total) % 40;
           let newMoney = player.money;
-          const newEventLog = [...state.eventLog, actorEntry('event.jailBreakDoubles', player)];
+          const newEventLog = [...state.eventLog, actorEntry(LogEventKey.JailBreakDoubles, player)];
           const passedGo = newPos < player.position
           if (passedGo) {
             newMoney += GO_SALARY;
-            newEventLog.push(actorEntry('event.passedGo', player, { amount: GO_SALARY }));
+            newEventLog.push(actorEntry(LogEventKey.PassedGo, player, { amount: GO_SALARY }));
           }
           newPlayers[state.currentPlayer] = {
             ...newPlayers[state.currentPlayer],
@@ -116,11 +116,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const total = dice[0] + dice[1];
             const newPos = (player.position + total) % 40;
             let newMoney = player.money;
-            const newEventLog = [...state.eventLog, actorEntry('event.jailForcedOut', player)];
+            const newEventLog = [...state.eventLog, actorEntry(LogEventKey.JailForcedOut, player)];
             const forcedPassedGo = newPos < player.position
             if (forcedPassedGo) {
               newMoney += GO_SALARY;
-              newEventLog.push(actorEntry('event.passedGo', player, { amount: GO_SALARY }));
+              newEventLog.push(actorEntry(LogEventKey.PassedGo, player, { amount: GO_SALARY }));
             }
             newPlayers[state.currentPlayer] = {
               ...newPlayers[state.currentPlayer],
@@ -154,7 +154,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             dice: null,
             doublesCount: 0,
             lastMoveSteps: null,
-            eventLog: [...state.eventLog, actorEntry('event.jailFailed', player, { attempt: newTurns }), turnEntry(state.players, nextPlayer)],
+            eventLog: [...state.eventLog, actorEntry(LogEventKey.JailFailed, player, { attempt: newTurns }), turnEntry(state.players, nextPlayer)],
           };
         }
       }
@@ -166,8 +166,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const luck = action.luck;
       const aimed = target !== undefined && luck !== undefined;
       const rolledEntry: LogEntry = aimed
-        ? actorEntry('event.rolledAimed', player, { d1: dice[0], d2: dice[1], total, target, luck })
-        : actorEntry('event.rolled', player, { d1: dice[0], d2: dice[1], total });
+        ? actorEntry(LogEventKey.RolledAimed, player, { d1: dice[0], d2: dice[1], total, target, luck })
+        : actorEntry(LogEventKey.Rolled, player, { d1: dice[0], d2: dice[1], total });
       const newEventLog = [...state.eventLog, rolledEntry];
 
       let passedGo = false
@@ -175,7 +175,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         if (player.position !== 0) {
           passedGo = true
           newMoney += GO_SALARY;
-          newEventLog.push(actorEntry('event.passedGo', player, { amount: GO_SALARY }));
+          newEventLog.push(actorEntry(LogEventKey.PassedGo, player, { amount: GO_SALARY }));
         }
       }
 
@@ -199,7 +199,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           dice: null,
           doublesCount: 0,
           lastMoveSteps: null,
-          eventLog: [...newEventLog, actorEntry('event.tripleDoubles', player), turnEntry(state.players, nextPlayer)],
+          eventLog: [...newEventLog, actorEntry(LogEventKey.TripleDoubles, player), turnEntry(state.players, nextPlayer)],
         };
       }
 
@@ -250,7 +250,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               dice: null,
               doublesCount: 0,
               lastMoveSteps: null,
-              eventLog: [...state.eventLog, actorEntry('event.toJail', player), turnEntry(state.players, next)],
+              eventLog: [...state.eventLog, actorEntry(LogEventKey.ToJail, player), turnEntry(state.players, next)],
             };
           }
           return { ...state, phase: GamePhase.Waiting };
@@ -271,12 +271,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             phase: GamePhase.Waiting,
             players: newPlayers,
             freeParkingPot: 0,
-            eventLog: [...state.eventLog, actorEntry('event.freeParkingJackpot', player, { amount: pot })],
+            eventLog: [...state.eventLog, actorEntry(LogEventKey.FreeParkingJackpot, player, { amount: pot })],
           };
         }
 
         case SpaceType.Tax: {
-          const isIncome = space.taxType === 'income';
+          const isIncome = space.taxType === TaxType.Income;
           const taxAmount = isIncome
             ? Math.floor(player.money * INCOME_TAX_RATE)
             : (space.price ?? 0);
@@ -286,8 +286,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             money: player.money - taxAmount,
           };
           const message: LogEntry = isIncome
-            ? actorEntry('event.incomeTax', player, { amount: taxAmount, money: player.money })
-            : actorEntry('event.luxuryTax', player, { amount: taxAmount });
+            ? actorEntry(LogEventKey.IncomeTax, player, { amount: taxAmount, money: player.money })
+            : actorEntry(LogEventKey.LuxuryTax, player, { amount: taxAmount });
           return {
             ...state,
             phase: GamePhase.Waiting,
@@ -316,7 +316,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const currentPlayer = state.players[state.currentPlayer];
             const owner = state.players[space.owner];
             if (owner.inJail) {
-              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: 'event.ownerInJail', params: { owner: owner.name, name: currentPlayer.name, ...(currentPlayer.botControlled ? { bot: true } : {}) } }] };
+              return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, { key: LogEventKey.OwnerInJail, params: { owner: owner.name, name: currentPlayer.name, ...(currentPlayer.botControlled ? { bot: true } : {}) } }] };
             }
 
             return {
@@ -324,11 +324,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               phase: GamePhase.Resolving,
               pendingAction: { type: PendingActionType.PayRent, spaceId: space.id, amount: rent },
               eventLog: monopoly
-                ? [...state.eventLog, { key: 'event.monopolyRent', params: { owner: owner.name, name: currentPlayer.name, ...(currentPlayer.botControlled ? { bot: true } : {}) } }]
+                ? [...state.eventLog, { key: LogEventKey.MonopolyRent, params: { owner: owner.name, name: currentPlayer.name, ...(currentPlayer.botControlled ? { bot: true } : {}) } }]
                 : state.eventLog,
             };
           } else if (space.owner === null) {
-            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, actorEntry('event.mustCircleBoard', player)] }
+            if (player.passedGo === false) return { ...state, phase: GamePhase.Waiting, eventLog: [...state.eventLog, actorEntry(LogEventKey.MustCircleBoard, player)] }
             return {
               ...state,
               phase: GamePhase.Buying,
@@ -375,7 +375,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         pendingAction: null,
         justBoughtSpaceId: pending.spaceId,
-        eventLog: [...state.eventLog, actorEntry('event.bought', player, { spaceId: space.id, amount: space.price ?? 0 })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.Bought, player, { spaceId: space.id, amount: space.price ?? 0 })],
       };
     }
 
@@ -399,7 +399,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, { key: 'event.paidRent', params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), amount: pending.amount, owner: state.players[space.owner!].name } }],
+          eventLog: [...state.eventLog, { key: LogEventKey.PaidRent, params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), amount: pending.amount, owner: state.players[space.owner!].name } }],
         };
       }
       return {
@@ -426,7 +426,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         board: newBoard,
         players: newPlayers,
         pendingAction: null,
-        eventLog: [...state.eventLog, actorEntry(space.houses === 4 ? 'event.builtHotel' : 'event.builtHouse', player, { spaceId: space.id, amount: cost })],
+        eventLog: [...state.eventLog, actorEntry(space.houses === 4 ? LogEventKey.BuiltHotel : LogEventKey.BuiltHouse, player, { spaceId: space.id, amount: cost })],
       };
     }
 
@@ -443,7 +443,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, actorEntry('event.soldHouse', player, { spaceId: space.id, amount: refund })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.SoldHouse, player, { spaceId: space.id, amount: refund })],
       };
     }
 
@@ -460,7 +460,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, actorEntry('event.mortgaged', player, { spaceId: space.id, amount: mortgageValue })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.Mortgaged, player, { spaceId: space.id, amount: mortgageValue })],
       };
     }
 
@@ -478,7 +478,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, actorEntry('event.unmortgaged', player, { spaceId: space.id, amount: unmortgageCost })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.Unmortgaged, player, { spaceId: space.id, amount: unmortgageCost })],
       };
     }
 
@@ -502,7 +502,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         board: newBoard,
         players: newPlayers,
-        eventLog: [...state.eventLog, actorEntry('event.soldToBank', player, { spaceId: space.id, amount: sellValue })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.SoldToBank, player, { spaceId: space.id, amount: sellValue })],
       };
     }
 
@@ -522,16 +522,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const applied = applyTrade(state, trade);
           return {
             ...applied,
-            eventLog: [...applied.eventLog, { key: 'event.tradeAccepted', params: { from: from.name, to: to.name } }],
+            eventLog: [...applied.eventLog, { key: LogEventKey.TradeAccepted, params: { from: from.name, to: to.name } }],
           };
         }
-        return { ...state, eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: from.name, to: to.name } }] };
+        return { ...state, eventLog: [...state.eventLog, { key: LogEventKey.TradeRejected, params: { from: from.name, to: to.name } }] };
       }
       return {
         ...state,
         pendingTrades: [...state.pendingTrades, { ...offer, id: state.nextTradeId }],
         nextTradeId: state.nextTradeId + 1,
-        eventLog: [...state.eventLog, { key: 'event.tradeProposed', params: { from: from.name, to: to.name } }],
+        eventLog: [...state.eventLog, { key: LogEventKey.TradeProposed, params: { from: from.name, to: to.name } }],
       };
     }
 
@@ -546,14 +546,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return {
           ...state,
           pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
-          eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: from.name, to: to.name } }],
+          eventLog: [...state.eventLog, { key: LogEventKey.TradeRejected, params: { from: from.name, to: to.name } }],
         };
       }
       const applied = applyTrade(state, trade);
       return {
         ...applied,
         pendingTrades: applied.pendingTrades.filter((t) => t.id !== trade.id),
-        eventLog: [...applied.eventLog, { key: 'event.tradeAccepted', params: { from: from.name, to: to.name } }],
+        eventLog: [...applied.eventLog, { key: LogEventKey.TradeAccepted, params: { from: from.name, to: to.name } }],
       };
     }
 
@@ -564,7 +564,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
-        eventLog: [...state.eventLog, { key: 'event.tradeRejected', params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
+        eventLog: [...state.eventLog, { key: LogEventKey.TradeRejected, params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
       };
     }
 
@@ -575,7 +575,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         pendingTrades: state.pendingTrades.filter((t) => t.id !== trade.id),
-        eventLog: [...state.eventLog, { key: 'event.tradeCancelled', params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
+        eventLog: [...state.eventLog, { key: LogEventKey.TradeCancelled, params: { from: state.players[trade.fromId].name, to: state.players[trade.toId].name } }],
       };
     }
 
@@ -635,7 +635,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         players: newPlayers,
         freeParkingPot: 0,
-        eventLog: [...state.eventLog, actorEntry('event.freeParkingJackpot', player, { amount: pot })],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.FreeParkingJackpot, player, { amount: pot })],
       };
     }
 
@@ -656,7 +656,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayer: nextPlayer,
         freeParkingPot: state.freeParkingPot + JAIL_FINE,
         dice: null,
-        eventLog: [...state.eventLog, actorEntry('event.paidJailFine', player, { amount: JAIL_FINE }), turnEntry(state.players, nextPlayer)],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.PaidJailFine, player, { amount: JAIL_FINE }), turnEntry(state.players, nextPlayer)],
       };
     }
 
@@ -676,7 +676,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         currentPlayer: nextPlayer,
         dice: null,
-        eventLog: [...state.eventLog, actorEntry('event.usedJailCard', player), turnEntry(state.players, nextPlayer)],
+        eventLog: [...state.eventLog, actorEntry(LogEventKey.UsedJailCard, player), turnEntry(state.players, nextPlayer)],
       };
     }
 
@@ -694,7 +694,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           phase: GamePhase.Waiting,
           dice: null,
           doublesCount: state.dice?.[0] === state.dice?.[1] ? state.doublesCount : 0,
-          eventLog: [...state.eventLog, actorEntry('event.doublesAgain', state.players[state.currentPlayer])],
+          eventLog: [...state.eventLog, actorEntry(LogEventKey.DoublesAgain, state.players[state.currentPlayer])],
         };
       }
 
@@ -739,10 +739,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       });
 
       const activePlayers = newPlayers.filter((p) => !p.bankrupt);
-      const baseLog: LogEntry[] = [actorEntry('event.bankruptcy', player)];
+      const baseLog: LogEntry[] = [actorEntry(LogEventKey.Bankruptcy, player)];
       const transferLog: LogEntry | null =
         creditorId !== null
-          ? { key: 'event.bankruptcyTransfer', params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), creditor: newPlayers[creditorId].name, amount: liquidationTotal } }
+          ? { key: LogEventKey.BankruptcyTransfer, params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), creditor: newPlayers[creditorId].name, amount: liquidationTotal } }
           : null;
       const logs: LogEntry[] = [...baseLog, ...(transferLog ? [transferLog] : [])];
 
@@ -753,7 +753,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           board: newBoard,
           players: newPlayers,
           pendingAction: null,
-          eventLog: [...state.eventLog, ...logs, { key: 'event.bankruptcyWin', params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), winner: activePlayers[0]?.name ?? '' } }],
+          eventLog: [...state.eventLog, ...logs, { key: LogEventKey.BankruptcyWin, params: { name: player.name, ...(player.botControlled ? { bot: true } : {}), winner: activePlayers[0]?.name ?? '' } }],
         };
       }
       const next = getNextPlayer({ ...state, board: newBoard, players: newPlayers });
@@ -781,7 +781,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         reconnectGrace: { playerId: action.playerId, until: action.until },
-        eventLog: player ? [...state.eventLog, { key: 'event.reconnectWait', params: { name: player.name } }] : state.eventLog,
+        eventLog: player ? [...state.eventLog, { key: LogEventKey.ReconnectWait, params: { name: player.name } }] : state.eventLog,
       };
     }
 
@@ -790,7 +790,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!target || target.botControlled === action.controlled) return state;
       const newPlayers = [...state.players];
       newPlayers[action.playerId] = { ...target, botControlled: action.controlled };
-      const logKey = action.controlled ? 'event.playerOffline' : 'event.playerBack';
+      const logKey = action.controlled ? LogEventKey.PlayerOffline : LogEventKey.PlayerBack;
       return {
         ...state,
         players: newPlayers,
