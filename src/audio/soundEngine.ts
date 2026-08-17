@@ -13,6 +13,7 @@ export const SoundId = {
   Trade: 'trade',
   RoomJoin: 'roomJoin',
   GameStart: 'gameStart',
+  YourTurn: 'yourTurn',
 } as const;
 export type SoundId = (typeof SoundId)[keyof typeof SoundId];
 
@@ -116,6 +117,10 @@ const SOUND_GENERATORS: Record<SoundId, (ctx: AudioContext, dest: AudioNode) => 
     tone(ctx, dest, { freq: 392, duration: 0.1, type: 'triangle', gain: 0.3 });
     tone(ctx, dest, { freq: 523, duration: 0.1, type: 'triangle', gain: 0.3, delay: 0.12 });
     tone(ctx, dest, { freq: 659, duration: 0.22, type: 'triangle', gain: 0.3, delay: 0.24 });
+  },
+  [SoundId.YourTurn]: (ctx, dest) => {
+    tone(ctx, dest, { freq: 587, duration: 0.1, type: 'triangle', gain: 0.3 });
+    tone(ctx, dest, { freq: 880, duration: 0.22, type: 'triangle', gain: 0.3, delay: 0.14 });
   },
 };
 

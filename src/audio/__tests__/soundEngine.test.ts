@@ -61,4 +61,14 @@ describe('soundEngine', () => {
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
     expect(ctx.createBufferSource).toHaveBeenCalledTimes(3)
   })
+
+  it('creates oscillators for the your-turn chime', async () => {
+    const FakeAC = vi.fn(function () { return new FakeAudioContext() })
+    vi.stubGlobal('AudioContext', FakeAC)
+    const { playSound, SoundId } = await loadEngine()
+    playSound(SoundId.YourTurn)
+    const ctx = FakeAC.mock.results[0].value as FakeAudioContext
+    expect(ctx.createOscillator).toHaveBeenCalledTimes(2)
+    expect(ctx.createGain).toHaveBeenCalledTimes(3)
+  })
 })
