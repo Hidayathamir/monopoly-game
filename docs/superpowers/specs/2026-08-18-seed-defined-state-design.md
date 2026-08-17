@@ -74,20 +74,28 @@ defaults:
   copied default deck; `tradesEnabled` from the partial or room value.
 - Guarantees `players[i].id === i`.
 
-**`validateGameState(state, slots): { ok: true } | { ok: false; message: string }`**
-— structural + invariant checks:
+Validation is split so the client panel can run a pure structural check
+without knowing the server's slot state:
+
+**`validateStateStructure(state): { ok: true } | { ok: false; message: string }`**
+— pure structural + invariant checks (runs on both client and server):
 
 - `board.length === 40`
-- `players.length` equals the number of joined slots and `players[i].id === i`
-  for each; ids unique
-- `turnOrder` is a permutation of exactly the player ids; `currentPlayer ∈ turnOrder`
+- player ids unique, `0 ≤ id < MAX_PLAYERS`; `turnOrder` is a permutation of
+  exactly the player ids; `currentPlayer ∈ turnOrder`
 - each player's `properties` equals the set of board spaces whose `owner` is
   that player id (no orphaned owner, no claimed-but-unowned space)
 - `owner ∈ playerIds ∪ { null }`; `houses` only on property spaces; defensive
   checks on numeric fields (money, positions)
+- phase/state sanity: `Waiting` ⇒ `pendingAction === null && dice === null`
+
+**`validateStateForRoom(state, slots)`** — room-aware layer (server only; the
+client panel cannot know the server's slot state):
+
+- `players.length` equals the number of joined slots and `players[i].id === i`
+  for each joined slot
 - `currentPlayer`'s slot is either connected (a live client) or a bot — the
   state must be actionable
-- phase/state sanity: `Waiting` ⇒ `pendingAction === null && dice === null`
 
 ### 2. Server plumbing
 
@@ -100,7 +108,8 @@ defaults:
   - `POST /seed` body `{ code, state }`:
     - `seedEnabled === false` → `403`
     - `roomManager.get(code)` undefined → `404`
-    - `validateGameState(state, game slots)` fails → `400 { message }`
+    - `validateStateStructure(state)` then `validateStateForRoom(state, game slots)`
+      fails → `400 { message }`
     - success → `game.seedState(state)` → `200 { ok: true }`
 - `server/roomManager.ts`: accept `seedEnabled` in opts, forward to each
   `GameServer`.
@@ -108,7 +117,8 @@ defaults:
   - constructor opts gain `seedEnabled`
   - `seedState(state)`:
     1. throw `Error('seeding disabled')` if `!this.seedEnabled` (defense in depth)
-    2. validate against `this.slots`; throw on failure
+    2. `validateStateStructure(state)` then `validateStateForRoom(state, this.slots)`;
+       throw on failure
     3. `this.clearBotTimer()` and reset `this.botSteps = 0` so a stale bot
        dispatch never fires into the new state
     4. `this.state = state; this.broadcast()` — full state + lobby to the room
@@ -119,12 +129,12 @@ defaults:
   `{ seedEnabled: boolean | null, loading: boolean }`.
 - NEW `src/components/LoadScenarioPanel.tsx`: rendered on the lobby/setup
   screen only when `seedEnabled === true`. Fields: **room code**, **JSON
-  textarea**, **Validate** (runs `validateGameState` client-side, lists inline
-  errors), **Apply** (`POST /seed`, surfaces non-200 `message`; on 200 resets
-  and collapses). Reuses existing `Button`/tile styling. Never rendered in a
-  normal launch (no flag → `seedEnabled: false`).
-- Helper `scripts/print-seed.mjs` (NEW): imports `createSeededState` from the
-  built dist or tsx, prints a seed JSON to stdout for copy-paste into the panel.
+  textarea**, **Validate** (runs `validateStateStructure` client-side, lists
+  inline errors), **Apply** (`POST /seed`, surfaces non-200 `message`; on 200
+  resets and collapses). Reuses existing `Button`/tile styling. Never rendered
+  in a normal launch (no flag → `seedEnabled: false`).
+- Helper `scripts/print-seed.mjs` (NEW): runs `createSeededState` via `tsx`,
+  prints a seed JSON to stdout for copy-paste into the panel.
 
 ### 4. e2e — `e2e/seed.spec.ts` (NEW), bankruptcy on unpayable rent
 
@@ -134,8 +144,9 @@ defaults:
   until the page reflects it) and `waitForSeedApplied(page, predicate)`.
 - `e2e/fixtures/bankruptcy-seed.ts` (NEW): the scenario `GameState` built from
   `createSeededState`:
-  - Alpha (host, slot 0): `$1,000`, owns the browns + a second color set for
-    good measure, and **Boardwalk (39) with 4 houses**, `passedGo: true`
+  - Alpha (host, slot 0): `$1,000`, owns **Boardwalk (39) with 4 houses**
+    ($2,000 rent) plus a few other properties to read as "rich",
+    `passedGo: true`
   - Bravo (slot 1): `$1`, `position: 30`, `passedGo: true`
   - `turnOrder: [1, 0]`, `currentPlayer: 1`, `phase: Waiting`
 
@@ -153,10 +164,11 @@ Flow:
 
 ## Testing
 
-- `src/logic/__tests__/seed.test.ts` (NEW): builder round-trip through the
-  validator; one test per validator rejection (bad board length, wrong player
-  count, id/slot mismatch, bad turnOrder, owner without property list, unowned
-  claimed space, Waiting-with-pending state, currentPlayer not actionable).
+- `src/logic/__tests__/seed.test.ts` (NEW): builder round-trip through both
+  validators; one test per rejection — `validateStateStructure`: bad board
+  length, duplicate ids, bad turnOrder, owner without property list, unowned
+  claimed space, Waiting-with-pending state; `validateStateForRoom`: player
+  count vs joined slots, id/slot mismatch, currentPlayer not actionable.
 - `server/__tests__/gameServer.test.ts` (+): `seedState` broadcasts state and
   lobby; refuses when disabled; cancels a pending bot timer on re-seed.
 - `server/__tests__/http.test.ts` (+): `GET /config` reflects the flag; `POST
