@@ -5,6 +5,7 @@ import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
 import { rollControlledDice } from '../src/logic/controlledDice'
+import { validateStateStructure, validateStateForRoom } from '../src/logic/seed'
 
 export type ClientId = string
 
@@ -42,12 +43,14 @@ export class GameServer {
   private hostSlotIndex = 0
   private botSteps = 0
   private botTimer: ReturnType<typeof setTimeout> | null = null
+  private seedEnabled: boolean
 
-  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
+  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean }) {
     this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.code = opts?.code ?? ''
+    this.seedEnabled = opts?.seedEnabled ?? false
   }
 
   getState(): GameState {
@@ -181,6 +184,24 @@ export class GameServer {
       names: joined.map((s, i) => s.name ?? `P${i + 1}`),
       isBot: joined.map((s) => s.isBot),
     })
+  }
+
+  seedState(state: GameState): void {
+    if (!this.seedEnabled) {
+      throw new Error('seeding disabled')
+    }
+    const structural = validateStateStructure(state)
+    if (!structural.ok) {
+      throw new Error(`Invalid seed state: ${structural.message}`)
+    }
+    const roomCheck = validateStateForRoom(state, this.slots)
+    if (!roomCheck.ok) {
+      throw new Error(`Invalid seed state: ${roomCheck.message}`)
+    }
+    this.clearBotTimer()
+    this.botSteps = 0
+    this.state = { ...state, tradesEnabled: this.state.tradesEnabled }
+    this.broadcast()
   }
 
   leave(clientId: ClientId): void {

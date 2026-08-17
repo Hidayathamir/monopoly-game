@@ -1,15 +1,17 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { GameServer } from '../gameServer'
-import { GamePhase } from '../../src/types/game'
+import { GamePhase, PendingActionType } from '../../src/types/game'
+import { createSeededState } from '../../src/logic/seed'
+import { ServerMessageType } from '../../src/types/net'
 import type { ServerMessage } from '../../src/types/net'
 
-function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
+function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean }) {
   vi.spyOn(Math, 'random').mockReturnValue(0.5)
   const sent: ServerMessage[] = []
   const server = new GameServer(
     {
-      broadcastState: () => {},
-      broadcastLobby: () => {},
+      broadcastState: (state) => sent.push({ type: ServerMessageType.State, state }),
+      broadcastLobby: (players, hostPlayerId) => sent.push({ type: ServerMessageType.Lobby, players, hostPlayerId }),
       send: (_id, msg) => sent.push(msg),
     },
     opts,
@@ -540,5 +542,75 @@ describe('GameServer', () => {
     } })
     expect(sent.some((m) => m.type === 'error' && m.message === 'Fitur pertukaran tidak tersedia')).toBe(true)
     expect(server.getState().pendingTrades).toHaveLength(0)
+  })
+
+  it('seedState replaces state and broadcasts state + lobby when enabled', () => {
+    const { server, sent } = setup({ seedEnabled: true })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const seeded = createSeededState({
+      players: [
+        { id: 0, name: 'Alice', money: 1000 },
+        { id: 1, name: 'Bob', money: 1 },
+      ],
+      board: { 39: { owner: 0, houses: 4 } },
+      currentPlayer: 1,
+      phase: GamePhase.Resolving,
+      pendingAction: { type: PendingActionType.PayRent, spaceId: 39, amount: 1700 },
+      tradesEnabled: false,
+    })
+    server.seedState(seeded)
+    expect(server.getState().phase).toBe(GamePhase.Resolving)
+    expect(server.getState().players[1].money).toBe(1)
+    expect(sent.some((m) => m.type === 'state' && m.state.phase === GamePhase.Resolving)).toBe(true)
+    expect(sent.some((m) => m.type === 'lobby')).toBe(true)
+  })
+
+  it('seedState throws when seeding is disabled', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const seeded = createSeededState({ players: [{ id: 0, name: 'Alice', money: 100 }], currentPlayer: 0 })
+    expect(() => server.seedState(seeded)).toThrow(/disabled/)
+  })
+
+  it('seedState throws on an invalid seed (player count mismatch)', () => {
+    const { server } = setup({ seedEnabled: true })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const seeded = createSeededState({ players: [{ id: 0, name: 'Alice', money: 100 }], currentPlayer: 0 })
+    expect(() => server.seedState(seeded)).toThrow(/Invalid seed state/)
+  })
+
+  it('seedState cancels a pending bot timer on re-seed', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1, 4], sum 5, non-doubles
+    const { server } = setup({ seedEnabled: true, rng })
+    server.join('c0', 'Alice')
+    server.addBot('c0') // slot 1 is a bot (name Droid)
+    server.start('c0')  // Math.random is mocked 0.5 → turnOrder [0, 1], currentPlayer 0
+
+    // Play the host's turn so it ends on the bot (slot 1) → driveBots schedules a timer.
+    server.roll('c0')
+    vi.advanceTimersByTime(500)               // DiceAnimated → [1,4], Moving, pos 5
+    vi.advanceTimersByTime(500 + 5 * 150)     // ResolveSpace: space 5 (unowned railroad) → Waiting
+    server.handleAction('c0', { type: 'END_TURN' }) // currentPlayer → 1 (bot), bot timer scheduled
+
+    const seeded = createSeededState({
+      players: [
+        { id: 0, name: 'Alice', money: 1000 },
+        { id: 1, name: 'Droid', money: 100, isBot: true },
+      ],
+      currentPlayer: 1,
+      turnOrder: [1, 0],
+    })
+    server.seedState(seeded)
+    const logLength = server.getState().eventLog.length
+
+    vi.advanceTimersByTime(10 * 700 + 100) // if the timer had survived it would have rolled by now
+    expect(server.getState().currentPlayer).toBe(1)
+    expect(server.getState().dice).toBeNull()
+    expect(server.getState().eventLog.length).toBe(logLength)
   })
 })
