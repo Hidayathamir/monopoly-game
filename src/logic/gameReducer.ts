@@ -771,6 +771,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case GameActionType.SetReconnectGrace: {
+      if (action.until == null) {
+        if (!state.reconnectGrace) return state;
+        return { ...state, reconnectGrace: null };
+      }
+      if (state.reconnectGrace?.playerId === action.playerId) return state;
+      const player = state.players[action.playerId];
+      return {
+        ...state,
+        reconnectGrace: { playerId: action.playerId, until: action.until },
+        eventLog: player ? [...state.eventLog, { key: 'event.reconnectWait', params: { name: player.name } }] : state.eventLog,
+      };
+    }
+
     case GameActionType.SetBotControl: {
       const target = state.players[action.playerId];
       if (!target || target.botControlled === action.controlled) return state;
@@ -780,6 +794,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         players: newPlayers,
+        reconnectGrace: !action.controlled && state.reconnectGrace?.playerId === action.playerId ? null : state.reconnectGrace,
         eventLog: [...state.eventLog, { key: logKey, params: { name: target.name } }],
       };
     }

@@ -143,6 +143,39 @@ describe('gameReducer', () => {
     });
   });
 
+  describe('SET_RECONNECT_GRACE', () => {
+    it('sets the grace and logs a reconnect notice', () => {
+      const state = gameReducer(makeStartedState(2), {
+        type: GameActionType.SetReconnectGrace,
+        playerId: 0,
+        until: 123456789,
+      });
+      expect(state.reconnectGrace).toEqual({ playerId: 0, until: 123456789 });
+      expect(state.eventLog.at(-1)).toEqual({ key: 'event.reconnectWait', params: { name: 'Alice' } });
+    });
+
+    it('clears the grace without logging', () => {
+      let state = gameReducer(makeStartedState(2), { type: GameActionType.SetReconnectGrace, playerId: 0, until: 123 });
+      state = gameReducer(state, { type: GameActionType.SetReconnectGrace, playerId: 0, until: null });
+      expect(state.reconnectGrace).toBeNull();
+      expect(state.eventLog.filter((e) => e.key === 'event.reconnectWait')).toHaveLength(1);
+    });
+
+    it('is idempotent for the same player', () => {
+      let state = gameReducer(makeStartedState(2), { type: GameActionType.SetReconnectGrace, playerId: 0, until: 123 });
+      state = gameReducer(state, { type: GameActionType.SetReconnectGrace, playerId: 0, until: 456 });
+      expect(state.reconnectGrace).toEqual({ playerId: 0, until: 123 });
+      expect(state.eventLog.filter((e) => e.key === 'event.reconnectWait')).toHaveLength(1);
+    });
+
+    it('clears grace when the player reconnects', () => {
+      let state = gameReducer(makeStartedState(2), { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
+      state = gameReducer(state, { type: GameActionType.SetReconnectGrace, playerId: 0, until: 123 });
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: false });
+      expect(state.reconnectGrace).toBeNull();
+    });
+  });
+
   describe('event log bot labeling', () => {
     it('marks roll entries of a bot-controlled actor with bot: true', () => {
       let state = makeStartedState(2);
