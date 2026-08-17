@@ -26,11 +26,17 @@ rooms and join by clicking a row, without typing a room code. Manual code entry 
 - `RoomManager.list()` returns a snapshot for every room in `this.rooms`:
   `{ code, hostName, playerCount, phase }`.
   - `hostName`: `game.getPlayers()[game.getHostPlayerId()].name`
-  - `playerCount`: number of filled slots (named humans + bots), of max 6
-  - `phase`: `game.getState().phase`
-- `server/http.ts` adds a route: `GET /rooms` returns `200` + JSON array.
+  - `playerCount`: number of filled slots (`p.name !== null`), of max 6
+  - `phase`: raw `game.getState().phase` string (reuses existing `GamePhase`
+    constants; the client maps it to a Lobby / In-game badge). No dedicated
+    `status` field — keep the wire value simple.
+  - `RoomInfo` type: `{ code: string; hostName: string | null; playerCount: number; phase: GamePhase }`.
+- `server/http.ts` adds a route in the existing request handler, checked before
+  the static-file logic:
+  `GET /rooms` → `200` + `application/json` + `JSON.stringify(roomManager.list())`.
   All other paths keep serving static files as today.
-- No auth. No per-room detail beyond the listed fields.
+- No auth. No per-room detail beyond the listed fields. Same origin as the page,
+  so the client can `fetch('/rooms')` with no CORS concerns.
 
 ### Client: room list UI
 
