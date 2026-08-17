@@ -2,6 +2,7 @@ import { useState } from 'react'
 import GameSetup from './components/GameSetup'
 import MultiplayerGame, { type JoinInfo } from './components/MultiplayerGame'
 import LanguageCurrencyBar from './components/LanguageCurrencyBar'
+import { SoundProvider } from './audio/SoundContext'
 import { loadSession, clearSession } from './net/session'
 
 export default function App() {
@@ -21,27 +22,27 @@ export default function App() {
     setStarted(true)
   }
 
-  if (started) {
-    return (
-      <>
-        <MultiplayerGame
-          joinInfo={joinInfo}
-          onLeft={() => {
-            clearSession()
-            setStarted(false)
-          }}
-        />
-        <LanguageCurrencyBar />
-      </>
-    )
-  }
-
   return (
-    <>
-      <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
-        <GameSetup onCreate={handleCreate} onJoin={handleJoin} />
-      </div>
-      <LanguageCurrencyBar />
-    </>
+    <SoundProvider>
+      {started ? (
+        <>
+          <MultiplayerGame
+            joinInfo={joinInfo}
+            onLeft={() => {
+              clearSession()
+              setStarted(false)
+            }}
+          />
+          <LanguageCurrencyBar />
+        </>
+      ) : (
+        <>
+          <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
+            <GameSetup onCreate={handleCreate} onJoin={handleJoin} />
+          </div>
+          <LanguageCurrencyBar />
+        </>
+      )}
+    </SoundProvider>
   )
 }

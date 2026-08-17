@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { GamePhase } from '../types/game'
 import { useNetworkGame } from '../hooks/useNetworkGame'
 import { saveSession, clearSession } from '../net/session'
 import Lobby from './Lobby'
 import GameView from './GameView'
+import { useSound } from '../audio/SoundContext'
+import { SoundId } from '../audio/soundEngine'
 
 export interface JoinInfo {
   name: string
@@ -21,6 +23,28 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
   const { create, join } = game
   const name = joinInfo.name
   const code = joinInfo.code
+
+  const play = useSound()
+  const prevCodeRef = useRef(game.code)
+  const prevPhaseRef = useRef<GamePhase | null>(null)
+
+  useEffect(() => {
+    if (game.code !== null && prevCodeRef.current === null) play(SoundId.RoomJoin)
+    prevCodeRef.current = game.code
+  }, [game.code, play])
+
+  useEffect(() => {
+    if (game.code === null) return
+    if (prevPhaseRef.current === null) {
+      prevPhaseRef.current = game.state.phase
+      return
+    }
+    const prev = prevPhaseRef.current
+    prevPhaseRef.current = game.state.phase
+    if (prev === GamePhase.Setup && game.state.phase !== GamePhase.Setup) {
+      play(SoundId.GameStart)
+    }
+  }, [game.code, game.state.phase, play])
 
   useEffect(() => {
     if (code === null) create(name)

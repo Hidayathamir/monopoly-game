@@ -7,6 +7,7 @@ import TradeInboxModal from './Modals/TradeInboxModal'
 import CardModal from './Modals/CardModal'
 import BankruptcyModal from './Modals/BankruptcyModal'
 import GameOverModal from './Modals/GameOverModal'
+import GameSounds from '../audio/useGameSounds'
 
 export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }: { game: GameApi; connectedPlayerIds?: Set<number>; onLeave?: () => void; exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string } }) {
   const { state } = game
@@ -23,6 +24,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
 
   return (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
+      <GameSounds state={state} />
       <GameBoard
         state={state}
         isMyTurn={isMyTurn}
