@@ -210,7 +210,7 @@ describe('GameServer', () => {
     expect(server.getPlayers()[0].name).toBe('Charlie')
   })
 
-  it('hands an offline player to the bot after a 30s grace period', () => {
+  it('hands an offline player to the bot after a 3s grace period', () => {
     vi.useFakeTimers()
     let n = 0
     const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
@@ -224,12 +224,15 @@ describe('GameServer', () => {
     expect(server.getState().currentPlayer).toBe(0) // no auto-skip anymore
     expect(server.getState().players[0].botControlled).toBe(true)
     expect(server.getState().eventLog.some((e) => e.key === 'event.playerOffline')).toBe(true)
+    expect(server.getState().reconnectGrace?.playerId).toBe(0)
 
-    vi.advanceTimersByTime(29_000)
+    vi.advanceTimersByTime(2_000)
     expect(server.getState().phase).toBe(GamePhase.Waiting) // still inside the grace window
+    expect(server.getState().reconnectGrace?.playerId).toBe(0)
 
     vi.advanceTimersByTime(1_000) // grace elapsed → bot rolls
     expect(server.getState().phase).toBe(GamePhase.Rolling)
+    expect(server.getState().reconnectGrace).toBeNull()
 
     vi.advanceTimersByTime(500) // DICE_ANIMATED
     expect(server.getState().dice).toEqual([1, 4])
@@ -254,13 +257,15 @@ describe('GameServer', () => {
 
     server.leave('c0')
     expect(server.getState().players[0].botControlled).toBe(true)
+    expect(server.getState().reconnectGrace?.playerId).toBe(0)
 
-    server.join('c9', 'Alice') // rejoins well within the 30s grace
+    server.join('c9', 'Alice') // rejoins within the 3s grace
     expect(server.getState().players[0].botControlled).toBe(false)
     expect(server.getState().currentPlayer).toBe(0)
     expect(server.getState().eventLog.some((e) => e.key === 'event.playerBack')).toBe(true)
+    expect(server.getState().reconnectGrace).toBeNull()
 
-    vi.advanceTimersByTime(30_000) // stale grace timer fires but the slot is connected → no roll
+    vi.advanceTimersByTime(3_000) // stale grace timer fires but the slot is connected → no roll
     expect(server.getState().phase).toBe(GamePhase.Waiting)
     expect(server.getState().dice).toBeNull()
     vi.useRealTimers()
@@ -276,7 +281,7 @@ describe('GameServer', () => {
     server.start('c0')
     expect(server.getState().currentPlayer).toBe(0)
 
-    server.leave('c0') // Alice offline; grace timer scheduled (30s)
+    server.leave('c0') // Alice offline; grace timer scheduled (3s)
     expect(server.getState().players[0].botControlled).toBe(true)
 
     // A different player disconnects and reconnects during Alice's grace window — each
@@ -289,7 +294,7 @@ describe('GameServer', () => {
     expect(server.getState().phase).toBe(GamePhase.Waiting) // still inside the grace window
     expect(server.getState().dice).toBeNull()
 
-    vi.advanceTimersByTime(29_300) // grace elapsed → bot rolls
+    vi.advanceTimersByTime(2_300) // grace elapsed → bot rolls
     expect(server.getState().phase).toBe(GamePhase.Rolling)
     vi.useRealTimers()
   })
@@ -307,6 +312,51 @@ describe('GameServer', () => {
     server.handleAction('c0', { type: 'SET_BOT_CONTROL', playerId: 1, controlled: false }) // a client tries to clear it
     expect(server.getState().players[1].botControlled).toBe(true) // guard blocks it
     expect(server.getState().eventLog.filter((e) => e.key === 'event.playerBack')).toHaveLength(0)
+    vi.useRealTimers()
+  })
+
+  it('applies the reconnect grace only on the first turn after a disconnect', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.leave('c0') // Alice offline → grace pending
+    expect(server.getState().reconnectGrace?.playerId).toBe(0)
+    expect(server.getState().eventLog.filter((e) => e.key === 'event.reconnectWait')).toHaveLength(1)
+
+    // First turn: grace then the bot plays it out.
+    vi.advanceTimersByTime(3_000) // grace elapsed → bot rolls
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    vi.advanceTimersByTime(500 + 5 * 150) // RESOLVE_SPACE (space 5 → must circle → Waiting)
+    vi.advanceTimersByTime(700) // END_TURN → Bob's turn
+    expect(server.getState().currentPlayer).toBe(1)
+    expect(server.getState().reconnectGrace).toBeNull()
+
+    // Bob ends his turn without rolling.
+    server.handleAction('c1', { type: 'END_TURN' })
+    expect(server.getState().currentPlayer).toBe(0)
+
+    // Second turn: no grace — the bot steps at 700ms.
+    expect(server.getState().reconnectGrace).toBeNull()
+    expect(server.getState().eventLog.filter((e) => e.key === 'event.reconnectWait')).toHaveLength(1)
+    vi.advanceTimersByTime(700) // bot rolls immediately (no 3s grace)
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+    vi.useRealTimers()
+  })
+
+  it('ignores SET_RECONNECT_GRACE sent by a client', () => {
+    vi.useFakeTimers()
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.handleAction('c0', { type: 'SET_RECONNECT_GRACE', playerId: 0, until: 999999999 })
+    expect(server.getState().reconnectGrace).toBeNull()
     vi.useRealTimers()
   })
 

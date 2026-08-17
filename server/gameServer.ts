@@ -19,12 +19,13 @@ interface Slot {
   name: string | null
   connected: boolean
   isBot: boolean
+  gracePending: boolean
 }
 
 const MAX_PLAYERS = 6
 
 const BOT_STEP_MS = 700
-const BOT_GRACE_MS = 30_000
+const BOT_GRACE_MS = 3_000
 
 export class GameServer {
   private state: GameState
@@ -33,13 +34,13 @@ export class GameServer {
     name: null,
     connected: false,
     isBot: false,
+    gracePending: false,
   }))
   private events: GameServerEvents
   private rng: () => number
   private code: string
   private hostSlotIndex = 0
   private botSteps = 0
-  private drivenPlayerId: number | null = null
   private botTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean }) {
@@ -76,6 +77,7 @@ export class GameServer {
     if (disconnected) {
       disconnected.clientId = clientId
       disconnected.connected = true
+      disconnected.gracePending = false
       if (this.state.phase !== GamePhase.Setup) {
         this.dispatch({ type: GameActionType.SetBotControl, playerId: this.slots.indexOf(disconnected), controlled: false })
       }
@@ -112,7 +114,7 @@ export class GameServer {
       return false
     }
 
-    this.slots[index] = { clientId, name: trimmed, connected: true, isBot: false }
+    this.slots[index] = { clientId, name: trimmed, connected: true, isBot: false, gracePending: false }
     this.events.send(clientId, {
       type: ServerMessageType.Welcome,
       playerId: index,
@@ -141,7 +143,7 @@ export class GameServer {
     }
     const used = new Set(this.slots.map((s) => s.name).filter((n): n is string => n !== null))
     const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${index + 1}`
-    this.slots[index] = { clientId: null, name, connected: true, isBot: true }
+    this.slots[index] = { clientId: null, name, connected: true, isBot: true, gracePending: false }
     this.broadcast()
   }
 
@@ -156,7 +158,7 @@ export class GameServer {
     }
     const slot = this.slots[playerId]
     if (!slot || !slot.isBot) return
-    this.slots[playerId] = { clientId: null, name: null, connected: false, isBot: false }
+    this.slots[playerId] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
     this.broadcast()
   }
 
@@ -189,19 +191,20 @@ export class GameServer {
     }
 
     if (this.state.phase === GamePhase.Setup) {
-      this.slots[index] = { clientId: null, name: null, connected: false, isBot: false }
+      this.slots[index] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
       if (index === this.hostSlotIndex) {
         this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
       }
       const hasHuman = this.slots.some((s) => s.clientId !== null || (s.name !== null && !s.isBot))
       if (!hasHuman) {
         this.slots.forEach((s, i) => {
-          if (s.isBot) this.slots[i] = { clientId: null, name: null, connected: false, isBot: false }
+          if (s.isBot) this.slots[i] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
         })
       }
     } else {
       this.slots[index].connected = false
       this.slots[index].clientId = null
+      this.slots[index].gracePending = true
     }
 
     this.events.send(clientId, { type: ServerMessageType.Left })
@@ -251,6 +254,7 @@ export class GameServer {
 
   handleAction(clientId: ClientId, action: GameAction): void {
     if (action.type === GameActionType.SetBotControl) return
+    if (action.type === GameActionType.SetReconnectGrace) return
     if (
       !this.state.tradesEnabled &&
       (action.type === GameActionType.ProposeTrade ||
@@ -297,6 +301,7 @@ export class GameServer {
     const slot = this.slots[index]
     slot.connected = false
     slot.clientId = null
+    slot.gracePending = true
     if (this.state.phase === GamePhase.Setup && index === this.hostSlotIndex) {
       this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
     }
@@ -364,7 +369,6 @@ export class GameServer {
     if (!slot) {
       this.clearBotTimer()
       this.botSteps = 0
-      this.drivenPlayerId = null
       return
     }
     const botControlled = this.state.players[currentPlayer]?.botControlled === true
@@ -372,7 +376,6 @@ export class GameServer {
     if (!isDriveable) {
       this.clearBotTimer()
       this.botSteps = 0
-      this.drivenPlayerId = null
       return
     }
     const action = decideBotAction(this.state)
@@ -385,9 +388,9 @@ export class GameServer {
     if (this.botTimer !== null) return
     this.botSteps++
     const isRealBot = slot.isBot
-    const isFresh = this.drivenPlayerId !== currentPlayer
-    if (isFresh) this.drivenPlayerId = currentPlayer
-    const delay = !isRealBot && isFresh ? BOT_GRACE_MS : BOT_STEP_MS
+    const isGraceTurn = !isRealBot && slot.gracePending
+    if (isGraceTurn) slot.gracePending = false
+    const delay = isGraceTurn ? BOT_GRACE_MS : BOT_STEP_MS
 
     this.botTimer = setTimeout(() => {
       this.botTimer = null
@@ -398,10 +401,28 @@ export class GameServer {
         current?.isBot === true || (current !== undefined && !current.connected && stillBotControlled)
       if (!current || !stillDriveable) return
       const actionNow = decideBotAction(this.state)
-      if (!actionNow) return
+      if (!actionNow) {
+        this.clearReconnectGrace(currentPlayer)
+        return
+      }
       if (actionNow.type === GameActionType.RollDice) this.startRoll()
       else this.dispatch(actionNow)
+      this.clearReconnectGrace(currentPlayer)
     }, delay)
+
+    if (isGraceTurn) {
+      this.dispatch({
+        type: GameActionType.SetReconnectGrace,
+        playerId: currentPlayer,
+        until: Date.now() + BOT_GRACE_MS,
+      })
+    }
+  }
+
+  private clearReconnectGrace(playerId: number): void {
+    if (this.state.reconnectGrace?.playerId === playerId) {
+      this.dispatch({ type: GameActionType.SetReconnectGrace, playerId, until: null })
+    }
   }
 
   private clearBotTimer(): void {
