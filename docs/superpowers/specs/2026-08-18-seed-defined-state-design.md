@@ -67,11 +67,13 @@ defaults:
   `getOutOfJailFreeCards: 0`, `isBot: false`, `botControlled: false`,
   `bankrupt: false`
 - `turnOrder` defaults to `[0..n-1]`; `currentPlayer` required from partial
-- `phase` defaults to `GamePhase.Waiting`, `dice: null`, `pendingAction: null`,
-  `eventLog: []`, `freeParkingPot: 0`, `doublesCount: 0`, `lastMoveSteps: null`,
-  `justBoughtSpaceId: null`, `builtThisStop: false`, `reconnectGrace: null`,
-  `pendingTrades: []`, `nextTradeId: 0`; `chanceDeck`/`communityDeck` from a
-  copied default deck; `tradesEnabled` from the partial or room value.
+- `phase` defaults to `GamePhase.Waiting`; `pendingAction` optional (default
+  `null`) so a decision-point seed can stage e.g. a rent payment
+- `dice: null`, `eventLog: []`, `freeParkingPot: 0`, `doublesCount: 0`,
+  `lastMoveSteps: null`, `justBoughtSpaceId: null`, `builtThisStop: false`,
+  `reconnectGrace: null`, `pendingTrades: []`, `nextTradeId: 0`;
+  `chanceDeck`/`communityDeck` from a copied default deck; `tradesEnabled` from
+  the partial or room value.
 - Guarantees `players[i].id === i`.
 
 Validation is split so the client panel can run a pure structural check
@@ -87,7 +89,9 @@ without knowing the server's slot state:
   that player id (no orphaned owner, no claimed-but-unowned space)
 - `owner ∈ playerIds ∪ { null }`; `houses` only on property spaces; defensive
   checks on numeric fields (money, positions)
-- phase/state sanity: `Waiting` ⇒ `pendingAction === null && dice === null`
+- phase/state sanity: `Waiting` ⇒ `pendingAction === null && dice === null`;
+  `Resolving` ⇒ `pendingAction !== null` (the server auto-resolves an
+  unhandled Resolving state)
 
 **`validateStateForRoom(state, slots)`** — room-aware layer (server only; the
 client panel cannot know the server's slot state):
@@ -138,29 +142,38 @@ client panel cannot know the server's slot state):
 
 ### 4. e2e — `e2e/seed.spec.ts` (NEW), bankruptcy on unpayable rent
 
+Approach: seed the **decision point** — no dice. The state has Bravo
+mid-resolution owing rent on Alpha's Boardwalk, so the test drives the
+bankruptcy UI directly and deterministically (aimed dice are luck-weighted and
+would make the landing flaky).
+
 - `e2e/helpers/server.ts`: spawn the server with `E2E_SEED_ENABLED=true`
   (test harness only; harmless to existing specs).
-- `e2e/helpers/seed.ts` (NEW): `seedGame(url, code, state)` (POST + retry/poll
-  until the page reflects it) and `waitForSeedApplied(page, predicate)`.
-- `e2e/fixtures/bankruptcy-seed.ts` (NEW): the scenario `GameState` built from
-  `createSeededState`:
-  - Alpha (host, slot 0): `$1,000`, owns **Boardwalk (39) with 4 houses**
-    ($2,000 rent) plus a few other properties to read as "rich",
-    `passedGo: true`
-  - Bravo (slot 1): `$1`, `position: 30`, `passedGo: true`
-  - `turnOrder: [1, 0]`, `currentPlayer: 1`, `phase: Waiting`
+- `e2e/helpers/seed.ts` (NEW): `seedGame(url, code, state)` (POST `/seed`,
+  throws with the server message on failure) and
+  `waitForSeedApplied(page, predicate)`.
+- `e2e/fixtures/bankruptcy-seed.ts` (NEW, generated once by
+  `scripts/print-seed.ts` and checked in — Playwright's ESM loader rejects the
+  JSON imports in `src/data`, so the fixture is a plain typed `GameState`
+  literal with type-only imports):
+  - Alpha (slot 0): `$1,000`, owns **Boardwalk (39) with 4 houses** ($1,700
+    rent) plus a few other properties to read as "rich", `passedGo: true`
+  - Bravo (slot 1): `$1`, `passedGo: true`
+  - `currentPlayer: 1`, `turnOrder: [1, 0]`, `phase: Resolving`,
+    `pendingAction: { type: 'payRent', spaceId: 39, amount: 1700 }`
 
 Flow:
 
 1. Two contexts join (Alpha host, Bravo) via the same local-stream flow as
    `multiplayer.spec.ts`; read the room code.
 2. `seedGame(url, code, scenario)`.
-3. Bravo rolls with the existing hold-to-roll targeting (aim total 9 → lands on
-   Boardwalk at 39).
-4. Assert Bravo's page shows the bankruptcy modal with "Declare Bankruptcy"
-   (can't pay $X rent on $1).
-5. Bravo clicks it → assert Bravo's player card shows the bankrupt badge and
-   the game-over / winner flow resolves on both clients.
+3. Bravo's page shows the pay-rent action ("Pay Rent" + "Declare Bankruptcy").
+   Bravo clicks **Pay Rent** — since $1 < $1,700 the reducer transitions to
+   `pendingAction: bankruptcy` and the **BankruptcyModal** appears ("⚠️
+   Bankruptcy", cannot pay $1,700 on $1).
+4. Bravo clicks **Declare Bankruptcy** in the modal.
+5. Assert Bravo's player card shows the bankrupt badge and GameOverModal
+   declares Alpha the winner on both clients.
 
 ## Testing
 
