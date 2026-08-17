@@ -1,4 +1,4 @@
-import { CardActionType, type Card, type GameState, type LogEntry } from '../types/game';
+import { CardActionType, LogEventKey, type Card, type GameState, type LogEntry } from '../types/game';
 import { GO_SALARY } from '../data/board';
 import { actorEntry } from './logEntries';
 
@@ -15,16 +15,16 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
   switch (effect.action) {
     case CardActionType.Collect: {
       newState = updatePlayerMoney(newState, state.currentPlayer, effect.amount);
-      return { state: newState, log: [actorEntry('event.cardCollect', player, { cardId: card.id, amount: effect.amount })] };
+      return { state: newState, log: [actorEntry(LogEventKey.CardCollect, player, { cardId: card.id, amount: effect.amount })] };
     }
     case CardActionType.Pay: {
       newState = addToFreeParking(newState, effect.amount);
       newState = updatePlayerMoney(newState, state.currentPlayer, -effect.amount);
-      return { state: newState, log: [actorEntry('event.cardPay', player, { cardId: card.id, amount: effect.amount })] };
+      return { state: newState, log: [actorEntry(LogEventKey.CardPay, player, { cardId: card.id, amount: effect.amount })] };
     }
     case CardActionType.GoToJail: {
       newState = sendPlayerToJail(newState, state.currentPlayer);
-      return { state: newState, log: [actorEntry('event.cardToJail', player, { cardId: card.id })] };
+      return { state: newState, log: [actorEntry(LogEventKey.CardToJail, player, { cardId: card.id })] };
     }
     case CardActionType.GetOutOfJailFree: {
       const newPlayers = [...newState.players];
@@ -32,7 +32,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
         ...newPlayers[state.currentPlayer],
         getOutOfJailFreeCards: (newPlayers[state.currentPlayer].getOutOfJailFreeCards ?? 0) + 1,
       };
-      return { state: { ...newState, players: newPlayers }, log: [actorEntry('event.gotJailCard', player, { cardId: card.id })] };
+      return { state: { ...newState, players: newPlayers }, log: [actorEntry(LogEventKey.GotJailCard, player, { cardId: card.id })] };
     }
     case CardActionType.GoToSpace: {
       const isBackward = effect.spaceId < 0;
@@ -58,7 +58,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       };
       return {
         state: { ...newState, players: newPlayers },
-        log: [actorEntry('event.cardCollectPlayers', player, { cardId: card.id, amount: actualReceived, perPlayer: amount, playerCount: payingPlayers })],
+        log: [actorEntry(LogEventKey.CardCollectPlayers, player, { cardId: card.id, amount: actualReceived, perPlayer: amount, playerCount: payingPlayers })],
       };
     }
     case CardActionType.StreetRepairs: {
@@ -79,7 +79,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       newState = updatePlayerMoney(newState, state.currentPlayer, -totalRepairs);
       return {
         state: newState,
-        log: [actorEntry('event.cardStreetRepairs', player, { cardId: card.id, amount: totalRepairs, houseCount, hotelCount, perHouse: effect.perHouse, perHotel: effect.perHotel })],
+        log: [actorEntry(LogEventKey.CardStreetRepairs, player, { cardId: card.id, amount: totalRepairs, houseCount, hotelCount, perHouse: effect.perHouse, perHotel: effect.perHotel })],
       };
     }
     default:
@@ -96,7 +96,7 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   if (passesGo) {
     newState = updatePlayerMoney(newState, playerIndex, GO_SALARY);
     newState = setPlayerPassedGo(newState, playerIndex);
-    log.push(actorEntry('event.passedGo', player, { amount: GO_SALARY }));
+    log.push(actorEntry(LogEventKey.PassedGo, player, { amount: GO_SALARY }));
   }
 
   const steps = isBackward
@@ -106,7 +106,7 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
 
-  log.push(actorEntry(isBackward ? 'event.movedBack' : 'event.movedForward', player, { spaceId, cardId }));
+  log.push(actorEntry(isBackward ? LogEventKey.MovedBack : LogEventKey.MovedForward, player, { spaceId, cardId }));
 
   return { state: newState, log };
 }
