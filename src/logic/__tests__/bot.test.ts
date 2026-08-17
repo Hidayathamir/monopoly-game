@@ -217,6 +217,56 @@ describe('decideBotAction', () => {
     expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
   });
 
+  it('builds exactly once per landing, end to end', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    for (const s of group) board[s.id] = { ...s, owner: 0 };
+    const state = makeState(
+      { board, dice: [3, 4] },
+      makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
+    );
+    const action = decideBotAction(state);
+    if (!action) throw new Error('expected a build action');
+    expect(action).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
+    const endMove = gameReducer(state, action);
+    expect(endMove.builtThisStop).toBe(true);
+    expect(endMove.board[target.id].houses).toBe(1);
+    expect(decideBotAction(endMove)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('does not build on a rival-owned property', () => {
+    const board = createInitialBoard();
+    const target = colorGroup(board)[0];
+    if (!target) throw new Error('no color group');
+    board[target.id] = { ...target, owner: 1 };
+    const state = makeState(
+      { board, dice: [3, 4] },
+      makePlayer({ money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('does not build on a property it just bought this turn', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    for (const s of group) if (s.id !== target.id) board[s.id] = { ...s, owner: 0 };
+    const state = makeState(
+      { board, phase: GamePhase.Buying, pendingAction: { type: PendingActionType.BuyProperty, spaceId: target.id } },
+      makePlayer({
+        properties: group.filter((s) => s.id !== target.id).map((s) => s.id),
+        money: 100000,
+        position: target.id,
+      }),
+    );
+    const bought: GameState = { ...gameReducer(state, { type: GameActionType.BuyProperty }), dice: [3, 4] as [number, number] };
+    expect(bought.justBoughtSpaceId).toBe(target.id);
+    expect(decideBotAction(bought)).toEqual({ type: 'END_TURN' });
+  });
+
   it('drives a bot-controlled human seat', () => {
     const state = makeState({}, makePlayer({ isBot: false, botControlled: true }));
     expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });

@@ -426,6 +426,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(0);
+      expect(s1.builtThisStop).toBe(false);
     });
 
     it('builds hotel at 5 houses', () => {
@@ -451,6 +452,7 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(0);
+      expect(s1.builtThisStop).toBe(false);
     });
 
     it('cannot build before rolling', () => {
@@ -468,6 +470,16 @@ describe('gameReducer', () => {
 
       const s1 = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
       expect(s1.board[1].houses).toBe(0);
+      expect(s1.builtThisStop).toBe(false);
+    });
+
+    it('resets builtThisStop to false on the next roll after a build', () => {
+      let state = landedOnOwnProperty(makeStartedState());
+      state = gameReducer(state, { type: GameActionType.BuildHouse, spaceId: 1 });
+      expect(state.builtThisStop).toBe(true);
+
+      const s1 = gameReducer(state, { type: GameActionType.RollDice });
+      expect(s1.builtThisStop).toBe(false);
     });
   });
 
