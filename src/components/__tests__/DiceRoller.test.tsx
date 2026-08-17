@@ -6,6 +6,13 @@ import DiceRoller from '../DiceRoller'
 import { gameReducer, createInitialState } from '../../logic/gameReducer'
 import { GameActionType, type GameState } from '../../types/game'
 import { renderWithProviders } from '../../test/test-utils'
+import { SoundProvider } from '../../audio/SoundContext'
+
+const { playSoundMock } = vi.hoisted(() => ({ playSoundMock: vi.fn() }))
+vi.mock('../../audio/soundEngine', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('../../audio/soundEngine')>()
+  return { ...mod, playSound: playSoundMock }
+})
 
 function makeState(): GameState {
   return gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
@@ -229,6 +236,53 @@ describe('DiceRoller', () => {
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(() => false),
       }))
+    })
+  })
+
+  describe('roll sound', () => {
+    beforeEach(() => {
+      playSoundMock.mockClear()
+      vi.useFakeTimers()
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(() => false),
+      }))
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('plays the dice roll sound when the roll button is pressed', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(
+        <SoundProvider>
+          <DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />
+        </SoundProvider>,
+      )
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+      act(() => vi.advanceTimersByTime(240))
+      fireEvent.pointerDown(button, { button: 0 })
+      expect(playSoundMock).toHaveBeenCalledWith('diceRoll')
+    })
+
+    it('does not also play the generic click on the roll button', () => {
+      const onRoll = vi.fn()
+      renderWithProviders(
+        <SoundProvider>
+          <DiceRoller state={makeState()} onRoll={onRoll} isMyTurn={true} />
+        </SoundProvider>,
+      )
+      const button = screen.getByRole('button', { name: 'Roll Dice' })
+      act(() => vi.advanceTimersByTime(240))
+      fireEvent.pointerDown(button, { button: 0 })
+      expect(playSoundMock).toHaveBeenCalledTimes(1)
+      expect(playSoundMock).toHaveBeenCalledWith('diceRoll')
     })
   })
 })

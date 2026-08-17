@@ -5,6 +5,8 @@ import { GamePhase, type GameState } from '../types/game'
 import Dice from './Dice'
 import Button from './Button'
 import Speedometer from './Speedometer'
+import { useSound } from '../audio/SoundContext'
+import { SoundId } from '../audio/soundEngine'
 
 interface Props {
   state: GameState
@@ -42,6 +44,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   const rollingRef = useRef(false)
   const directionRef = useRef(1)
   const player = state.players[state.currentPlayer]
+  const play = useSound()
 
   const canRoll = state.phase === GamePhase.Waiting && !state.pendingAction && !player.inJail && state.dice === null
   const canRollJail = state.phase === GamePhase.Waiting && !state.pendingAction && player.inJail && state.dice === null
@@ -90,6 +93,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
     if (rollingRef.current) return
     rollingRef.current = true
     setRolling(true)
+    play(SoundId.DiceRoll)
     onRoll(Math.round(aimValueRef.current))
     setTimeout(() => {
       rollingRef.current = false
@@ -120,7 +124,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
         )}
       </div>
       {canAim && (
-        <Button variant="primary" size="lg" onPointerDown={handlePointerDown} onClick={handleClick}>
+        <Button variant="primary" size="lg" onPointerDown={handlePointerDown} onClick={handleClick} sound={null}>
           {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
         </Button>
       )}
