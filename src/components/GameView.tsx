@@ -8,12 +8,14 @@ import CardModal from './Modals/CardModal'
 import BankruptcyModal from './Modals/BankruptcyModal'
 import GameOverModal from './Modals/GameOverModal'
 import GameSounds from '../audio/useGameSounds'
+import { useMyTurnSound } from '../audio/useMyTurnSound'
 
 export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }: { game: GameApi; connectedPlayerIds?: Set<number>; onLeave?: () => void; exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string } }) {
   const { state } = game
   const isMyTurn = game.myPlayerId === null
     ? !state.players[state.currentPlayer]?.isBot
     : game.myPlayerId === state.currentPlayer
+  useMyTurnSound(isMyTurn)
   const tradesEnabled = state.tradesEnabled
   const canTrade = tradesEnabled && isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
