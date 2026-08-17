@@ -209,3 +209,34 @@ test('a player can hold-to-roll without breaking multiplayer', async ({ browser,
   }
   await expect(current.locator('[data-testid="dice-pip"]').first()).toBeVisible({ timeout: 5000 })
 })
+
+test('a lobby room appears in the public list and is joinable by clicking', async ({ browser, serverUrl }) => {
+  const contextA = await browser.newContext()
+  await contextA.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await contextA.newPage()
+
+  await pageA.goto(serverUrl)
+  await pageA.fill('input[placeholder="Name"]', 'ListHost')
+  await pageA.click('button:has-text("Continue")')
+  const codeLocator = pageA.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+
+  // A second client on the menu sees ListHost's lobby room and joins by clicking.
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageB = await contextB.newPage()
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Tamu')
+  await expect(pageB.locator('[data-testid="room-row"]').filter({ hasText: 'ListHost' })).toHaveCount(1, { timeout: 10000 })
+  await pageB.locator('[data-testid="room-row"]').filter({ hasText: 'ListHost' }).click()
+
+  // Both clients end up in the same lobby.
+  await expect(pageA.locator('text=Tamu')).toBeVisible({ timeout: 5000 })
+  await expect(pageB.locator('[data-testid="room-code"]')).toBeVisible({ timeout: 5000 })
+})
