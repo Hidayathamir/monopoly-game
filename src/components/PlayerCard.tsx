@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Player, Space } from '../types/game'
@@ -40,11 +40,28 @@ interface PlayerCardProps {
   tradesEnabled?: boolean
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function computePopupPosition(
+  rect: Pick<DOMRect, 'left' | 'right' | 'top'>,
+  width: number,
+  height: number,
+  viewport: { width: number; height: number },
+  margin = 8,
+): { left: number; top: number } {
+  let left = rect.right + margin
+  if (left + width > viewport.width - margin) left = rect.left - width - margin
+  left = Math.max(margin, Math.min(left, viewport.width - width - margin))
+  const top = Math.max(margin, Math.min(rect.top - 4, viewport.height - height - margin))
+  return { left, top }
+}
+
 export default function PlayerCard({ player, isCurrent, color, diff, board, connected = true, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
 
   const owned = player.properties
     .map((id) => board[id])
@@ -65,9 +82,22 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
     onProposeTrade?.(player.id)
   }
 
+  useEffect(() => {
+    if (!popupRect) return
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node
+      if (cardRef.current?.contains(target)) return
+      if (popupRef.current?.contains(target)) return
+      setPopupRect(null)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [popupRect])
+
   return (
     <>
       <div
+        ref={cardRef}
         data-testid="player-card"
         className={[
           'px-2 py-1.5 rounded-lg bg-bg-dark/70 border border-border-light flex-1 min-w-[130px]',
@@ -105,6 +135,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
             owned={owned}
             color={color}
             rect={popupRect}
+            popupRef={popupRef}
             onEnter={() => clearTimeout(timerRef.current)}
             onLeave={handleLeave}
             canTrade={canTrade}
@@ -119,11 +150,12 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
   )
 }
 
-function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade, tradesEnabled }: {
+function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade, tradesEnabled }: {
   player: Player
   owned: Space[]
   color: string
   rect: DOMRect
+  popupRef: React.RefObject<HTMLDivElement | null>
   onEnter: () => void
   onLeave: () => void
   canTrade: boolean
@@ -133,13 +165,22 @@ function PlayerPopup({ player, owned, color, rect, onEnter, onLeave, canTrade, c
 }) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const el = popupRef.current
+    if (!el) return
+    setPos(computePopupPosition(rect, el.offsetWidth, el.offsetHeight, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }))
+  }, [rect, popupRef])
+
   return (
     <div
-      className="fixed bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[180px] max-w-[260px] max-h-[60vh] overflow-y-auto z-[999] shadow-lg"
-      style={{
-        left: rect.right + 8,
-        top: Math.max(0, rect.top - 4),
-      }}
+      ref={popupRef}
+      className="fixed bg-bg-dark border border-border-light rounded-lg px-3 py-2.5 min-w-[180px] max-w-[min(260px,calc(100vw-16px))] max-h-[60vh] overflow-y-auto z-[999] shadow-lg"
+      style={pos ? { left: pos.left, top: pos.top } : { visibility: 'hidden' }}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >

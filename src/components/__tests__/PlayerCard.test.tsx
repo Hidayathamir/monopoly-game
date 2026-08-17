@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, it, expect, vi } from 'vitest'
 import type { ComponentProps } from 'react'
-import PlayerCard from '../PlayerCard'
+import PlayerCard, { computePopupPosition } from '../PlayerCard'
 import { renderWithProviders } from '../../test/test-utils'
 import type { Player, Space } from '../../types/game'
 
@@ -89,6 +89,23 @@ describe('PlayerCard popup trade button', () => {
     expect(onProposeTrade).toHaveBeenCalledWith(1)
     expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
   })
+
+  it('closes the popup when tapping outside the card', () => {
+    openPopup()
+    expect(screen.getByRole('button', { name: /Trade/ })).toBeVisible()
+    act(() => {
+      document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
+    expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
+  })
+
+  it('keeps the popup open when tapping inside the card', () => {
+    openPopup()
+    act(() => {
+      screen.getByTestId('player-card').dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
+    expect(screen.getByRole('button', { name: /Trade/ })).toBeVisible()
+  })
 })
 
 describe('PlayerCard connection indicator', () => {
@@ -115,5 +132,38 @@ describe('PlayerCard bot-control badge', () => {
   it('does not show the bot-control badge by default', () => {
     renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
     expect(screen.queryByText(/BOT/)).toBeNull()
+  })
+})
+
+describe('computePopupPosition', () => {
+  const viewport = { width: 375, height: 667 }
+
+  it('places the popup to the right of the card when there is room', () => {
+    const rect = { left: 40, right: 150, top: 40 } as DOMRect
+    const pos = computePopupPosition(rect, 200, 120, viewport)
+    expect(pos.left).toBe(158)
+    expect(pos.top).toBe(36)
+  })
+
+  it('flips to the left when the right side would overflow', () => {
+    const rect = { left: 220, right: 300, top: 40 } as DOMRect
+    const pos = computePopupPosition(rect, 200, 120, viewport)
+    expect(pos.left).toBe(12)
+    expect(pos.left).toBeLessThan(rect.left)
+    expect(pos.top).toBe(36)
+  })
+
+  it('clamps into the viewport when there is no room on either side', () => {
+    const rect = { left: 170, right: 205, top: 40 } as DOMRect
+    const pos = computePopupPosition(rect, 200, 120, viewport)
+    expect(pos.left).toBeGreaterThanOrEqual(8)
+    expect(pos.left + 200).toBeLessThanOrEqual(375 - 8)
+  })
+
+  it('clamps the top so the popup stays fully on screen', () => {
+    const rect = { left: 100, right: 260, top: 620 } as DOMRect
+    const pos = computePopupPosition(rect, 200, 120, viewport)
+    expect(pos.top).toBeLessThanOrEqual(667 - 120 - 8)
+    expect(pos.top).toBeGreaterThanOrEqual(8)
   })
 })
