@@ -44,12 +44,15 @@ describe('PropertyTooltip', () => {
     expect(screen.getByText(/Complete group/)).toBeTruthy()
     unmount()
 
-    // 2 houses — notice still shows
+    // 2 houses — notice still shows, with the doubled amount
     const space2 = { ...board[1], houses: 2, owner: 0 }
     renderWithProviders(
       <PropertyTooltip space={space2} state={{ ...s, board }} onSell={() => {}} onMortgage={() => {}} onUnmortgage={() => {}} onSellProperty={() => {}} />
     )
-    expect(screen.getByText(/Complete group/)).toBeTruthy()
+    const notice = screen.getByText(/Complete group/)
+    expect(notice).toBeTruthy()
+    // Salvador 2-house rent 30 × 2 = $60
+    expect(notice).toHaveTextContent('$60')
   })
 
   it('shows 75% payout on unmortgaged Sell to Bank button', () => {

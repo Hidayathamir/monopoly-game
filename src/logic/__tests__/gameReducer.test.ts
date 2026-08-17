@@ -910,6 +910,21 @@ describe('gameReducer', () => {
       expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(40);
     });
 
+    it('monopoly with 0 houses → base rent doubled', () => {
+      let state = makeStartedState();
+      // player 1 owns both brown properties (Salvador=1, Rio=3)
+      state = buyProperty(state, 1, 1);
+      state = buyProperty(state, 1, 3);
+      // player 0 lands on Salvador, no houses built
+      state = setPosition(state, 0, 1);
+      state = { ...state, phase: GamePhase.Resolving, dice: [1, 2] };
+
+      const s1 = gameReducer(state, { type: GameActionType.ResolveSpace });
+      // Salvador base rent = 2, doubled by monopoly = 4
+      expect(s1.pendingAction?.type).toBe(PendingActionType.PayRent);
+      expect((s1.pendingAction as Record<string, unknown>)?.amount).toBe(4);
+    });
+
     it('declining to buy → property stays unowned', () => {
       let state = makeStartedState();
       state = setPosition(state, 0, 1);
