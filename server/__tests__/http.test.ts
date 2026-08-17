@@ -6,6 +6,7 @@ import type { AddressInfo } from 'node:net'
 import { WebSocket } from 'ws'
 import { createServer } from '../http'
 import type { ServerMessage } from '../../src/types/net'
+import { createSeededState } from '../../src/logic/seed'
 
 let httpServer: ReturnType<typeof createServer>['httpServer']
 let port: number
@@ -132,5 +133,71 @@ describe('http server', () => {
     expect(enabled.roomManager.create().game.getState().tradesEnabled).toBe(true)
     const disabled = createServer(dir)
     expect(disabled.roomManager.create().game.getState().tradesEnabled).toBe(false)
+  })
+
+  it('GET /config reflects the seedEnabled flag', async () => {
+    const res = await fetch(`http://localhost:${port}/config`)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ seedEnabled: false })
+  })
+
+  it('POST /seed returns 403 when seeding is disabled', async () => {
+    const res = await fetch(`http://localhost:${port}/seed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: 'ABC12', state: {} }),
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('POST /seed seeds a room and broadcasts the state when enabled', async () => {
+    const created = createServer(dir, { seedEnabled: true })
+    const server = created.httpServer
+    await new Promise<void>((resolve) => server.listen(0, resolve))
+    const seedPort = (server.address() as AddressInfo).port
+
+    const ws = await new Promise<WebSocket>((resolve, reject) => {
+      const s = new WebSocket(`ws://localhost:${seedPort}/ws`)
+      s.on('open', () => resolve(s))
+      s.on('error', reject)
+    })
+    const welcome = waitFor(ws, 'welcome')
+    ws.send(JSON.stringify({ type: 'create', name: 'Alice' }))
+    const w = (await welcome) as Extract<ServerMessage, { type: 'welcome' }>
+    const state = createSeededState({ players: [{ id: 0, name: 'Alice', money: 100 }], currentPlayer: 0 })
+
+    const stateMsg = waitFor(ws, 'state')
+    const res = await fetch(`http://localhost:${seedPort}/seed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: w.code, state }),
+    })
+    expect(res.status).toBe(200)
+    const msg = (await stateMsg) as Extract<ServerMessage, { type: 'state' }>
+    expect(msg.state.phase).toBe('waiting')
+    expect(msg.state.players[0].money).toBe(100)
+    ws.close()
+    server.close()
+  })
+
+  it('POST /seed returns 404 for an unknown room and 400 for an invalid state', async () => {
+    const created = createServer(dir, { seedEnabled: true })
+    const server = created.httpServer
+    await new Promise<void>((resolve) => server.listen(0, resolve))
+    const seedPort = (server.address() as AddressInfo).port
+
+    const state = createSeededState({ players: [{ id: 0, name: 'Alice', money: 100 }], currentPlayer: 0 })
+    const missing = await fetch(`http://localhost:${seedPort}/seed`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: 'ZZZZZ', state }),
+    })
+    expect(missing.status).toBe(404)
+
+    const bad = await fetch(`http://localhost:${seedPort}/seed`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: 'ABC12', state: { ...state, board: state.board.slice(0, 10) } }),
+    })
+    expect(bad.status).toBe(400)
+    server.close()
   })
 })

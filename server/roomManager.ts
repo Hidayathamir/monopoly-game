@@ -13,15 +13,17 @@ export class RoomManager {
   private roomClients = new Map<string, Set<ClientId>>()
   private rng: () => number
   private tradesEnabled: boolean
+  private seedEnabled: boolean
   private events: { send(clientId: ClientId, message: ServerMessage): void }
 
   constructor(
     events: { send(clientId: ClientId, message: ServerMessage): void },
-    opts?: { rng?: () => number; tradesEnabled?: boolean },
+    opts?: { rng?: () => number; tradesEnabled?: boolean; seedEnabled?: boolean },
   ) {
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.tradesEnabled = opts?.tradesEnabled ?? false
+    this.seedEnabled = opts?.seedEnabled ?? false
   }
 
   create(): { code: string; game: GameServer } {
@@ -34,7 +36,7 @@ export class RoomManager {
           this.broadcastToRoom(code, { type: ServerMessageType.Lobby, players, hostPlayerId }),
         send: (clientId, msg) => this.events.send(clientId, msg),
       },
-      { code, rng: this.rng, tradesEnabled: this.tradesEnabled },
+      { code, rng: this.rng, tradesEnabled: this.tradesEnabled, seedEnabled: this.seedEnabled },
     )
     this.rooms.set(code, game)
     this.roomClients.set(code, new Set())
