@@ -1,5 +1,5 @@
 import {
-  GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space, type TradeOffer,
+  GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type TradeOffer,
 } from '../types/game';
 import { getHouseCost, JAIL_FINE } from '../data/board';
 import { isMonopoly } from './rent';
@@ -39,9 +39,9 @@ export function decideBotAction(state: GameState): GameAction | null {
       return { type: GameActionType.RollDice };
     }
     if (state.dice === null) {
-      return buildAction(state) ?? { type: GameActionType.RollDice };
+      return { type: GameActionType.RollDice };
     }
-    return { type: GameActionType.EndTurn };
+    return buildAction(state) ?? { type: GameActionType.EndTurn };
   }
 
   return null;
@@ -49,21 +49,16 @@ export function decideBotAction(state: GameState): GameAction | null {
 
 function buildAction(state: GameState): GameAction | null {
   const player = state.players[state.currentPlayer];
-  let best: Space | null = null;
-  let bestCost = Infinity;
-  for (const id of player.properties) {
-    const space = state.board[id];
-    if (!space || space.type !== SpaceType.Property) continue;
-    if (space.houses >= 5 || space.mortgaged) continue;
-    if (!isMonopoly(player.id, state.board, space)) continue;
-    const cost = getHouseCost(space, space.houses);
-    if (cost === 0 || player.money - cost < 50) continue;
-    if (cost < bestCost) {
-      bestCost = cost;
-      best = space;
-    }
-  }
-  return best ? { type: GameActionType.BuildHouse, spaceId: best.id } : null;
+  const space = state.board[player.position];
+  if (!space || space.type !== SpaceType.Property) return null;
+  if (space.owner !== state.currentPlayer) return null;
+  if (space.houses >= 5 || space.mortgaged) return null;
+  if (space.id === state.justBoughtSpaceId) return null;
+  if (state.builtThisStop) return null;
+  if (!isMonopoly(player.id, state.board, space)) return null;
+  const cost = getHouseCost(space, space.houses);
+  if (cost === 0 || player.money < cost) return null;
+  return { type: GameActionType.BuildHouse, spaceId: space.id };
 }
 
 function liquidationAction(state: GameState): GameAction {

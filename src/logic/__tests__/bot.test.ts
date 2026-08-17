@@ -166,23 +166,55 @@ describe('decideBotAction', () => {
     expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
   });
 
-  it('builds a house on a completed, affordable color set', () => {
+  it('builds a house when standing on an owned, completed, affordable property', () => {
     const board = createInitialBoard();
     const group = colorGroup(board);
     if (group.length === 0) throw new Error('no color group');
-    const groupIds = group.map((s) => s.id);
+    const target = group[0];
     for (const s of group) board[s.id] = { ...s, owner: 0 };
-    const state = makeState({ board }, makePlayer({ properties: groupIds, money: 100000 }));
-    expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: expect.any(Number) });
+    const state = makeState(
+      { board, dice: [3, 4] },
+      makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
   });
 
-  it('does not build when the color set is incomplete', () => {
+  it('does not build before rolling', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    for (const s of group) board[s.id] = { ...s, owner: 0 };
+    const state = makeState(
+      { board },
+      makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
+  });
+
+  it('does not build on an incomplete color set', () => {
     const board = createInitialBoard();
     const group = colorGroup(board);
     if (group.length === 0) throw new Error('no color group');
     board[group[0].id] = { ...group[0], owner: 0 };
-    const state = makeState({ board }, makePlayer({ properties: [group[0].id], money: 100000 }));
-    expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
+    const state = makeState(
+      { board, dice: [3, 4] },
+      makePlayer({ properties: [group[0].id], money: 100000, position: group[0].id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('builds only once per landing', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    for (const s of group) board[s.id] = { ...s, owner: 0 };
+    const state = makeState(
+      { board, dice: [3, 4], builtThisStop: true },
+      makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
   });
 
   it('drives a bot-controlled human seat', () => {
