@@ -57,4 +57,15 @@ describe('TurnHeader', () => {
     renderWithProviders(<TurnHeader state={{ ...makeState(), players }} />)
     expect(screen.getByText('Alpha — offline, a bot is playing')).toBeTruthy()
   })
+
+  it('shows a reconnect countdown when the current player is in grace', () => {
+    const base = makeState()
+    const state: GameState = {
+      ...base,
+      players: base.players.map((p) => ({ ...p, botControlled: true })),
+      reconnectGrace: { playerId: 0, until: Date.now() + 3000 },
+    }
+    renderWithProviders(<TurnHeader state={state} />)
+    expect(screen.getByText(/Waiting for Alpha to reconnect/)).toBeTruthy()
+  })
 })

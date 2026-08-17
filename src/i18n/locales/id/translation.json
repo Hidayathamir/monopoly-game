@@ -115,6 +115,7 @@
   "event.bankruptcyTransfer": "Aset {{name}} dilikuidasi untuk {{creditor}} sebesar {{amount}}",
   "event.playerOffline": "{{name}} offline — bot akan memainkan gilirannya",
   "event.playerBack": "{{name}} kembali — kendali diambil lagi",
+  "event.reconnectWait": "Menunggu {{name}} untuk terhubung kembali…",
 
   "log.botName": "{{name}} (bot)",
 
@@ -158,6 +159,7 @@
   "turn.waitingFor": "Menunggu {{name}}…",
   "turn.roll": "Lempar dadu",
   "turn.botControl": "{{name}} — offline, bot sedang bermain",
+  "turn.reconnectWait": "Menunggu {{name}} untuk terhubung kembali… {{seconds}}s",
 
   "dice.rollJail": "Lempar Dadu (Penjara)",
   "dice.roll": "Lempar Dadu",

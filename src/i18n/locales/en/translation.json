@@ -115,6 +115,7 @@
   "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
   "event.playerOffline": "{{name}} went offline — a bot will play their turn",
   "event.playerBack": "{{name}} is back — taking back control",
+  "event.reconnectWait": "Waiting for {{name}} to reconnect…",
 
   "log.botName": "{{name}} (bot)",
 
@@ -158,6 +159,7 @@
   "turn.waitingFor": "Waiting for {{name}}…",
   "turn.roll": "Roll dice",
   "turn.botControl": "{{name}} — offline, a bot is playing",
+  "turn.reconnectWait": "Waiting for {{name}} to reconnect… {{seconds}}s",
 
   "dice.rollJail": "Roll Dice (Jail)",
   "dice.roll": "Roll Dice",
