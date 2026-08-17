@@ -2,6 +2,7 @@ export const SoundId = {
   Click: 'click',
   DiceRoll: 'diceRoll',
   DiceLand: 'diceLand',
+  TokenStep: 'tokenStep',
   Buy: 'buy',
   Build: 'build',
   Card: 'card',
@@ -69,6 +70,8 @@ const SOUND_GENERATORS: Record<SoundId, (ctx: AudioContext, dest: AudioNode) => 
   },
   [SoundId.DiceLand]: (ctx, dest) =>
     tone(ctx, dest, { freq: 160, endFreq: 90, duration: 0.12, type: 'square', gain: 0.3 }),
+  [SoundId.TokenStep]: (ctx, dest) =>
+    tone(ctx, dest, { freq: 280, endFreq: 150, duration: 0.05, type: 'triangle', gain: 0.3 }),
   [SoundId.Buy]: (ctx, dest) => {
     tone(ctx, dest, { freq: 660, duration: 0.08, type: 'square', gain: 0.25 });
     tone(ctx, dest, { freq: 880, duration: 0.12, type: 'square', gain: 0.25, delay: 0.09 });
