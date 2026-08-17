@@ -394,16 +394,18 @@ describe('computePopupPosition', () => {
   const viewport = { width: 375, height: 667 }
 
   it('places the popup to the right of the card when there is room', () => {
-    const rect = { left: 100, right: 260, top: 40 } as DOMRect
+    const rect = { left: 40, right: 150, top: 40 } as DOMRect
     const pos = computePopupPosition(rect, 200, 120, viewport)
-    expect(pos.left).toBe(268)
+    expect(pos.left).toBe(158)
     expect(pos.top).toBe(36)
   })
 
   it('flips to the left when the right side would overflow', () => {
-    const rect = { left: 200, right: 360, top: 40 } as DOMRect
+    const rect = { left: 220, right: 300, top: 40 } as DOMRect
     const pos = computePopupPosition(rect, 200, 120, viewport)
-    expect(pos.left).toBe(-8)
+    expect(pos.left).toBe(12)
+    expect(pos.left).toBeLessThan(rect.left)
+    expect(pos.top).toBe(36)
   })
 
   it('clamps into the viewport when there is no room on either side', () => {
@@ -428,18 +430,22 @@ And a tap-to-dismiss test inside the existing `PlayerCard popup trade button` de
   it('closes the popup when tapping outside the card', () => {
     openPopup()
     expect(screen.getByRole('button', { name: /Trade/ })).toBeVisible()
-    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    act(() => {
+      document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
     expect(screen.queryByRole('button', { name: /Trade/ })).toBeNull()
   })
 
   it('keeps the popup open when tapping inside the card', () => {
     openPopup()
-    screen.getByTestId('player-card').dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    act(() => {
+      screen.getByTestId('player-card').dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
     expect(screen.getByRole('button', { name: /Trade/ })).toBeVisible()
   })
 ```
 
-> Use `dispatchEvent(new Event('pointerdown', { bubbles: true }))` rather than `fireEvent.pointerDown` — jsdom does not guarantee a `PointerEvent` constructor.
+> Use `dispatchEvent(new Event('pointerdown', { bubbles: true }))` rather than `fireEvent.pointerDown` — jsdom does not guarantee a `PointerEvent` constructor. The dispatch MUST be wrapped in `act(...)` from `@testing-library/react`: React 18/19 batches the state update, so without `act` the immediate assertion reads stale DOM. Add `act` to the existing `@testing-library/react` import in the test file.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
