@@ -584,34 +584,27 @@ describe('GameServer', () => {
 
   it('seedState cancels a pending bot timer on re-seed', () => {
     vi.useFakeTimers()
-    let n = 0
-    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1, 4], sum 5, non-doubles
-    const { server } = setup({ seedEnabled: true, rng })
+    const { server } = setup({ seedEnabled: true })
     server.join('c0', 'Alice')
     server.addBot('c0') // slot 1 is a bot (name Droid)
-    server.start('c0')  // Math.random is mocked 0.5 → turnOrder [0, 1], currentPlayer 0
-
-    // Play the host's turn so it ends on the bot (slot 1) → driveBots schedules a timer.
-    server.roll('c0')
-    vi.advanceTimersByTime(500)               // DiceAnimated → [1,4], Moving, pos 5
-    vi.advanceTimersByTime(500 + 5 * 150)     // ResolveSpace: space 5 (unowned railroad) → Waiting
-    server.handleAction('c0', { type: 'END_TURN' }) // currentPlayer → 1 (bot), bot timer scheduled
 
     const seeded = createSeededState({
       players: [
         { id: 0, name: 'Alice', money: 1000 },
         { id: 1, name: 'Droid', money: 100, isBot: true },
       ],
-      currentPlayer: 0,       // human — driveBots after the re-seed must not act
+      currentPlayer: 1,
       turnOrder: [1, 0],
     })
-    server.seedState(seeded)
-    const logLength = server.getState().eventLog.length
+    server.seedState(seeded) // bot turn → driveBots schedules a timer that fires at t=700
+    vi.advanceTimersByTime(100)
 
-    vi.advanceTimersByTime(10 * 700 + 100) // if the pre-seed bot timer had survived it would have rolled by now
-    expect(server.getState().currentPlayer).toBe(0)
-    expect(server.getState().dice).toBeNull()
-    expect(server.getState().eventLog.length).toBe(logLength)
+    server.seedState(seeded) // must cancel the stale timer and re-schedule from now (fires at t=800)
+    vi.advanceTimersByTime(600) // t=700 — a surviving pre-seed timer would have fired by now
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(100) // t=800 — the fresh timer fires and the bot rolls
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
   })
 
   it('seedState resumes bot driving when the seeded current player is a bot', () => {
