@@ -7,6 +7,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 - `npm run dev` — Vite dev server (client only, no multiplayer server)
 - `npm run server` — `tsx server/main.ts`, serves `dist/` + WebSocket at `ws://<host>/ws` on port `3001` (env `PORT`, `DIST_DIR`)
 - `TRADES_ENABLED=true npm run server` — enables the trade feature (env `TRADES_ENABLED`, default disabled; anything other than the literal `true` disables trades for every room on the server)
+- `E2E_SEED_ENABLED=true npm run server` — enables the dev/test seed feature (env `E2E_SEED_ENABLED`, default disabled; anything other than the literal `true` disables it). When on, the server exposes `GET /config` (`{seedEnabled: true}`) and `POST /seed` (`{code, state}`), and the lobby shows a Load Scenario panel for pasting a full game-state JSON. Seeds replace the room's state wholesale (any phase) and broadcast to all clients.
 - `VITE_ID_IDR_ENABLED=true npm run dev`/`npm run build` — enables the Indonesian language and IDR currency options (env `VITE_ID_IDR_ENABLED`, default disabled; anything other than the literal `true` leaves only English/USD available)
 - `npm run build` — `tsc -b && vite build` (typechecks all 3 TS projects, then builds `dist/`)
 - `npm run typecheck` — `tsc -b`
@@ -50,3 +51,4 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 - `npm run server`/`live` serve the **built** `dist/` — the client dev server and the multiplayer server are separate processes; multiplayer won't work through Vite alone.
 - `gameReducer`'s `shuffle` uses `Math.random`; `GameServer` accepts an injectable `rng` — tests should inject a deterministic one.
 - Board has 40 spaces; rules constants (`GO_SALARY`, rent tables, mortgage/sell rates) are in `src/data/board.ts`, not in the reducer.
+- Seeding is a dev/test-only capability: `POST /seed` returns 403 unless the server was launched with `E2E_SEED_ENABLED=true`. The Playwright e2e env sets it automatically (`e2e/helpers/server.ts`). To author a scenario, build one with `createSeededState` (`src/logic/seed.ts`) or generate it via `npm run print-seed`; the checked-in e2e scenario is `e2e/fixtures/bankruptcy-seed.ts` (generated, not hand-edited).
