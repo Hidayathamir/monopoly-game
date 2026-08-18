@@ -47,6 +47,7 @@ export function getPath(from: number, to: number, backward: boolean): number[] {
 export default function PlayerTokens({ state, playerColors }: Props) {
   const play = useSound()
   const { players } = state
+  const lastMoveSteps = state.lastMoveSteps
   const [displayPositions, setDisplayPositions] = useState<Record<number, number>>({})
   const prevTargets = useRef<Record<number, number>>({})
   const animating = useRef<Record<number, boolean>>({})
@@ -63,7 +64,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
         return
       }
       animating.current[player.id] = true
-      const backward = (state.lastMoveSteps ?? 0) < 0
+      const backward = (lastMoveSteps ?? 0) < 0
       const path = getPath(displayPositions[player.id] ?? prevTarget, player.position, backward)
       function step(index: number) {
         if (index >= path.length) { animating.current[player.id] = false; return }
@@ -74,7 +75,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
       if (path.length > 0) { setTimeout(() => step(0), 50) }
       else { animating.current[player.id] = false }
     })
-  }, [players.map((p) => `${p.id}:${p.position}`).join(','), displayPositions])
+  }, [players, displayPositions, play, lastMoveSteps])
 
   return (
     <div className="absolute top-0 left-0 w-full h-full pointer-events-none">

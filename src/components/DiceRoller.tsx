@@ -112,7 +112,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3" data-testid="dice-roller">
       <div className="flex gap-4 justify-center">
         {canAim ? (
           <Speedometer value={aimValue} label={t('dice.gauge')} />
