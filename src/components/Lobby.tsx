@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { PLAYER_COLORS } from '../data/players'
 import Button from './Button'
 import RoomExit from './RoomExit'
+import LoadScenarioPanel from './LoadScenarioPanel'
+import { useServerConfig } from '../hooks/useServerConfig'
 
 interface Props {
   game: NetworkGameApi
@@ -15,6 +17,7 @@ export default function Lobby({ game }: Props) {
   const { lobby, playerId, hostPlayerId, code, status, error, start, leave, addBot, removeBot } = game
   const isHost = playerId !== null && playerId === hostPlayerId
   const url = typeof window !== 'undefined' ? window.location.origin : ''
+  const { seedEnabled } = useServerConfig()
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-5">
@@ -70,6 +73,7 @@ export default function Lobby({ game }: Props) {
         )}
         <RoomExit onLeave={leave} />
       </div>
+      <LoadScenarioPanel seedEnabled={seedEnabled === true} code={code} />
     </div>
   )
 }

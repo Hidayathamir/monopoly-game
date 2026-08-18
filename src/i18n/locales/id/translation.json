@@ -269,5 +269,16 @@
   "settings.language": "Bahasa",
   "settings.currency": "Mata Uang",
   "settings.toggle": "Pengaturan",
-  "card.jailFreeCount": "Kartu Bebas Penjara ×{{count}}"
+  "card.jailFreeCount": "Kartu Bebas Penjara ×{{count}}",
+
+  "seed.title": "Muat Skenario (dev)",
+  "seed.roomCode": "Kode ruangan",
+  "seed.json": "JSON status",
+  "seed.validate": "Validasi",
+  "seed.apply": "Terapkan",
+  "seed.validJson": "Status valid",
+  "seed.invalidJson": "Status tidak valid",
+  "seed.applied": "Status diterapkan",
+  "seed.applyError": "Gagal menerapkan",
+  "seed.hidden": ""
 }

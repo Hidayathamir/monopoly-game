@@ -269,5 +269,16 @@
   "settings.language": "Language",
   "settings.currency": "Currency",
   "settings.toggle": "Settings",
-  "card.jailFreeCount": "Get Out of Jail Free ×{{count}}"
+  "card.jailFreeCount": "Get Out of Jail Free ×{{count}}",
+
+  "seed.title": "Load Scenario (dev)",
+  "seed.roomCode": "Room code",
+  "seed.json": "State JSON",
+  "seed.validate": "Validate",
+  "seed.apply": "Apply",
+  "seed.validJson": "Valid state",
+  "seed.invalidJson": "Invalid state",
+  "seed.applied": "State applied",
+  "seed.applyError": "Apply failed",
+  "seed.hidden": ""
 }
