@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures'
 import type { Browser, Page } from '@playwright/test'
 import { playHostTurns } from './helpers/gameplay'
+import { seedWaitingGame } from './helpers/seed'
 
 async function newGamePage(browser: Browser, serverUrl: string): Promise<Page> {
   const context = await browser.newContext()
@@ -71,7 +72,18 @@ test.describe('Monopoly Game E2E', () => {
       const page = await newGamePage(browser, serverUrl)
       await page.setViewportSize(viewport)
       await createRoom(page)
-      await startWithBots(page, 1)
+      await page.click('button:has-text("Add Bot")')
+      await expect(page.locator('text=Droid')).toBeVisible()
+      const codeLocator = page.locator('[data-testid="room-code"]')
+      const code = (await codeLocator.innerText()).trim()
+      await seedWaitingGame(serverUrl, code, {
+        players: [
+          { id: 0, name: 'Host', money: 1500 },
+          { id: 1, name: 'Droid', money: 1500, isBot: true },
+        ],
+        currentPlayer: 0,
+      })
+      await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
       const board = await page.locator('[data-game-board]').boundingBox()
       const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
       expect(board).not.toBeNull()
