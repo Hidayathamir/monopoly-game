@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "preview": "vite preview",
+    "print-seed": "tsx scripts/print-seed.ts",
     "server": "tsx server/main.ts",
     "start": "npm run build && npm run server",
     "tunnel": "cloudflared tunnel run --url http://localhost:3001 monopoly",
