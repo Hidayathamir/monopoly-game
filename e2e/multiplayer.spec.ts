@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures'
-import { playHostTurns } from './helpers/gameplay'
+import { seedWaitingGame } from './helpers/seed'
 
 test('two clients create and join a room, then start a game', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
@@ -72,7 +72,16 @@ test('a player who refreshes mid-game rejoins the same room', async ({ browser, 
   await pageB.fill('input[placeholder="Code"]', code)
   await pageB.click('button:has-text("Continue")')
 
-  await pageA.click('button:has-text("Start")')
+  await expect(pageA.locator('text=Tamu')).toBeVisible({ timeout: 5000 })
+
+  // Seed a mid-game Waiting state so the refresh happens mid-game.
+  await seedWaitingGame(serverUrl, code, {
+    players: [
+      { id: 0, name: 'Host', money: 1500 },
+      { id: 1, name: 'Tamu', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
@@ -104,7 +113,16 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
   await pageB.fill('input[placeholder="Code"]', code)
   await pageB.click('button:has-text("Continue")')
 
-  await pageA.click('button:has-text("Start")')
+  await expect(pageA.locator('text=Tamu')).toBeVisible({ timeout: 5000 })
+
+  // Seed a mid-game Waiting state so the leave happens mid-game.
+  await seedWaitingGame(serverUrl, code, {
+    players: [
+      { id: 0, name: 'Host', money: 1500 },
+      { id: 1, name: 'Tamu', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
   await pageB.click('button[aria-label="Leave Room"]')
@@ -112,7 +130,7 @@ test('a player can leave the room mid-game and return to the menu', async ({ bro
   await expect(pageB.locator('h1')).toHaveText('Monopoly', { timeout: 5000 })
 })
 
-test('host adds a bot, starts, and the bot auto-plays', async ({ browser, serverUrl }) => {
+test('host adds a bot, and the bot auto-plays from a seeded turn', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
@@ -129,13 +147,18 @@ test('host adds a bot, starts, and the bot auto-plays', async ({ browser, server
   await page.click('button:has-text("Add Bot")')
   await expect(page.locator('text=Droid')).toBeVisible()
 
-  await page.click('button:has-text("Start (")')
-  await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+  // Seed a Waiting state where the bot seat (Droid, slot 1) is current → it auto-plays.
+  const code = (await codeLocator.innerText()).trim()
+  await seedWaitingGame(serverUrl, code, {
+    players: [
+      { id: 0, name: 'Host', money: 1500 },
+      { id: 1, name: 'Droid', money: 1500, isBot: true },
+    ],
+    currentPlayer: 1,
+    turnOrder: [0, 1],
+  })
 
-  // Play the host's turn(s) until the bot seat (Droid) becomes current.
-  await playHostTurns(page, 10, { stopOnWaitingFor: true })
-
-  // The bot seat is now current and auto-plays; verify control returns to the host.
+  // The bot seat is current and auto-plays; verify control returns to the host.
   await expect(page.locator('[data-testid="waiting-for"]')).toContainText('Droid', { timeout: 10000 })
   await expect(page.locator('[data-testid="dice-roller"] button').first()).toBeVisible({ timeout: 30000 })
 })
@@ -161,24 +184,30 @@ test('a player can hold-to-roll without breaking multiplayer', async ({ browser,
   await pageB.click('button:has-text("Join Room")')
   await pageB.fill('input[placeholder="Code"]', code)
   await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Tamu')).toBeVisible({ timeout: 5000 })
 
-  await pageA.click('button:has-text("Start")')
+  // Seed a mid-game Waiting state with the host to roll, so the roller is deterministic.
+  await seedWaitingGame(serverUrl, code, {
+    players: [
+      { id: 0, name: 'Host', money: 1500 },
+      { id: 1, name: 'Tamu', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
   // Hold the roll button ~400ms, then release → a target locks and a roll resolves.
-  const roll = pageA.locator('button:has-text("Roll")')
-  const hostRolls = await roll.isVisible()
-  const current = hostRolls ? pageA : pageB
-  const roller = current.locator('button:has-text("Roll"), button:has-text("Roll Again")').first()
-  const box = await roller.boundingBox()
+  const roll = pageA.locator('[data-testid="dice-roller"] button').first()
+  await expect(roll).toBeVisible({ timeout: 5000 })
+  const box = await roll.boundingBox()
   if (box) {
-    await current.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-    await current.mouse.down()
-    await current.waitForTimeout(400)
-    await current.mouse.up()
+    await pageA.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await pageA.mouse.down()
+    await pageA.waitForTimeout(400)
+    await pageA.mouse.up()
   }
-  await expect(current.locator('[data-testid="dice-pip"]').first()).toBeVisible({ timeout: 5000 })
+  await expect(pageA.locator('[data-testid="dice-pip"]').first()).toBeVisible({ timeout: 5000 })
 })
 
 test('a lobby room appears in the public list and is joinable by clicking', async ({ browser, serverUrl }) => {
