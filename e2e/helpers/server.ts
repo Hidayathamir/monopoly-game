@@ -8,7 +8,7 @@ export interface TestServer {
 export async function startServer(port: number): Promise<TestServer> {
   // Requires `npm run build` first so `dist/` exists (served by the server).
   const proc: ChildProcess = spawn('npx', ['tsx', 'server/main.ts'], {
-    env: { ...process.env, PORT: String(port) },
+    env: { ...process.env, PORT: String(port), E2E_SEED_ENABLED: 'true' },
     cwd: process.cwd(),
     stdio: ['ignore', 'ignore', 'pipe'],
     detached: true,
