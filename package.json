@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "preview": "vite preview",
+    "print-initial-state": "tsx scripts/print-initial-state.ts",
     "print-seed": "tsx scripts/print-seed.ts",
     "server": "tsx server/main.ts",
     "start": "npm run build && npm run server",
