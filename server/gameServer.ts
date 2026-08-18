@@ -202,6 +202,7 @@ export class GameServer {
     this.botSteps = 0
     this.state = { ...state, tradesEnabled: this.state.tradesEnabled }
     this.broadcast()
+    this.driveBots()
   }
 
   leave(clientId: ClientId): void {

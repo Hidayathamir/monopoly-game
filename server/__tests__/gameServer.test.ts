@@ -602,15 +602,36 @@ describe('GameServer', () => {
         { id: 0, name: 'Alice', money: 1000 },
         { id: 1, name: 'Droid', money: 100, isBot: true },
       ],
-      currentPlayer: 1,
+      currentPlayer: 0,       // human — driveBots after the re-seed must not act
       turnOrder: [1, 0],
     })
     server.seedState(seeded)
     const logLength = server.getState().eventLog.length
 
-    vi.advanceTimersByTime(10 * 700 + 100) // if the timer had survived it would have rolled by now
-    expect(server.getState().currentPlayer).toBe(1)
+    vi.advanceTimersByTime(10 * 700 + 100) // if the pre-seed bot timer had survived it would have rolled by now
+    expect(server.getState().currentPlayer).toBe(0)
     expect(server.getState().dice).toBeNull()
     expect(server.getState().eventLog.length).toBe(logLength)
+  })
+
+  it('seedState resumes bot driving when the seeded current player is a bot', () => {
+    vi.useFakeTimers()
+    const { server } = setup({ seedEnabled: true })
+    server.join('c0', 'Alice')
+    server.addBot('c0') // slot 1 is a bot (name Droid)
+
+    const seeded = createSeededState({
+      players: [
+        { id: 0, name: 'Alice', money: 1000 },
+        { id: 1, name: 'Droid', money: 100, isBot: true },
+      ],
+      currentPlayer: 1,
+      turnOrder: [1, 0],
+    })
+    server.seedState(seeded)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(700) // BOT_STEP_MS — the bot's timer fires and it rolls
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
   })
 })
