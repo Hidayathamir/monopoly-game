@@ -1267,85 +1267,40 @@ test('a player cannot pay rent, declares bankruptcy, and the opponent wins', asy
   // Seed the decision point: Bravo owes $1,700 rent on Alpha's Boardwalk.
   await seedGame(serverUrl, code, bankruptcySeed)
 
-  // Bravo (current player) is at the rent prompt on both clients.
-  await expect(pageB.getByRole('button', { name: /Pay Rent/i })).toBeVisible({ timeout: 5000 })
+  // Bravo (current player) is at the rent prompt on both clients. He cannot pay
+  // ($1 < $1,700), so the Pay Rent button is disabled and only Declare Bankruptcy
+  // is actionable.
+  await expect(pageB.getByRole('button', { name: /Declare Bankruptcy/i })).toBeVisible({ timeout: 5000 })
+  await expect(pageB.getByRole('button', { name: /Pay Rent/i })).toHaveCount(0)
+  await expect(pageB.getByText(/Still Not Enough Money/i)).toBeVisible()
   await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo')
 
-  // Bravo attempts to pay — $1 < $1,700 → bankruptcy modal.
-  await pageB.getByRole('button', { name: /Pay Rent/i }).click()
-  await expect(pageB.locator('[data-testid="bankruptcy-modal"]')).toBeVisible({ timeout: 5000 })
-  await expect(pageB.getByText(/cannot pay/i)).toContainText('$1,700')
-
-  // Bravo declares bankruptcy.
+  // Bravo declares bankruptcy directly.
   await pageB.getByRole('button', { name: /Declare Bankruptcy/i }).click()
 
   // Game over: Alpha wins on both clients; Bravo shows the bankrupt badge.
-  await expect(pageB.getByText(/wins!/i)).toBeVisible({ timeout: 5000 })
-  await expect(pageA.getByText(/wins!/i)).toBeVisible({ timeout: 5000 })
+  await expect(pageB.getByText('Alpha wins!', { exact: true })).toBeVisible({ timeout: 5000 })
+  await expect(pageA.getByText('Alpha wins!', { exact: true })).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Bravo' })).toContainText(/bankrupt/i)
 })
 ```
 
-- [ ] **Step 4: Add `data-testid` support to `Modal` and use it in the bankruptcy modal**
-
-`src/components/Modals/Modal.tsx` only forwards `className`. Add an optional prop so tests can target the overlay:
-
-In `src/components/Modals/Modal.tsx`:
-
-```tsx
-interface ModalProps {
-  children: ReactNode
-  onClose?: () => void
-  className?: string
-  dataTestId?: string
-}
-
-export default function Modal({ children, className = '', onClose, dataTestId }: ModalProps) {
-  return (
-    <div
-      data-testid={dataTestId}
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100]"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && onClose) onClose()
-      }}
-    >
-      <div
-        className={[
-          'bg-bg-card rounded-xl p-6 min-w-80 max-w-[500px] flex flex-col gap-3',
-          className,
-        ].join(' ')}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
-```
-
-In `src/components/Modals/BankruptcyModal.tsx`, pass `dataTestId="bankruptcy-modal"` to `<Modal>`. (Optional but nice: pass `dataTestId="game-over-modal"` in `GameOverModal.tsx` too.)
-
-In `src/components/__tests__/BankruptcyModal.test.tsx`, add an assertion that the modal is targetable:
-
-```tsx
-expect(screen.getByTestId('bankruptcy-modal')).toBeVisible()
-```
-
-- [ ] **Step 5: Build and run the e2e test**
+- [ ] **Step 4: Build and run the e2e test**
 
 Run: `npm run build`
 Run: `npx playwright test e2e/seed.spec.ts`
-Expected: PASS. If the BankruptcyModal has no `data-testid`, first complete Step 4, rebuild, re-run.
+Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [ ] **Step 5: Run the full suite**
 
 Run: `npm run test:unit`
 Run: `npx playwright test`
 Expected: all unit + existing e2e + new seed e2e pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add e2e/helpers/server.ts e2e/helpers/seed.ts e2e/seed.spec.ts src/components/Modals/Modal.tsx src/components/Modals/BankruptcyModal.tsx src/components/__tests__/BankruptcyModal.test.tsx
+git add e2e/helpers/server.ts e2e/helpers/seed.ts e2e/seed.spec.ts
 git commit -m "test: seed-based e2e for bankruptcy on unpayable rent"
 ```
 
