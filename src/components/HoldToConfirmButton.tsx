@@ -67,10 +67,6 @@ export default function HoldToConfirmButton({
 
   useEffect(() => reset, [reset])
 
-  useEffect(() => {
-    if (disabled) reset()
-  }, [disabled, reset])
-
   function handlePointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
     if (e.button !== 0) return
     e.currentTarget.setPointerCapture?.(e.pointerId)
