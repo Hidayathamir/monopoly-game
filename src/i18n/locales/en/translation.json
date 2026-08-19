@@ -183,6 +183,7 @@
   "action.payRent": "Pay Rent",
   "action.stillNotEnough": "Still Not Enough Money",
   "action.declareBankruptcy": "Declare Bankruptcy",
+  "action.holdHint": "Press and hold for 5 seconds to declare bankruptcy.",
   "action.drawCard": "Draw Card",
   "action.clickToContinue": "Click the button to continue",
   "action.build": "Build ({{amount}})",
@@ -247,6 +248,7 @@
   "bankruptcy.hint": "Sell houses / mortgage properties to raise money.",
   "bankruptcy.declare": "Declare Bankruptcy",
   "bankruptcy.close": "Close (Sell/Mortgage first)",
+  "bankruptcy.holdHint": "Press and hold for 5 seconds to declare bankruptcy.",
 
   "gameover.title": "🏆 Game Over!",
   "gameover.winner": "{{name}} wins!",

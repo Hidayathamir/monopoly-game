@@ -4,6 +4,7 @@ import { useCurrency } from '../../i18n/CurrencyContext'
 import { getTotalHouseInvestment } from '../../data/board'
 import Modal from './Modal'
 import Button from '../Button'
+import HoldToConfirmButton from '../HoldToConfirmButton'
 
 interface Props {
   state: GameState
@@ -44,7 +45,9 @@ export default function BankruptcyModal({ state, isMyTurn, onClose, onBankruptcy
         ) : (
           <>
             {!canPayAfterLiquidation && (
-              <Button variant="danger" onClick={onBankruptcy}>{t('bankruptcy.declare')}</Button>
+              <HoldToConfirmButton variant="danger" onConfirm={onBankruptcy} hint={t('bankruptcy.holdHint')}>
+                {t('bankruptcy.declare')}
+              </HoldToConfirmButton>
             )}
             <Button variant="secondary" onClick={onClose}>{t('bankruptcy.close')}</Button>
           </>

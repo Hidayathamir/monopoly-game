@@ -183,6 +183,7 @@
   "action.payRent": "Bayar Sewa",
   "action.stillNotEnough": "Uang Masih Kurang",
   "action.declareBankruptcy": "Nyatakan Bangkrut",
+  "action.holdHint": "Tahan tombol selama 5 detik untuk menyatakan bangkrut.",
   "action.drawCard": "Ambil Kartu",
   "action.clickToContinue": "Klik tombol untuk melanjutkan",
   "action.build": "Bangun ({{amount}})",
@@ -247,6 +248,7 @@
   "bankruptcy.hint": "Jual rumah / gadaikan properti untuk mendapatkan uang.",
   "bankruptcy.declare": "Nyatakan Bangkrut",
   "bankruptcy.close": "Tutup (Jual/Gadai lebih dulu)",
+  "bankruptcy.holdHint": "Tahan tombol selama 5 detik untuk menyatakan bangkrut.",
 
   "gameover.title": "🏆 Permainan Selesai!",
   "gameover.winner": "{{name}} menang!",

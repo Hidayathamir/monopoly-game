@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import { JAIL_FINE, getHouseCost } from '../data/board'
 import Button from './Button'
+import HoldToConfirmButton from './HoldToConfirmButton'
 
 interface Props {
   state: GameState
@@ -63,7 +64,9 @@ export default function ActionSection({
           <Button variant="success" onClick={onPayRent} disabled={!canAffordNow}>
             {canAffordNow ? t('action.payRent') : t('action.stillNotEnough')}
           </Button>
-          <Button variant="danger" onClick={onDeclareBankruptcy}>{t('action.declareBankruptcy')}</Button>
+          <HoldToConfirmButton variant="danger" onConfirm={onDeclareBankruptcy} hint={t('action.holdHint')}>
+            {t('action.declareBankruptcy')}
+          </HoldToConfirmButton>
         </div>
       </div>
     )
