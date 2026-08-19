@@ -43,8 +43,16 @@ test('a player cannot pay rent, declares bankruptcy, and the opponent wins', asy
   await expect(pageB.getByText(/Still Not Enough Money/i)).toBeVisible()
   await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo')
 
-  // Bravo declares bankruptcy directly.
-  await pageB.getByRole('button', { name: /Declare Bankruptcy/i }).click()
+  // Bravo declares bankruptcy directly by holding the 5-second confirm button.
+  const declareBtn = pageB.getByRole('button', { name: /Declare Bankruptcy/i })
+  await expect(declareBtn).toBeVisible({ timeout: 5000 })
+  const box = await declareBtn.boundingBox()
+  if (box) {
+    await pageB.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await pageB.mouse.down()
+    await pageB.waitForTimeout(5300)
+    await pageB.mouse.up()
+  }
 
   // Game over: Alpha wins on both clients; Bravo shows the bankrupt badge.
   await expect(pageB.getByText('Alpha wins!', { exact: true })).toBeVisible({ timeout: 5000 })
