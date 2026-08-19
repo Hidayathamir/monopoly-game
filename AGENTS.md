@@ -11,7 +11,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 - `VITE_ID_IDR_ENABLED=true npm run dev`/`npm run build` — enables the Indonesian language and IDR currency options (env `VITE_ID_IDR_ENABLED`, default disabled; anything other than the literal `true` leaves only English/USD available)
 - `npm run build` — `tsc -b && vite build` (typechecks all 3 TS projects, then builds `dist/`)
 - `npm run typecheck` — `tsc -b`
-- `npm run lint` — eslint (currently passes with 2 pre-existing `react-hooks/exhaustive-deps` warnings in `PlayerTokens.tsx`)
+- `npm run lint` — eslint (passes cleanly)
 - `npm run test:unit` — vitest; `npm run test:e2e` — Playwright; `npm run test` — both
 - `npm run start` — build then serve; `npm run live` — build + server + cloudflared tunnel (remote multiplayer)
 
