@@ -224,7 +224,7 @@ export default function HoldToConfirmButton({
   }, [])
 
   const begin = useCallback(() => {
-    if (disabled || firedRef.current) return
+    if (disabled || firedRef.current || intervalRef.current !== null) return
     startRef.current = Date.now()
     firedRef.current = false
     setHolding(true)
@@ -245,10 +245,6 @@ export default function HoldToConfirmButton({
   }, [disabled, holdMs, onConfirm])
 
   useEffect(() => reset, [reset])
-
-  useEffect(() => {
-    if (disabled) reset()
-  }, [disabled, reset])
 
   function handlePointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
     if (e.button !== 0) return
@@ -387,7 +383,7 @@ with:
 1. Add the import after the existing `import Button from './Button'` line:
 
 ```tsx
-import HoldToConfirmButton from '../HoldToConfirmButton'
+import HoldToConfirmButton from './HoldToConfirmButton'
 ```
 
 2. Replace the bankruptcy button (currently line 66) inside the `PayRent | Bankruptcy` branch:
