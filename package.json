@@ -14,7 +14,7 @@
     "print-monopoly-rent-seed": "tsx scripts/print-monopoly-rent-seed.ts",
     "server": "tsx server/main.ts",
     "start": "npm run build && npm run server",
-    "tunnel": "cloudflared tunnel run --url http://localhost:3001 monopoly",
+    "tunnel": "cloudflared tunnel run monopoly-local",
     "live": "npm run build && concurrently -k \"npm run server\" \"npm run tunnel\"",
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
