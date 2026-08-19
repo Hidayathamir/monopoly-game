@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
@@ -27,6 +27,7 @@ export default function HoldToConfirmButton({
   disabled,
 }: Props) {
   const { t } = useTranslation()
+  const hintId = useId()
   const [progress, setProgress] = useState(0)
   const [holding, setHolding] = useState(false)
   const startRef = useRef(0)
@@ -105,6 +106,7 @@ export default function HoldToConfirmButton({
         onBlur={reset}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
+        aria-describedby={hint ? hintId : undefined}
       >
         <span
           data-testid="hold-fill"
@@ -115,7 +117,7 @@ export default function HoldToConfirmButton({
         <span className="relative z-10">{holding ? t('hold.countdown', { n: remaining }) : children}</span>
       </Button>
       {hint && (
-        <p data-testid="hold-hint" className="text-sm text-muted text-center mt-1">
+        <p data-testid="hold-hint" id={hintId} className="text-sm text-muted text-center mt-1">
           {hint}
         </p>
       )}

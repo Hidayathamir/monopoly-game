@@ -273,7 +273,7 @@
   "settings.toggle": "Settings",
   "card.jailFreeCount": "Get Out of Jail Free ×{{count}}",
 
-  "hold.countdown": "Hold {n}s",
+  "hold.countdown": "Hold {{n}}s",
 
   "seed.title": "Load Scenario (dev)",
   "seed.roomCode": "Room code",

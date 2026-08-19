@@ -33,7 +33,7 @@ reported back for review:
    key-down). Releasing (or cancelling) before 5s resets progress and fires
    nothing. At ≥5s the action fires once.
 4. **Animation.** A progress fill sweeps across the button over the 5 seconds
-   and the button label shows a live "Hold {n}s" countdown, so the hold
+   and the button label shows a live "Hold {{n}}s" countdown, so the hold
    requirement is visible before and during the gesture. The numeric
    countdown is the primary communicator and works under
    `prefers-reduced-motion` (no extra motion added).
@@ -82,7 +82,7 @@ Behavior:
 - **Holding:** on `pointerdown` (primary button only, `e.button === 0`) starts
   a countdown. The button gets `touch-action: none`, `relative overflow-hidden`
   and an absolutely-positioned fill overlay (`data-testid="hold-fill"`) whose
-  width goes 0→100% over `holdMs`. The label swaps to `Hold {n}s`
+  width goes 0→100% over `holdMs`. The label swaps to `Hold {{n}}s`
   (`ceil(remaining/1000)`). Uses pointer capture so drifting off the button
   does not cancel.
 - **Complete:** when the fill reaches 100%, `onConfirm()` fires exactly once
@@ -139,7 +139,7 @@ New flat keys in **both** locales:
 |-----|----|----|
 | `bankruptcy.holdHint` | "Press and hold for 5 seconds to declare bankruptcy." | "Tahan tombol selama 5 detik untuk menyatakan bangkrut." |
 | `action.holdHint` | "Press and hold for 5 seconds to declare bankruptcy." | "Tahan tombol selama 5 detik untuk menyatakan bangkrut." |
-| `hold.countdown` | "Hold {n}s" | "Tahan {n}d" |
+| `hold.countdown` | "Hold {{n}}s" | "Tahan {{n}}d" |
 
 The countdown key is shared because the pattern is generic; the two hints are
 namespaced by where they render.

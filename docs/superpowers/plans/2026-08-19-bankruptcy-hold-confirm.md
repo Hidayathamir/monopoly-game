@@ -48,7 +48,7 @@
 
 - [ ] **Step 1: Add the `hold.countdown` i18n key to both locales**
 
-In `src/i18n/locales/en/translation.json`, add the flat key `hold.countdown` with value `"Hold {n}s"`. In `src/i18n/locales/id/translation.json`, add the flat key `hold.countdown` with value `"Tahan {n}d"`. Insert both right before the `"seed.title"` key (the files are flat-key JSON objects; position does not affect behavior, but keep en and id parallel). Do not add any other keys in this task.
+In `src/i18n/locales/en/translation.json`, add the flat key `hold.countdown` with value `"Hold {{n}}s"`. In `src/i18n/locales/id/translation.json`, add the flat key `hold.countdown` with value `"Tahan {{n}}d"`. Insert both right before the `"seed.title"` key (the files are flat-key JSON objects; position does not affect behavior, but keep en and id parallel). Do not add any other keys in this task.
 
 - [ ] **Step 2: Write the failing component test**
 

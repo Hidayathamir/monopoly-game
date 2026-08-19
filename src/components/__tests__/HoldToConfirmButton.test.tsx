@@ -65,7 +65,7 @@ describe('HoldToConfirmButton', () => {
     const button = screen.getByRole('button', { name: 'Declare Bankruptcy' })
     fireEvent.pointerDown(button, { button: 0 })
     act(() => vi.advanceTimersByTime(3000))
-    expect(screen.getByRole('button', { name: /^Hold/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Hold 2s' })).toBeVisible()
   })
 
   it('ignores non-primary pointer buttons', () => {

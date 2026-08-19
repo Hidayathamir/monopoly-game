@@ -273,7 +273,7 @@
   "settings.toggle": "Pengaturan",
   "card.jailFreeCount": "Kartu Bebas Penjara ×{{count}}",
 
-  "hold.countdown": "Tahan {n}d",
+  "hold.countdown": "Tahan {{n}}d",
 
   "seed.title": "Muat Skenario (dev)",
   "seed.roomCode": "Kode ruangan",

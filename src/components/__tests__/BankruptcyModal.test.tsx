@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { screen, cleanup } from '@testing-library/react'
-import { afterEach, describe, it, expect } from 'vitest'
+import { act, cleanup, fireEvent, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import BankruptcyModal from '../Modals/BankruptcyModal'
 import { renderWithProviders } from '../../test/test-utils'
@@ -26,5 +26,23 @@ describe('BankruptcyModal', () => {
     expect(screen.queryByRole('button', { name: /Declare Bankruptcy/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /Close/ })).toBeNull()
     expect(screen.getByText(/Waiting for/)).toBeVisible()
+  })
+
+  describe('hold-to-confirm', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('fires onBankruptcy once after a completed hold', () => {
+      const onBankruptcy = vi.fn()
+      renderWithProviders(<BankruptcyModal state={makeState(99999)} isMyTurn={true} onClose={() => {}} onBankruptcy={onBankruptcy} />)
+      const button = screen.getByRole('button', { name: /Declare Bankruptcy/ })
+      fireEvent.pointerDown(button, { button: 0 })
+      act(() => vi.advanceTimersByTime(5000))
+      expect(onBankruptcy).toHaveBeenCalledTimes(1)
+    })
   })
 })
