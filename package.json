@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "print-initial-state": "tsx scripts/print-initial-state.ts",
     "print-seed": "tsx scripts/print-seed.ts",
+    "print-monopoly-rent-seed": "tsx scripts/print-monopoly-rent-seed.ts",
     "server": "tsx server/main.ts",
     "start": "npm run build && npm run server",
     "tunnel": "cloudflared tunnel run --url http://localhost:3001 monopoly",
