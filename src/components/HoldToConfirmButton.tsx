@@ -45,7 +45,7 @@ export default function HoldToConfirmButton({
   }, [])
 
   const begin = useCallback(() => {
-    if (disabled || firedRef.current) return
+    if (disabled || firedRef.current || intervalRef.current !== null) return
     startRef.current = Date.now()
     firedRef.current = false
     setHolding(true)
