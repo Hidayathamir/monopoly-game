@@ -2,7 +2,6 @@ import {
   GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type TradeOffer,
 } from '../types/game';
 import { getHouseCost, JAIL_FINE } from '../data/board';
-import { isMonopoly } from './rent';
 
 export function decideBotAction(state: GameState): GameAction | null {
   const player = state.players[state.currentPlayer];
@@ -55,7 +54,6 @@ function buildAction(state: GameState): GameAction | null {
   if (space.houses >= 5 || space.mortgaged) return null;
   if (space.id === state.justBoughtSpaceId) return null;
   if (state.builtThisStop) return null;
-  if (!isMonopoly(player.id, state.board, space)) return null;
   const cost = getHouseCost(space, space.houses);
   if (cost === 0 || player.money < cost) return null;
   return { type: GameActionType.BuildHouse, spaceId: space.id };

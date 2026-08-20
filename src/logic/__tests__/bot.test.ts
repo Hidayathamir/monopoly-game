@@ -193,16 +193,17 @@ describe('decideBotAction', () => {
     expect(decideBotAction(state)).toEqual({ type: 'ROLL_DICE' });
   });
 
-  it('does not build on an incomplete color set', () => {
+  it('builds a house on a single owned property without a full color set', () => {
     const board = createInitialBoard();
     const group = colorGroup(board);
     if (group.length === 0) throw new Error('no color group');
-    board[group[0].id] = { ...group[0], owner: 0 };
+    const target = group[0];
+    board[target.id] = { ...target, owner: 0 };
     const state = makeState(
       { board, dice: [3, 4] },
-      makePlayer({ properties: [group[0].id], money: 100000, position: group[0].id }),
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
     );
-    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+    expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
   });
 
   it('builds only once per landing', () => {
