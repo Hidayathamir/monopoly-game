@@ -31,6 +31,14 @@ export const ServerMessageType = {
 } as const
 export type ServerMessageType = (typeof ServerMessageType)[keyof typeof ServerMessageType]
 
+export const HttpPath = {
+  Config: '/config',
+  Seed: '/seed',
+  Rooms: '/rooms',
+  Ws: '/ws',
+} as const
+export type HttpPath = (typeof HttpPath)[keyof typeof HttpPath]
+
 export type ClientMessage =
   | { type: typeof ClientMessageType.Create; name: string }
   | { type: typeof ClientMessageType.Join; code: string; name: string }

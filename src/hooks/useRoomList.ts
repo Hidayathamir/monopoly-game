@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RoomInfo } from '../types/net'
+import { HttpPath } from '../types/net'
 
 const POLL_INTERVAL_MS = 4000
 
@@ -16,7 +17,7 @@ export function useRoomList(): RoomListApi {
     let cancelled = false
     async function poll() {
       try {
-        const res = await fetch('/rooms')
+        const res = await fetch(HttpPath.Rooms)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = (await res.json()) as RoomInfo[]
         if (!cancelled) {

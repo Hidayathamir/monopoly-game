@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join, extname, resolve, relative, isAbsolute } from 'node:path'
 import { WebSocketServer, WebSocket } from 'ws'
 import { RoomManager } from './roomManager'
-import { ClientMessageType, ServerMessageType } from '../src/types/net'
+import { ClientMessageType, HttpPath, ServerMessageType } from '../src/types/net'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 import type { GameState } from '../src/types/game'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
@@ -42,13 +42,13 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
   const httpServer = createHttpServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost')
 
-    if (url.pathname === '/config' && req.method === 'GET') {
+    if (url.pathname === HttpPath.Config && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ seedEnabled }))
       return
     }
 
-    if (url.pathname === '/seed' && req.method === 'POST') {
+    if (url.pathname === HttpPath.Seed && req.method === 'POST') {
       if (!seedEnabled) {
         res.writeHead(403, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ message: 'seeding disabled' }))
@@ -98,7 +98,7 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
       return
     }
 
-    if (url.pathname === '/rooms' && req.method === 'GET') {
+    if (url.pathname === HttpPath.Rooms && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(roomManager.list()))
       return
@@ -131,7 +131,7 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
     }
   })
 
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
+  const wss = new WebSocketServer({ server: httpServer, path: HttpPath.Ws })
 
   wss.on('connection', (ws) => {
     const clientId = String(nextId++)

@@ -1,4 +1,5 @@
 import type { ClientMessage, ServerMessage } from '../types/net'
+import { HttpPath } from '../types/net'
 
 export interface ClientHandlers {
   onMessage: (message: ServerMessage) => void
@@ -23,7 +24,7 @@ export class GameClient {
   connect(): void {
     const url =
       this.opts.wsUrl ??
-      `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
+      `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}${HttpPath.Ws}`
     const WS = this.opts.WebSocketImpl ?? WebSocket
     this.ws = new WS(url)
     this.ws.onopen = () => {

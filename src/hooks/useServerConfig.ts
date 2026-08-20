@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { HttpPath } from '../types/net'
 
 export function useServerConfig() {
   const [seedEnabled, setSeedEnabled] = useState<boolean | null>(null)
@@ -6,7 +7,7 @@ export function useServerConfig() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/config')
+    fetch(HttpPath.Config)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { seedEnabled?: boolean } | null) => {
         if (cancelled) return

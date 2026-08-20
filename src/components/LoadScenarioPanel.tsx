@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
 import { validateStateStructure, ValidationKind } from '../logic/seed'
+import { HttpPath } from '../types/net'
 import type { GameState } from '../types/game'
 
 const ScenarioMessageKind = { Ok: 'ok', Error: 'error' } as const
@@ -37,7 +38,7 @@ export default function LoadScenarioPanel({ seedEnabled, code }: Props) {
     setBusy(true)
     setMessage(null)
     try {
-      const res = await fetch('/seed', {
+      const res = await fetch(HttpPath.Seed, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: roomCode, state: JSON.parse(json) }),
