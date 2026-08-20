@@ -6,6 +6,11 @@ Purpose: Survey only — no conversions performed. Every enum-like candidate in
 `src/` + `server/` that lacks a backing `const` object, rated by confidence.
 Design: [enum-candidate-survey-design.md](./2026-08-20-enum-candidate-survey-design.md).
 
+Status: conversions applied 2026-08-20 on branch `enum-conversion` — converted:
+C-01, C-02, C-03, C-04, C-05, C-06, C-07, C-08, C-09, C-14, C-15, C-17, C-18,
+C-19, C-28 (C-10 → `parseEnvFlag` helper, not an enum; C-16 already consted;
+C-11..C-13, C-20..C-27 intentionally not converted).
+
 ## Summary
 
 28 candidates across three categories (A strings, B numbers, C booleans),
