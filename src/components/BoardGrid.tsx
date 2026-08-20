@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { SpaceType, type GameState } from '../types/game'
@@ -87,20 +87,36 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
   const { t } = useTranslation()
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
+  const [pinnedId, setPinnedId] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos | null>(null)
+  const [isTouch] = useState(() => {
+    const mq = window.matchMedia
+    return mq ? mq('(hover: none)').matches : false
+  })
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tooltipRef = useRef<HTMLDivElement | null>(null)
   const cellRectRef = useRef<DOMRect | null>(null)
 
-  function handleEnter(id: number, e: React.MouseEvent<HTMLDivElement>) {
+  const activeId = hoveredId ?? pinnedId
+
+  function openTooltip(id: number, rect: DOMRect) {
     if (timerRef.current) clearTimeout(timerRef.current)
     setHoveredId(id)
-    const rect = e.currentTarget.getBoundingClientRect()
     cellRectRef.current = rect
     setTooltipPos(computeTooltipPosition(rect, getCellPosition(id), 260, 300))
   }
 
+  function closeTooltip() {
+    setPinnedId(null)
+    setHoveredId(null)
+  }
+
+  function handleEnter(id: number, e: React.MouseEvent<HTMLDivElement>) {
+    openTooltip(id, e.currentTarget.getBoundingClientRect())
+  }
+
   function handleLeave() {
+    if (pinnedId != null) return
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
 
@@ -109,15 +125,34 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
   }
 
   function handleTooltipLeave() {
+    if (pinnedId != null) return
     timerRef.current = setTimeout(() => setHoveredId(null), HIDE_DELAY)
   }
 
+  function handleClick(id: number, e: React.MouseEvent<HTMLDivElement>) {
+    if (!isTouch) return
+    setPinnedId(id)
+    openTooltip(id, e.currentTarget.getBoundingClientRect())
+  }
+
+  useEffect(() => {
+    if (pinnedId == null) return
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node
+      if (tooltipRef.current?.contains(target)) return
+      if ((target as HTMLElement).closest?.('[data-testid^="board-cell-"]')) return
+      closeTooltip()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [pinnedId])
+
   useLayoutEffect(() => {
-    if (hoveredId == null || !tooltipRef.current || !cellRectRef.current) return
+    if (activeId == null || !tooltipRef.current || !cellRectRef.current) return
     const tipW = tooltipRef.current.offsetWidth
     const tipH = tooltipRef.current.offsetHeight
-    setTooltipPos(computeTooltipPosition(cellRectRef.current, getCellPosition(hoveredId), tipW, tipH))
-  }, [hoveredId])
+    setTooltipPos(computeTooltipPosition(cellRectRef.current, getCellPosition(activeId), tipW, tipH))
+  }, [activeId])
 
   return (
     <div
@@ -145,6 +180,7 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
             }}
             onMouseEnter={(e) => handleEnter(space.id, e)}
             onMouseLeave={handleLeave}
+            onClick={(e) => handleClick(space.id, e)}
           >
             <button
               type="button"
@@ -194,10 +230,11 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
         )
       })}
 
-      {hoveredId != null && tooltipPos &&
+      {activeId != null && tooltipPos &&
         createPortal(
           <div
             ref={tooltipRef}
+            data-testid="property-tooltip"
             onMouseEnter={handleTooltipEnter}
             onMouseLeave={handleTooltipLeave}
             style={{
@@ -207,8 +244,19 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
               zIndex: 999,
             }}
           >
+            {pinnedId != null && (
+              <button
+                type="button"
+                data-testid="tooltip-close"
+                aria-label={t('tooltip.close')}
+                onClick={closeTooltip}
+                className="absolute -top-2 -right-2 z-[1000] w-6 h-6 rounded-full bg-bg-dark border border-border-light text-text-dim text-xs font-bold leading-none flex items-center justify-center shadow-md cursor-pointer"
+              >
+                ✕
+              </button>
+            )}
             <PropertyTooltip
-              space={board[hoveredId]}
+              space={board[activeId]}
               state={state}
               isMyTurn={isMyTurn}
               onSell={onSell}

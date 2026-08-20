@@ -237,6 +237,7 @@
   "tooltip.mortgage": "Mortgage (+{{amount}})",
   "tooltip.sellToBank": "Sell to Bank (+{{amount}})",
   "tooltip.redeem": "Redeem (-{{amount}})",
+  "tooltip.close": "Close",
 
   "buymodal.price": "Price: ",
   "buymodal.rent": "Rent: ",

@@ -237,6 +237,7 @@
   "tooltip.mortgage": "Gadai (+{{amount}})",
   "tooltip.sellToBank": "Jual ke Bank (+{{amount}})",
   "tooltip.redeem": "Tebus (-{{amount}})",
+  "tooltip.close": "Tutup",
 
   "buymodal.price": "Harga: ",
   "buymodal.rent": "Sewa: ",
