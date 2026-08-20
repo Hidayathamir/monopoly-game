@@ -106,9 +106,9 @@ describe('gameReducer', () => {
       expect(state.players.map((p) => p.isBot)).toEqual([false, false]);
     });
 
-    it('initializes botControlled to false', () => {
+    it('initializes botControlled and afk to false', () => {
       const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] });
-      expect(state.players.every((p) => p.botControlled === false)).toBe(true);
+      expect(state.players.every((p) => p.botControlled === false && p.afk === false)).toBe(true);
     });
   });
 
@@ -120,10 +120,11 @@ describe('gameReducer', () => {
         controlled: true,
       });
       expect(state.players[0].botControlled).toBe(true);
+      expect(state.players[0].afk).toBe(false);
       expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerOffline', params: { name: 'Alice' } });
     });
 
-    it('logs the AFK notice when marked bot-controlled with reason afk', () => {
+    it('logs the AFK notice and sets the afk flag when marked bot-controlled with reason afk', () => {
       const state = gameReducer(makeStartedState(2), {
         type: GameActionType.SetBotControl,
         playerId: 0,
@@ -131,7 +132,20 @@ describe('gameReducer', () => {
         reason: 'afk',
       });
       expect(state.players[0].botControlled).toBe(true);
+      expect(state.players[0].afk).toBe(true);
       expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerAfk', params: { name: 'Alice' } });
+    });
+
+    it('clears the afk flag when an AFK player takes back control', () => {
+      let state = gameReducer(makeStartedState(2), {
+        type: GameActionType.SetBotControl,
+        playerId: 0,
+        controlled: true,
+        reason: 'afk',
+      });
+      state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: false });
+      expect(state.players[0].botControlled).toBe(false);
+      expect(state.players[0].afk).toBe(false);
     });
 
     it('is idempotent when the player is already bot-controlled', () => {

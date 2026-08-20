@@ -18,6 +18,7 @@ export interface SeedPlayerSpec {
   bankrupt?: boolean;
   isBot?: boolean;
   botControlled?: boolean;
+  afk?: boolean;
   passedGo?: boolean;
 }
 
@@ -60,6 +61,7 @@ export function createSeededState(spec: SeedSpec): GameState {
       getOutOfJailFreeCards: p.getOutOfJailFreeCards ?? 0,
       isBot: p.isBot ?? false,
       botControlled: p.botControlled ?? false,
+      afk: p.afk ?? false,
     }));
   return {
     phase: spec.phase ?? GamePhase.Waiting,

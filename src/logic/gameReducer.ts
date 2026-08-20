@@ -52,6 +52,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           getOutOfJailFreeCards: 0,
           isBot: action.isBot?.[i] ?? false,
           botControlled: false,
+          afk: false,
         });
       }
       const turnOrder = shuffle(Array.from({ length: action.playerCount }, (_, i) => i));
@@ -802,7 +803,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const target = state.players[action.playerId];
       if (!target || target.botControlled === action.controlled) return state;
       const newPlayers = [...state.players];
-      newPlayers[action.playerId] = { ...target, botControlled: action.controlled };
+      newPlayers[action.playerId] = {
+        ...target,
+        botControlled: action.controlled,
+        afk: action.controlled ? action.reason === 'afk' : false,
+      };
       const logKey = action.controlled
         ? action.reason === 'afk'
           ? LogEventKey.PlayerAfk

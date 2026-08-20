@@ -11,7 +11,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     players: [
       {
         id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
-        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false,
+        passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false,
       },
     ],
     currentPlayer: 0,
@@ -57,6 +57,12 @@ describe('TurnHeader', () => {
     const players = makeState().players.map((p) => ({ ...p, botControlled: true }))
     renderWithProviders(<TurnHeader state={{ ...makeState(), players }} />)
     expect(screen.getByText('Alpha — offline, a bot is playing')).toBeTruthy()
+  })
+
+  it('shows an AFK status when the current player is AFK', () => {
+    const players = makeState().players.map((p) => ({ ...p, botControlled: true, afk: true }))
+    renderWithProviders(<TurnHeader state={{ ...makeState(), players }} />)
+    expect(screen.getByText('Alpha — AFK, a bot is playing')).toBeTruthy()
   })
 
   it('shows a reconnect countdown when the current player is in grace', () => {

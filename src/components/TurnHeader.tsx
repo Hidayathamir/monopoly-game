@@ -15,6 +15,7 @@ function statusText(state: GameState, t: TFunction, now: number): string {
     const seconds = Math.max(0, Math.ceil((grace.until - now) / 1000))
     return t('turn.reconnectWait', { name: p.name, seconds })
   }
+  if (p.afk) return t('turn.afkControl', { name: p.name })
   if (p.botControlled) return t('turn.botControl', { name: p.name })
   if (pending?.type === PendingActionType.BuyProperty) return t('turn.buyOffer')
   if (pending?.type === PendingActionType.PayRent) return t('turn.payRent')

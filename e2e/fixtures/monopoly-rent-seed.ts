@@ -20,7 +20,8 @@ export const monopolyRentSeed: GameState = {
       "bankrupt": false,
       "getOutOfJailFreeCards": 0,
       "isBot": false,
-      "botControlled": false
+      "botControlled": false,
+      "afk": false
     },
     {
       "id": 1,
@@ -34,7 +35,8 @@ export const monopolyRentSeed: GameState = {
       "bankrupt": false,
       "getOutOfJailFreeCards": 0,
       "isBot": false,
-      "botControlled": false
+      "botControlled": false,
+      "afk": false
     }
   ],
   "turnOrder": [

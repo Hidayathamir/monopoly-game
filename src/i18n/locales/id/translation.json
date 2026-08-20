@@ -165,6 +165,7 @@
   "turn.waitingFor": "Menunggu {{name}}…",
   "turn.roll": "Lempar dadu",
   "turn.botControl": "{{name}} — offline, bot sedang bermain",
+  "turn.afkControl": "{{name}} — AFK, bot sedang bermain",
   "turn.reconnectWait": "Menunggu {{name}} untuk terhubung kembali… {{seconds}}s",
 
   "dice.rollJail": "Lempar Dadu (Penjara)",

@@ -43,6 +43,7 @@ export function buildWaitingState(opts: SeedWaitingOptions): GameState {
       getOutOfJailFreeCards: 0,
       isBot: p.isBot ?? false,
       botControlled: false,
+      afk: false,
     }))
   return {
     phase: GamePhase.Waiting,

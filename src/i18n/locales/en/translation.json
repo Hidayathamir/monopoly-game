@@ -165,6 +165,7 @@
   "turn.waitingFor": "Waiting for {{name}}…",
   "turn.roll": "Roll dice",
   "turn.botControl": "{{name}} — offline, a bot is playing",
+  "turn.afkControl": "{{name}} — AFK, a bot is playing",
   "turn.reconnectWait": "Waiting for {{name}} to reconnect… {{seconds}}s",
 
   "dice.rollJail": "Roll Dice (Jail)",

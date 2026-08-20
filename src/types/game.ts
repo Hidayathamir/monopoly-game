@@ -152,6 +152,7 @@ export type Player = {
   getOutOfJailFreeCards: number;
   isBot: boolean;
   botControlled: boolean;
+  afk: boolean;
 };
 
 export type Space = {

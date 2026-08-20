@@ -21,6 +21,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     getOutOfJailFreeCards: 0,
     isBot: true,
     botControlled: false,
+    afk: false,
     ...overrides,
   };
 }

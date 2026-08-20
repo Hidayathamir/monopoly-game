@@ -55,7 +55,8 @@ test('a connected human who stops acting is marked AFK and the bot plays their t
   // After the 3s AFK window the server marks the host AFK and a bot takes over.
   await expect(page.locator('[data-testid="player-card"]').filter({ hasText: 'Host' })).toContainText('BOT', { timeout: 10000 })
   await expect(page.locator('[data-testid="event-entry"]').filter({ hasText: 'AFK' })).toBeVisible({ timeout: 10000 })
-  // The bot actually plays the host's turn (bot-labeled log entries).
+  // The turn header says AFK (not "offline") and the bot actually plays the host's turn.
+  await expect(page.locator('[data-testid="sidebar"]')).toContainText('AFK, a bot is playing', { timeout: 15000 })
   await expect(page.locator('[data-testid="event-entry"]').filter({ hasText: '(bot)' }).first()).toBeVisible({ timeout: 15000 })
 })
 
