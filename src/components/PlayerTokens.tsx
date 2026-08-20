@@ -60,7 +60,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
       if (animating.current[player.id]) return
       prevTargets.current[player.id] = player.position
       if (player.inJail && player.position === JAIL_SPACE) {
-        setDisplayPositions((prev) => ({ ...prev, [player.id]: 10 }))
+        setDisplayPositions((prev) => ({ ...prev, [player.id]: JAIL_SPACE }))
         animating.current[player.id] = false
         return
       }
