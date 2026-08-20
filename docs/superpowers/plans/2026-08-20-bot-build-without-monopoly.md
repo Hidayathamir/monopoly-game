@@ -30,7 +30,7 @@
 - Consumes: `decideBotAction(state: GameState): GameAction | null` — signature unchanged.
 - Produces: `buildAction(state: GameState): GameAction | null` now returns `{ type: GameActionType.BuildHouse, spaceId }` whenever the bot owns and stands on a buildable property it can afford, even without a full color set.
 
-- [ ] **Step 1: Update the failing test to assert the new house rule**
+- [x] **Step 1: Update the failing test to assert the new house rule**
 
 In `src/logic/__tests__/bot.test.ts`, replace the test at lines 196-206 (`does not build on an incomplete color set`) with a test asserting the bot DOES build on an incomplete color set, mirroring the existing `builds a house when standing on an owned, completed, affordable property` test but with only ONE property of the color group owned:
 
@@ -49,12 +49,12 @@ In `src/logic/__tests__/bot.test.ts`, replace the test at lines 196-206 (`does n
   });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/logic/__tests__/bot.test.ts`
 Expected: FAIL — `decideBotAction` returns `{ type: 'END_TURN' }` because `buildAction` hits the `isMonopoly` guard and returns `null`, so the bot ends its turn.
 
-- [ ] **Step 3: Remove the monopoly guard in the bot**
+- [x] **Step 3: Remove the monopoly guard in the bot**
 
 In `src/logic/bot.ts`:
 
@@ -83,19 +83,19 @@ import { getHouseCost, JAIL_FINE } from '../data/board';
 
 (Delete the `import { isMonopoly } from './rent';` line entirely — `isMonopoly` is no longer referenced in this file.)
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/logic/__tests__/bot.test.ts`
 Expected: PASS — all bot tests green, including the updated incomplete-color-set test.
 
-- [ ] **Step 5: Run the full verification suite**
+- [x] **Step 5: Run the full verification suite**
 
 Run:
 - `npm run typecheck` — expected PASS (no unused `isMonopoly` import left behind)
 - `npm run lint` — expected PASS
 - `npm run test:unit` — expected PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/logic/bot.ts src/logic/__tests__/bot.test.ts docs/superpowers/plans/2026-08-20-bot-build-without-monopoly.md
