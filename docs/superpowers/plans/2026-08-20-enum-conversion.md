@@ -308,6 +308,7 @@ git commit -m "refactor: ValidationResult to kind-tagged union via ValidationKin
 **Files:**
 - Create: `src/i18n/constants.ts`
 - Modify: `src/i18n/index.ts`, `src/i18n/CurrencyContext.tsx`, `src/net/session.ts`, `src/components/LanguageCurrencyBar.tsx`, `src/test/setup.ts`
+- Test (plan amendment 2026-08-20, to satisfy the no-literal grep): `src/net/__tests__/session.test.ts`, `src/i18n/__tests__/id-idr-feature-flag.test.ts`
 
 **Interfaces:**
 - Produces: from `src/i18n/constants.ts`: `Language = { En: 'en', Id: 'id' }`, `type Language`, `DEFAULT_LANGUAGE: Language = Language.En`, `StorageKey = { Language: 'monopoly-language', Currency: 'monopoly-currency', MpSession: 'monopoly-mp-session' }`, `type StorageKey`. No side effects at import time (must be safe to import from vitest setup).
@@ -354,15 +355,21 @@ export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]
 
 - Lines 31-32 — `localStorage.setItem('monopoly-language', 'en')` → `localStorage.setItem(StorageKey.Language, Language.En)`; `localStorage.setItem('monopoly-currency', 'USD')` → `localStorage.setItem(StorageKey.Currency, 'USD')` (USD stays a `Currency` literal — leave it). Import `{ Language, StorageKey }` from `'../i18n/constants'`.
 
-- [ ] **Step 7: Verify**
+- [ ] **Step 7: Update the storage-key literals in the two unit-test files** (plan amendment — required so the acceptance grep below is meaningful)
+
+- `src/net/__tests__/session.test.ts:23` — `'monopoly-mp-session'` → `StorageKey.MpSession` (import `{ StorageKey }` from `'../../i18n/constants'`).
+- `src/i18n/__tests__/id-idr-feature-flag.test.ts:10-11` — `'monopoly-language'` → `StorageKey.Language`; `'monopoly-currency'` → `StorageKey.Currency` (import `{ StorageKey }` from `'../constants'`).
+- Only the exact monopoly storage-key literals are converted; other assertions untouched.
+
+- [ ] **Step 8: Verify**
 
 Run: `npm run typecheck && npm run lint && npm run test:unit`
 Expected: all pass. Grep confirms no remaining literal `'monopoly-` keys outside `src/i18n/constants.ts`.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add src/i18n/constants.ts src/i18n/index.ts src/i18n/CurrencyContext.tsx src/net/session.ts src/components/LanguageCurrencyBar.tsx src/test/setup.ts
+git add src/i18n/constants.ts src/i18n/index.ts src/i18n/CurrencyContext.tsx src/net/session.ts src/components/LanguageCurrencyBar.tsx src/test/setup.ts src/net/__tests__/session.test.ts src/i18n/__tests__/id-idr-feature-flag.test.ts
 git commit -m "refactor: add Language and StorageKey constants"
 ```
 
