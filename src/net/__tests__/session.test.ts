@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { saveSession, loadSession, clearSession } from '../session'
+import { StorageKey } from '../../i18n/constants'
 
 describe('mp session', () => {
   beforeEach(() => {
@@ -20,7 +21,7 @@ describe('mp session', () => {
   })
 
   it('returns null for corrupt data', () => {
-    localStorage.setItem('monopoly-mp-session', 'not json')
+    localStorage.setItem(StorageKey.MpSession, 'not json')
     expect(loadSession()).toBeNull()
   })
 

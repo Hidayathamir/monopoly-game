@@ -1,5 +1,6 @@
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { Language, StorageKey } from '../i18n/constants'
 
 function installMemoryStorageIfNeeded() {
   try {
@@ -28,7 +29,7 @@ function installMemoryStorageIfNeeded() {
   })
 }
 installMemoryStorageIfNeeded()
-localStorage.setItem('monopoly-language', 'en')
-localStorage.setItem('monopoly-currency', 'USD')
+localStorage.setItem(StorageKey.Language, Language.En)
+localStorage.setItem(StorageKey.Currency, 'USD')
 
 afterEach(cleanup)

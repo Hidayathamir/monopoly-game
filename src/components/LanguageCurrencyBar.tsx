@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
 import type { Currency } from '../data/currency'
 import { ID_IDR_ENABLED } from '../config/features'
+import { Language } from '../i18n/constants'
 
 export default function LanguageCurrencyBar() {
   const { t, i18n } = useTranslation()
@@ -46,8 +47,8 @@ export default function LanguageCurrencyBar() {
               }}
               className="bg-input-bg text-text text-xs rounded px-1 py-0.5 border border-border"
             >
-              <option value="en">EN</option>
-              <option value="id">ID</option>
+              <option value={Language.En}>EN</option>
+              <option value={Language.Id}>ID</option>
             </select>
           </label>
           <label className="flex items-center justify-between gap-3 text-xs text-muted">

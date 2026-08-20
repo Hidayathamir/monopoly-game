@@ -3,13 +3,11 @@ import { initReactI18next } from 'react-i18next'
 import { ID_IDR_ENABLED } from '../config/features'
 import en from './locales/en/translation.json'
 import id from './locales/id/translation.json'
-
-const STORAGE_KEY = 'monopoly-language'
-export const DEFAULT_LANGUAGE = 'en'
+import { DEFAULT_LANGUAGE, Language, StorageKey } from './constants'
 
 function readSavedLanguage(): string {
   try {
-    return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_LANGUAGE
+    return localStorage.getItem(StorageKey.Language) ?? DEFAULT_LANGUAGE
   } catch {
     return DEFAULT_LANGUAGE
   }
@@ -21,8 +19,8 @@ export function resolveInitialLanguage(enabled = ID_IDR_ENABLED): string {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: en },
-    id: { translation: id },
+    [Language.En]: { translation: en },
+    [Language.Id]: { translation: id },
   },
   lng: resolveInitialLanguage(),
   fallbackLng: DEFAULT_LANGUAGE,
@@ -32,7 +30,7 @@ i18n.use(initReactI18next).init({
 
 i18n.on('languageChanged', (lng) => {
   try {
-    localStorage.setItem(STORAGE_KEY, lng)
+    localStorage.setItem(StorageKey.Language, lng)
   } catch {
     // ignore storage failures
   }
