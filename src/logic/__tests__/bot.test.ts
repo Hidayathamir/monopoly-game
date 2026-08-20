@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { decideBotAction, shouldAcceptTrade } from '../bot';
+import { decideBotAction, shouldAcceptTrade, BUILD_CASH_RESERVE } from '../bot';
 import { gameReducer, createInitialState } from '../gameReducer';
 import {
   GameActionType, GamePhase, PendingActionType, SpaceType,
   type GameState, type Player, type Space, type TradeOffer, type GameAction,
 } from '../../types/game';
-import { createInitialBoard, STARTING_MONEY, JAIL_FINE, MAX_HOUSES } from '../../data/board';
+import { createInitialBoard, STARTING_MONEY, JAIL_FINE, MAX_HOUSES, getHouseCost } from '../../data/board';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -283,6 +283,24 @@ describe('decideBotAction', () => {
     expect(actions.length).toBe(MAX_HOUSES);
     expect(state.board[target.id].houses).toBe(MAX_HOUSES);
     expect(action).toEqual({ type: 'END_TURN' });
+  });
+
+  it('stops before breaching the cash reserve in scarce land', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const cost = getHouseCost(board[target.id], 0);
+    const state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4] },
+      makePlayer({ properties: [target.id], money: BUILD_CASH_RESERVE + cost, position: target.id }),
+    );
+    const first = decideBotAction(state);
+    if (!first) throw new Error('expected a build');
+    expect(first).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
+    const after = gameReducer(state, first);
+    expect(after.players[0].money).toBe(BUILD_CASH_RESERVE);
+    expect(decideBotAction(after)).toEqual({ type: 'END_TURN' });
   });
 
   it('builds exactly once per landing, end to end', () => {
