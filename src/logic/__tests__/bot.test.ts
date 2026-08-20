@@ -3,9 +3,9 @@ import { decideBotAction, shouldAcceptTrade } from '../bot';
 import { gameReducer, createInitialState } from '../gameReducer';
 import {
   GameActionType, GamePhase, PendingActionType, SpaceType,
-  type GameState, type Player, type Space, type TradeOffer,
+  type GameState, type Player, type Space, type TradeOffer, type GameAction,
 } from '../../types/game';
-import { createInitialBoard, STARTING_MONEY, JAIL_FINE } from '../../data/board';
+import { createInitialBoard, STARTING_MONEY, JAIL_FINE, MAX_HOUSES } from '../../data/board';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -262,6 +262,27 @@ describe('decideBotAction', () => {
       makePlayer({ properties: [target.id], money: 100000, position: target.id }),
     );
     expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
+  });
+
+  it('builds up to MAX_HOUSES in scarce land when it can afford it', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    let state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4] },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    const actions: GameAction[] = [];
+    let action = decideBotAction(state);
+    while (action && action.type === 'BUILD_HOUSE') {
+      actions.push(action);
+      state = gameReducer(state, action);
+      action = decideBotAction(state);
+    }
+    expect(actions.length).toBe(MAX_HOUSES);
+    expect(state.board[target.id].houses).toBe(MAX_HOUSES);
+    expect(action).toEqual({ type: 'END_TURN' });
   });
 
   it('builds exactly once per landing, end to end', () => {
