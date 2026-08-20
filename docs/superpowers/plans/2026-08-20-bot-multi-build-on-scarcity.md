@@ -6,7 +6,7 @@
 
 **Architecture:** Pure bot-brain change in `src/logic/bot.ts`. The engine (`gameReducer` `BuildHouse`) already accepts repeated builds — it only sets `builtThisStop`, never reads it — and the server's `driveBots` loop (`server/gameServer.ts:390`) re-calls `decideBotAction` after every action, so multiple `BUILD_HOUSE` actions in one turn work with zero engine/server changes. `buildAction` bypasses the `state.builtThisStop` guard only when `isLandScarce(state)` is true, and adds a reserve check (`player.money - cost >= BUILD_CASH_RESERVE`) only in scarce mode. Normal-mode behavior is byte-for-byte unchanged.
 
-**Tech Stack:** TypeScript, Vitest, existing Monopoly game logic.
+**Tech Stack:** TypeScript, Vitest, Playwright, existing Monopoly game logic.
 
 ## Global Constraints
 
@@ -16,7 +16,7 @@
 - Wire values (action types, etc.) must never change — we are not touching them.
 - No engine, `GameState`, wire-type, or server changes. The reserve applies **only** in scarce mode; normal-mode bot behavior stays exactly as today.
 - Buyable spaces = `Property` (22) + `Railroad` (4) + `Utility` (2) = 28. "Scarce" = `unowned * 4 < 28`, i.e. unowned ≤ 6.
-- Verification required before completion: `npm run typecheck`, `npm run lint`, `npm run test:unit` (all pass cleanly).
+- Verification required before completion: `npm run typecheck`, `npm run lint`, `npm run test:unit`, `npm run build && npx playwright test e2e/bot-multi-build.spec.ts` (all pass cleanly).
 
 ---
 
@@ -367,8 +367,160 @@ git commit -m "feat: keep cash reserve when bots multi-build on scarce land"
 
 ---
 
+### Task 4: E2E — bot multi-builds on scarce land on a live server
+
+**Files:**
+- Create: `e2e/bot-multi-build.spec.ts`
+- Verify only: `e2e/helpers/server.ts` (already sets `E2E_SEED_ENABLED: 'true'`), `e2e/helpers/seed.ts` (`seedGame` posts any `GameState`), `e2e/fixtures.ts` (`serverUrl` worker fixture)
+
+**Interfaces:**
+- Consumes: `seedGame(url, code, state)` from `./helpers/seed`; `test`, `expect` from `./fixtures`; `INITIAL_BOARD` from `./fixtures/initial-state`; `GamePhase`/`SpaceType`/`type GameState`/`type Space` from `../../src/types/game`.
+- Produces: (none — proves Tasks 1–3 work end-to-end through the real `server/main.ts` + `driveBots` loop + client UI.)
+
+This task uses the server-backed seed flow: the server must be launched with `E2E_SEED_ENABLED=true` (the fixture does) and **`npm run build` must be run first** (per `AGENTS.md`, server specs serve `dist/`). The seed replaces the room's whole state; `seedState` then calls `driveBots()`, which auto-plays the current bot player — this is exactly the path under test.
+
+**Board layout relevant to this spec** (`src/data/board-data.json`): spaces 1 and 3 are `property` spaces (color `#8B4513`, `houseCost [25,50,75,100,150]`). `space.id === 1` renders in the log as `Salvador` (`board.space.1` in `src/i18n/locales/en/translation.json`).
+
+- [ ] **Step 1: Write the seed-state builder helper in the spec**
+
+Create `e2e/bot-multi-build.spec.ts` with a builder that starts from `INITIAL_BOARD` and stamps ownership + unowned counts. It owns exactly `unowned` buyable spaces with `owner: null` and everything else (`owner: 1`), with `target` owned by the bot (player 0):
+
+```typescript
+import { test, expect } from './fixtures'
+import { seedGame } from './helpers/seed'
+import { INITIAL_BOARD } from './fixtures/initial-state'
+import { GamePhase, SpaceType, type GameState, type Space } from '../src/types/game'
+import { MAX_HOUSES } from '../src/data/board'
+
+interface BotTurnOptions {
+  unowned: number
+  houses: number
+  money: number
+}
+
+async function seedBotBuildTurn(url: string, code: string, opts: BotTurnOptions): Promise<void> {
+  const target = INITIAL_BOARD.find((s) => s.type === SpaceType.Property && s.color === '#8B4513')
+  if (!target) throw new Error('no brown property')
+  const board: Space[] = INITIAL_BOARD.map((s) => ({ ...s, owner: s.id === target.id ? 0 : null }))
+  const buyable = board.filter((s) =>
+    [SpaceType.Property, SpaceType.Railroad, SpaceType.Utility].includes(s.type),
+  )
+  let owned = buyable.length - opts.unowned
+  for (const s of buyable) {
+    if (s.owner !== 0 && owned > 0) {
+      board[s.id] = { ...s, owner: 1 }
+      owned--
+    }
+  }
+  board[target.id] = { ...target, owner: 0, houses: opts.houses }
+
+  const state: GameState = {
+    phase: GamePhase.Waiting,
+    players: [
+      { id: 0, name: 'Droid', money: opts.money, position: target.id, properties: [target.id], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: true, botControlled: false, afk: false },
+      { id: 1, name: 'Host', money: 1500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false },
+    ],
+    turnOrder: [0, 1],
+    currentPlayer: 0,
+    board,
+    chanceDeck: [],
+    communityDeck: [],
+    freeParkingPot: 0,
+    dice: [3, 4] as [number, number],
+    doublesCount: 0,
+    lastMoveSteps: null,
+    eventLog: [],
+    pendingAction: null,
+    justBoughtSpaceId: null,
+    builtThisStop: false,
+    reconnectGrace: null,
+    pendingTrades: [],
+    nextTradeId: 0,
+    tradesEnabled: false,
+  }
+  await seedGame(url, code, state)
+}
+
+async function createHostPage(browser: import('@playwright/test').Browser, url: string): Promise<import('@playwright/test').Page> {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const page = await context.newPage()
+  await page.goto(url)
+  await page.fill('input[placeholder="Name"]', 'Host')
+  await page.click('button:has-text("Continue")')
+  return page
+}
+
+test('bot builds multiple houses in one turn on scarce land', async ({ browser, serverUrl }) => {
+  const page = await createHostPage(browser, serverUrl)
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  const code = (await codeLocator.innerText()).trim()
+
+  // Scarce land: only 6 buyable spaces unowned. Bot (Droid) is current, standing on
+  // brown property 1 (houses: 0), with 100000 cash → should build up to MAX_HOUSES.
+  await seedBotBuildTurn(serverUrl, code, { unowned: 6, houses: 0, money: 100000 })
+
+  // The bot auto-plays its whole turn. Assert the log shows repeated builds on Salvador.
+  const log = page.locator('[data-testid="event-entry"]').filter({ hasText: 'built a house on Salvador' })
+  await expect(log.first()).toBeVisible({ timeout: 10000 })
+  await expect(log).toHaveCount(MAX_HOUSES, { timeout: 10000 })
+})
+```
+
+Notes:
+- `serverUrl` is a worker-scoped fixture; it is only available inside the test callback, so `createHostPage` takes it as a `url` parameter.
+- `dice: [3, 4]` is set in the seed so the bot is post-roll (`dice !== null`), which the reducer's `BuildHouse` guard requires. `builtThisStop: false` and `justBoughtSpaceId: null` keep the build path open; the scarcity bypass in `buildAction` is what unlocks repeated builds.
+
+- [ ] **Step 2: Add the normal-land regression test**
+
+Add a second test to the same spec:
+
+```typescript
+test('bot builds exactly once on non-scarce land', async ({ browser, serverUrl }) => {
+  const page = await createHostPage(browser, serverUrl)
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  const code = (await codeLocator.innerText()).trim()
+
+  // Not scarce: 7 buyable spaces unowned. Same standing/budget otherwise.
+  await seedBotBuildTurn(serverUrl, code, { unowned: 7, houses: 0, money: 100000 })
+
+  const log = page.locator('[data-testid="event-entry"]').filter({ hasText: 'built a house on Salvador' })
+  await expect(log.first()).toBeVisible({ timeout: 10000 })
+  await expect(log).toHaveCount(1, { timeout: 10000 })
+})
+```
+
+- [ ] **Step 3: Run the e2e to verify the scarce test FAILS first**
+
+Run: `npx playwright test e2e/bot-multi-build.spec.ts`
+
+Expected: the scarce test fails with `toHaveCount` expecting `5` but getting `1` (the bot builds once then `END_TURN`, because the `builtThisStop` bypass from Task 1 is what the e2e relies on). The normal test passes. This confirms the e2e actually exercises the feature.
+
+If this run FAILS for a different reason (spec error, server not built), fix the spec first — `npm run build` must have produced `dist/` before this run.
+
+- [ ] **Step 4: Run the e2e to verify it passes**
+
+Run: `npx playwright test e2e/bot-multi-build.spec.ts`
+
+Expected: PASS — both tests pass: scarce → 5 builds (log count `MAX_HOUSES`), non-scarce → 1 build. If the scarce test now passes, Tasks 1–3 are verified end-to-end. If `toHaveCount` is flaky (log entries settle over the `BOT_STEP_MS` pacing), add a `waitFor` on the last entry before asserting the count.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add e2e/bot-multi-build.spec.ts
+git commit -m "test: e2e bot multi-build on scarce land"
+```
+
+---
+
 ## Self-Review Notes
 
-- **Spec coverage:** scarcity trigger (Task 1), multi-build loop to `MAX_HOUSES` (Task 2), reserve floor (Task 3), normal-mode unchanged (covered by existing `builds only once per landing` and boundary tests). No engine/server changes (explicitly out of scope, verified).
-- **Boundary math:** `boardWithUnowned(7)` → 21 owned / 7 unowned → `7*4 = 28 < 28` false → not scarce; `boardWithUnowned(6)` → 22 owned / 6 unowned → `6*4 = 24 < 28` true → scarce. Exact spec boundary.
-- **Type consistency:** `isLandScarce(state: GameState): boolean` used identically in Tasks 1 and 3; `BUILD_CASH_RESERVE` exported once and imported by name in Task 3 tests; `boardWithUnowned(unowned, target)` signature consistent across all tests; `GameAction` type import added in Task 2 and used only there.
+- **Spec coverage:** scarcity trigger (Task 1), multi-build loop to `MAX_HOUSES` (Task 2), reserve floor (Task 3), normal-mode unchanged (covered by existing `builds only once per landing` + boundary unit tests, and the Task 4 normal-land e2e). No engine/server changes (explicitly out of scope, verified). Task 4 exercises the real `driveBots` loop + UI via the seeded-server path.
+- **Boundary math:** `boardWithUnowned(7)` → 21 owned / 7 unowned → `7*4 = 28 < 28` false → not scarce; `boardWithUnowned(6)` → 22 owned / 6 unowned → `6*4 = 24 < 28` true → scarce. Same math in the e2e `seedBotBuildTurn` (unowned 6 vs 7) and the unit `boardWithUnowned`. Exact spec boundary.
+- **Type consistency:** `isLandScarce(state: GameState): boolean` used identically in Tasks 1 and 3; `BUILD_CASH_RESERVE` exported once and imported by name in Task 3 tests; `boardWithUnowned(unowned, target)` and `seedBotBuildTurn(url, code, opts)` signatures consistent within their specs; `GameAction` type import added in Task 2 and used only there; `MAX_HOUSES` imported in Task 2 (unit) and Task 4 (e2e).
+- **E2E prerequisites:** `npm run build` first (server specs serve `dist/`); `serverUrl` worker fixture auto-starts `tsx server/main.ts` with `E2E_SEED_ENABLED=true`. Log text asserted: `built a house on Salvador` (brown property id 1, color `#8B4513`, `board.space.1 = "Salvador"`).
