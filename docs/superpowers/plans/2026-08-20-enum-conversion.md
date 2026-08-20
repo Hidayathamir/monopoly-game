@@ -425,7 +425,7 @@ Expected: all pass (log translation unit tests exercise `resolveLogEntry`). The 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/i18n/log.ts src/logic/logEntries.ts src/logic/cards.ts src/logic/gameReducer.ts
+git add src/types/game.ts src/i18n/log.ts src/logic/logEntries.ts src/logic/cards.ts src/logic/gameReducer.ts
 git commit -m "refactor: add LogParamKey shared vocabulary"
 ```
 
