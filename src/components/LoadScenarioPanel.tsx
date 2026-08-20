@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
-import { validateStateStructure } from '../logic/seed'
+import { validateStateStructure, ValidationKind } from '../logic/seed'
 import type { GameState } from '../types/game'
+
+const ScenarioMessageKind = { Ok: 'ok', Error: 'error' } as const
+type ScenarioMessageKind = (typeof ScenarioMessageKind)[keyof typeof ScenarioMessageKind]
 
 interface Props {
   seedEnabled: boolean
@@ -13,7 +16,7 @@ export default function LoadScenarioPanel({ seedEnabled, code }: Props) {
   const { t } = useTranslation()
   const [json, setJson] = useState('')
   const [roomCode, setRoomCode] = useState(code ?? '')
-  const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ kind: ScenarioMessageKind; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
 
   if (!seedEnabled) return null
@@ -23,11 +26,11 @@ export default function LoadScenarioPanel({ seedEnabled, code }: Props) {
     try {
       parsed = JSON.parse(json)
     } catch {
-      setMessage({ kind: 'error', text: t('seed.invalidJson') })
+      setMessage({ kind: ScenarioMessageKind.Error, text: t('seed.invalidJson') })
       return
     }
     const result = validateStateStructure(parsed as GameState)
-    setMessage(result.ok ? { kind: 'ok', text: t('seed.validJson') } : { kind: 'error', text: result.message })
+    setMessage(result.kind === ValidationKind.Ok ? { kind: ScenarioMessageKind.Ok, text: t('seed.validJson') } : { kind: ScenarioMessageKind.Error, text: result.message })
   }
 
   async function handleApply() {
@@ -41,13 +44,13 @@ export default function LoadScenarioPanel({ seedEnabled, code }: Props) {
       })
       const body = (await res.json().catch(() => null)) as { message?: string } | null
       if (res.ok) {
-        setMessage({ kind: 'ok', text: t('seed.applied') })
+        setMessage({ kind: ScenarioMessageKind.Ok, text: t('seed.applied') })
         setJson('')
       } else {
-        setMessage({ kind: 'error', text: `${t('seed.applyError')}: ${body?.message ?? res.status}` })
+        setMessage({ kind: ScenarioMessageKind.Error, text: `${t('seed.applyError')}: ${body?.message ?? res.status}` })
       }
     } catch {
-      setMessage({ kind: 'error', text: t('seed.applyError') })
+      setMessage({ kind: ScenarioMessageKind.Error, text: t('seed.applyError') })
     } finally {
       setBusy(false)
     }
@@ -81,7 +84,7 @@ export default function LoadScenarioPanel({ seedEnabled, code }: Props) {
         <Button size="sm" onClick={handleApply} disabled={busy}>{t('seed.apply')}</Button>
       </div>
       {message && (
-        <p className={message.kind === 'ok' ? 'text-green-money text-sm' : 'text-red-danger text-sm'}>{message.text}</p>
+        <p className={message.kind === ScenarioMessageKind.Ok ? 'text-green-money text-sm' : 'text-red-danger text-sm'}>{message.text}</p>
       )}
     </div>
   )

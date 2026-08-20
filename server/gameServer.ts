@@ -6,7 +6,7 @@ import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
 import { MAX_PLAYERS } from '../src/data/players'
 import { rollControlledDice } from '../src/logic/controlledDice'
-import { validateStateStructure, validateStateForRoom } from '../src/logic/seed'
+import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 
 export type ClientId = string
 
@@ -194,11 +194,11 @@ export class GameServer {
       throw new Error('seeding disabled')
     }
     const structural = validateStateStructure(state)
-    if (!structural.ok) {
+    if (structural.kind !== ValidationKind.Ok) {
       throw new Error(`Invalid seed state: ${structural.message}`)
     }
     const roomCheck = validateStateForRoom(state, this.slots)
-    if (!roomCheck.ok) {
+    if (roomCheck.kind !== ValidationKind.Ok) {
       throw new Error(`Invalid seed state: ${roomCheck.message}`)
     }
     this.clearBotTimer()

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { GamePhase, PendingActionType } from '../../types/game';
 import type { GameState } from '../../types/game';
-import { createSeededState, validateStateStructure, validateStateForRoom } from '../seed';
+import { createSeededState, validateStateStructure, validateStateForRoom, ValidationKind } from '../seed';
 
 const SLOTS = [
   { name: 'Alpha', connected: true, isBot: false },
@@ -37,7 +37,7 @@ describe('createSeededState', () => {
     expect(s.pendingAction).toBeNull();
     expect(s.dice).toBeNull();
     expect(s.chanceDeck.length).toBeGreaterThan(0);
-    expect(validateStateStructure(s).ok).toBe(true);
+    expect(validateStateStructure(s).kind).toBe(ValidationKind.Ok);
   });
 
   it('accepts a staged pending action for a decision-point seed', () => {
@@ -53,7 +53,7 @@ describe('createSeededState', () => {
     });
     expect(s.phase).toBe(GamePhase.Resolving);
     expect(s.pendingAction).toEqual({ type: PendingActionType.PayRent, spaceId: 39, amount: 1700 });
-    expect(validateStateStructure(s).ok).toBe(true);
+    expect(validateStateStructure(s).kind).toBe(ValidationKind.Ok);
   });
 });
 
@@ -61,69 +61,69 @@ describe('validateStateStructure', () => {
   it('rejects a wrong board length', () => {
     const s = baseState() as GameState;
     const bad = { ...s, board: s.board.slice(0, 10) };
-    expect(validateStateStructure(bad)).toEqual({ ok: false, message: expect.stringContaining('40') });
+    expect(validateStateStructure(bad)).toEqual({ kind: ValidationKind.Error, message: expect.stringContaining('40') });
   });
 
   it('rejects duplicate player ids', () => {
     const s = baseState();
     const bad = { ...s, players: [{ ...s.players[0] }, { ...s.players[0], name: 'Bravo' }] };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a turnOrder that is not a permutation of player ids', () => {
     const s = baseState();
     const bad = { ...s, turnOrder: [1, 1] };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects currentPlayer not in turnOrder', () => {
     const s = baseState();
     const bad = { ...s, currentPlayer: 9 };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a board owner whose properties list does not match', () => {
     const s = baseState();
     const bad = { ...s, players: [{ ...s.players[0], properties: [] }] };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
     const bad2 = { ...s, players: [{ ...s.players[0], properties: [0] }] };
-    expect(validateStateStructure(bad2).ok).toBe(false);
+    expect(validateStateStructure(bad2).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a claimed property that is not owned on the board', () => {
     const s = baseState();
     const bad = { ...s, players: [{ ...s.players[1], properties: [1] }] };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects houses out of range', () => {
     const s = baseState() as GameState;
     const bad = { ...s, board: s.board.map((sp, i) => (i === 39 ? { ...sp, houses: 6 } : sp)) };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects Waiting phase with a pending action', () => {
     const s = baseState();
     const bad = { ...s, pendingAction: { type: PendingActionType.PayRent, spaceId: 39, amount: 1700 } };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects Resolving phase without a pending action', () => {
     const s = baseState();
     const bad = { ...s, phase: GamePhase.Resolving, pendingAction: null };
-    expect(validateStateStructure(bad).ok).toBe(false);
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
 });
 
 describe('validateStateForRoom', () => {
   it('accepts a seed whose players match the joined slots', () => {
     const s = baseState();
-    expect(validateStateForRoom(s, SLOTS).ok).toBe(true);
+    expect(validateStateForRoom(s, SLOTS).kind).toBe(ValidationKind.Ok);
   });
 
   it('rejects a player count mismatch', () => {
     const one = createSeededState({ players: [{ id: 0, name: 'Alpha', money: 100 }], currentPlayer: 0 });
-    expect(validateStateForRoom(one, SLOTS).ok).toBe(false);
+    expect(validateStateForRoom(one, SLOTS).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a player whose id has no joined slot', () => {
@@ -131,13 +131,13 @@ describe('validateStateForRoom', () => {
       players: [{ id: 2, name: 'Casper', money: 100 }],
       currentPlayer: 2,
     });
-    expect(validateStateForRoom(stray, SLOTS).ok).toBe(false);
+    expect(validateStateForRoom(stray, SLOTS).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a player not sitting at its own index', () => {
     const s = baseState();
     const bad = { ...s, players: [s.players[1], s.players[0]] };
-    expect(validateStateForRoom(bad, SLOTS).ok).toBe(false);
+    expect(validateStateForRoom(bad, SLOTS).kind).toBe(ValidationKind.Error);
   });
 
   it('rejects a currentPlayer that is not a connected client or bot', () => {
@@ -145,6 +145,6 @@ describe('validateStateForRoom', () => {
     expect(validateStateForRoom(s, [
       { name: 'Alpha', connected: true, isBot: false },
       { name: 'Bravo', connected: false, isBot: false },
-    ]).ok).toBe(false);
+    ]).kind).toBe(ValidationKind.Error);
   });
 });

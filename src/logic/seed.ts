@@ -92,53 +92,58 @@ function definedOnly<T extends object>(src: T): Partial<T> {
   return out as Partial<T>;
 }
 
-export type ValidationResult = { ok: true } | { ok: false; message: string };
+export const ValidationKind = { Ok: 'ok', Error: 'error' } as const;
+export type ValidationKind = (typeof ValidationKind)[keyof typeof ValidationKind];
+
+export type ValidationResult =
+  | { kind: typeof ValidationKind.Ok }
+  | { kind: typeof ValidationKind.Error; message: string };
 
 export function validateStateStructure(state: GameState): ValidationResult {
   if (state.board.length !== BOARD_SIZE) {
-    return { ok: false, message: `board must have ${BOARD_SIZE} spaces, got ${state.board.length}` };
+    return { kind: ValidationKind.Error, message: `board must have ${BOARD_SIZE} spaces, got ${state.board.length}` };
   }
   const playerIds = state.players.map((p) => p.id);
   if (new Set(playerIds).size !== playerIds.length) {
-    return { ok: false, message: 'player ids must be unique' };
+    return { kind: ValidationKind.Error, message: 'player ids must be unique' };
   }
   if (playerIds.some((id) => id < 0 || id >= MAX_PLAYERS)) {
-    return { ok: false, message: `player ids must be in 0..${MAX_PLAYERS - 1}` };
+    return { kind: ValidationKind.Error, message: `player ids must be in 0..${MAX_PLAYERS - 1}` };
   }
   const expectedTurn = [...playerIds].sort((a, b) => a - b);
   const actualTurn = [...state.turnOrder].sort((a, b) => a - b);
   if (state.turnOrder.length !== playerIds.length || expectedTurn.some((v, i) => v !== actualTurn[i])) {
-    return { ok: false, message: 'turnOrder must be a permutation of the player ids' };
+    return { kind: ValidationKind.Error, message: 'turnOrder must be a permutation of the player ids' };
   }
   if (!state.turnOrder.includes(state.currentPlayer)) {
-    return { ok: false, message: 'currentPlayer must be in turnOrder' };
+    return { kind: ValidationKind.Error, message: 'currentPlayer must be in turnOrder' };
   }
   if (state.board.some((s) => s.owner !== null && !playerIds.includes(s.owner))) {
-    return { ok: false, message: 'board has an owner that is not a player id' };
+    return { kind: ValidationKind.Error, message: 'board has an owner that is not a player id' };
   }
   if (state.board.some((s) => s.houses < 0 || s.houses > MAX_HOUSES)) {
-    return { ok: false, message: 'houses must be within 0..5' };
+    return { kind: ValidationKind.Error, message: 'houses must be within 0..5' };
   }
   for (const player of state.players) {
     const owned = state.board.filter((s) => s.owner === player.id).map((s) => s.id).sort((a, b) => a - b);
     const claimed = [...player.properties].sort((a, b) => a - b);
     if (owned.length !== claimed.length || owned.some((v, i) => v !== claimed[i])) {
-      return { ok: false, message: `player ${player.id} (${player.name}) properties must match its owned board spaces` };
+      return { kind: ValidationKind.Error, message: `player ${player.id} (${player.name}) properties must match its owned board spaces` };
     }
   }
   if (state.players.some((p) => !Number.isFinite(p.money) || p.money < 0)) {
-    return { ok: false, message: 'player money must be a non-negative finite number' };
+    return { kind: ValidationKind.Error, message: 'player money must be a non-negative finite number' };
   }
   if (state.players.some((p) => p.position < 0 || p.position >= BOARD_SIZE)) {
-    return { ok: false, message: 'player position must be within 0..39' };
+    return { kind: ValidationKind.Error, message: 'player position must be within 0..39' };
   }
   if (state.phase === GamePhase.Waiting && (state.pendingAction !== null || state.dice !== null)) {
-    return { ok: false, message: 'Waiting state must have pendingAction === null and dice === null' };
+    return { kind: ValidationKind.Error, message: 'Waiting state must have pendingAction === null and dice === null' };
   }
   if (state.phase === GamePhase.Resolving && state.pendingAction === null) {
-    return { ok: false, message: 'Resolving state must have a pendingAction' };
+    return { kind: ValidationKind.Error, message: 'Resolving state must have a pendingAction' };
   }
-  return { ok: true };
+  return { kind: ValidationKind.Ok };
 }
 
 export interface SlotInfo {
@@ -150,20 +155,20 @@ export interface SlotInfo {
 export function validateStateForRoom(state: GameState, slots: SlotInfo[]): ValidationResult {
   const joined = slots.filter((s) => s.name !== null).length;
   if (state.players.length !== joined) {
-    return { ok: false, message: `seed has ${state.players.length} players but the room has ${joined} joined slots` };
+    return { kind: ValidationKind.Error, message: `seed has ${state.players.length} players but the room has ${joined} joined slots` };
   }
   for (const p of state.players) {
     const slot = slots[p.id];
     if (!slot || slot.name === null) {
-      return { ok: false, message: `player ${p.id} (${p.name}) has no matching joined slot` };
+      return { kind: ValidationKind.Error, message: `player ${p.id} (${p.name}) has no matching joined slot` };
     }
     if (state.players[p.id] !== p) {
-      return { ok: false, message: `player ${p.id} must sit at players[${p.id}] (slot index)` };
+      return { kind: ValidationKind.Error, message: `player ${p.id} must sit at players[${p.id}] (slot index)` };
     }
   }
   const current = slots[state.currentPlayer];
   if (!current || current.name === null || (!current.connected && !current.isBot)) {
-    return { ok: false, message: 'currentPlayer must be a connected client or a bot slot' };
+    return { kind: ValidationKind.Error, message: 'currentPlayer must be a connected client or a bot slot' };
   }
-  return { ok: true };
+  return { kind: ValidationKind.Ok };
 }

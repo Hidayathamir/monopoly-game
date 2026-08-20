@@ -6,7 +6,7 @@ import { RoomManager } from './roomManager'
 import { ClientMessageType, ServerMessageType } from '../src/types/net'
 import type { ClientMessage, ServerMessage } from '../src/types/net'
 import type { GameState } from '../src/types/game'
-import { validateStateStructure, validateStateForRoom } from '../src/logic/seed'
+import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 
 const MIME: Record<string, string> = {
   '.html': 'text/html',
@@ -77,7 +77,7 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
       }
       try {
         const structural = validateStateStructure(state)
-        if (!structural.ok) throw new Error(structural.message)
+        if (structural.kind !== ValidationKind.Ok) throw new Error(structural.message)
         const game = roomManager.get(code)
         if (!game) {
           res.writeHead(404, { 'Content-Type': 'application/json' })
@@ -87,7 +87,7 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
         const roomCheck = validateStateForRoom(state, game.getPlayers().map((p) => ({
           name: p.name, connected: p.connected, isBot: p.isBot,
         })))
-        if (!roomCheck.ok) throw new Error(roomCheck.message)
+        if (roomCheck.kind !== ValidationKind.Ok) throw new Error(roomCheck.message)
         game.seedState(state)
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
