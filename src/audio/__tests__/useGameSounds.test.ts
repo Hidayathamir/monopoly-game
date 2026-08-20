@@ -37,13 +37,37 @@ describe('useGameSounds', () => {
     expect(playSoundMock).not.toHaveBeenCalled()
 
     rerender({ state: withLog([LogEventKey.Rolled, LogEventKey.Bought]) })
-    expect(playSoundMock).toHaveBeenNthCalledWith(1, 'diceLand')
+    expect(playSoundMock).toHaveBeenNthCalledWith(1, 'diceRoll')
     expect(playSoundMock).toHaveBeenNthCalledWith(2, 'buy')
 
     playSoundMock.mockClear()
     rerender({ state: withLog([LogEventKey.Rolled, LogEventKey.Bought, LogEventKey.BankruptcyWin]) })
     expect(playSoundMock).toHaveBeenCalledTimes(1)
     expect(playSoundMock).toHaveBeenCalledWith('win')
+  })
+
+  it('plays only the landing thud for the local player own roll', () => {
+    const { rerender } = renderHook(
+      ({ state, id }) => useGameSounds(state, id),
+      { initialProps: { state: withLog([]), id: 1 } },
+    )
+    const s = withLog([LogEventKey.Rolled])
+    s.currentPlayer = 1
+    rerender({ state: s, id: 1 })
+    expect(playSoundMock).toHaveBeenCalledTimes(1)
+    expect(playSoundMock).toHaveBeenCalledWith('diceLand')
+  })
+
+  it('plays the full tumbling sound for another player roll', () => {
+    const { rerender } = renderHook(
+      ({ state, id }) => useGameSounds(state, id),
+      { initialProps: { state: withLog([]), id: 2 } },
+    )
+    const s = withLog([LogEventKey.Rolled])
+    s.currentPlayer = 1
+    rerender({ state: s, id: 2 })
+    expect(playSoundMock).toHaveBeenCalledTimes(1)
+    expect(playSoundMock).toHaveBeenCalledWith('diceRoll')
   })
 
   it('does not replay history on a fresh mount (rejoin)', () => {

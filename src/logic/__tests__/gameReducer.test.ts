@@ -662,6 +662,29 @@ describe('gameReducer', () => {
       });
     });
 
+    it('pays the creditor even when bankruptcy is declared directly from the rent prompt', () => {
+      let state = makeStartedState();
+      state = buyProperty(state, 0, 3);
+      state = setMoney(state, 0, 100);
+      const creditor = 1;
+      state = {
+        ...state,
+        board: state.board.map((s) => (s.id === 1 ? { ...s, owner: creditor } : s)),
+        players: state.players.map((p, i) => (i === creditor ? { ...p, properties: [1] } : p)),
+        pendingAction: { type: PendingActionType.PayRent, amount: 9999, spaceId: 1 },
+      };
+      const s1 = gameReducer(state, { type: GameActionType.DeclareBankruptcy });
+      const liquidatedProperty = Math.floor((state.board[3].price ?? 0) * SELL_RATE);
+      expect(s1.players[0].bankrupt).toBe(true);
+      expect(s1.players[0].money).toBe(0);
+      expect(s1.board[3].owner).toBeNull();
+      expect(s1.players[1].money).toBe(STARTING_MONEY + 100 + liquidatedProperty);
+      expect(s1.eventLog).toContainEqual({
+        key: 'event.bankruptcyTransfer',
+        params: { name: 'Alice', creditor: 'Bob', amount: 100 + liquidatedProperty },
+      });
+    });
+
     it('winner receives the liquidated cash when only the creditor remains', () => {
       let state = makeStartedState();
       state = setMoney(state, 0, 50);

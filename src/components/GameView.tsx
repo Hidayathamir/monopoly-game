@@ -26,7 +26,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
 
   return (
     <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
-      <GameSounds state={state} />
+      <GameSounds state={state} myPlayerId={game.myPlayerId} />
       <GameBoard
         state={state}
         isMyTurn={isMyTurn}

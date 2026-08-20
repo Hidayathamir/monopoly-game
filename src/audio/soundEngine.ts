@@ -64,12 +64,29 @@ function noise(ctx: AudioContext, dest: AudioNode, duration: number, gain = 0.3,
 const SOUND_GENERATORS: Record<SoundId, (ctx: AudioContext, dest: AudioNode) => void> = {
   [SoundId.Click]: (ctx, dest) => tone(ctx, dest, { freq: 900, duration: 0.05, type: 'triangle', gain: 0.4 }),
   [SoundId.DiceRoll]: (ctx, dest) => {
-    noise(ctx, dest, 0.25, 0.25);
-    noise(ctx, dest, 0.18, 0.2, 0.08);
-    noise(ctx, dest, 0.12, 0.15, 0.16);
+    // Low rumble — dice tumbling across the table
+    noise(ctx, dest, 0.45, 0.1);
+
+    // Rapid randomized taps — dice bouncing off the surface
+    const tapCount = 12;
+    for (let i = 0; i < tapCount; i++) {
+      const baseDelay = i * 0.032;
+      const jitter = Math.random() * 0.028;
+      const delay = baseDelay + jitter;
+      const duration = 0.006 + Math.random() * 0.016;
+      const gain = 0.04 + Math.random() * 0.14;
+      noise(ctx, dest, duration, gain, delay);
+    }
+
+    // Heavier settling thuds as dice stop
+    noise(ctx, dest, 0.018, 0.28, 0.48);
+    noise(ctx, dest, 0.022, 0.22, 0.52);
   },
-  [SoundId.DiceLand]: (ctx, dest) =>
-    tone(ctx, dest, { freq: 160, endFreq: 90, duration: 0.12, type: 'square', gain: 0.3 }),
+  [SoundId.DiceLand]: (ctx, dest) => {
+    noise(ctx, dest, 0.03, 0.22);
+    noise(ctx, dest, 0.02, 0.15, 0.04);
+    tone(ctx, dest, { freq: 140, endFreq: 70, duration: 0.16, type: 'square', gain: 0.35, delay: 0.005 });
+  },
   [SoundId.TokenStep]: (ctx, dest) =>
     tone(ctx, dest, { freq: 280, endFreq: 150, duration: 0.05, type: 'triangle', gain: 0.3 }),
   [SoundId.Buy]: (ctx, dest) => {

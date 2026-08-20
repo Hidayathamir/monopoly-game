@@ -6,10 +6,10 @@ import { LogEventKey } from '../../types/game'
 describe('soundForLogKey', () => {
   const cases: Array<[LogEventKey, SoundId | null]> = [
     [LogEventKey.GameStarted, SoundId.GameStart],
-    [LogEventKey.Rolled, SoundId.DiceLand],
-    [LogEventKey.RolledAimed, SoundId.DiceLand],
-    [LogEventKey.DoublesAgain, SoundId.DiceLand],
-    [LogEventKey.JailFailed, SoundId.DiceLand],
+    [LogEventKey.Rolled, SoundId.DiceRoll],
+    [LogEventKey.RolledAimed, SoundId.DiceRoll],
+    [LogEventKey.DoublesAgain, SoundId.DiceRoll],
+    [LogEventKey.JailFailed, SoundId.DiceRoll],
     [LogEventKey.Bought, SoundId.Buy],
     [LogEventKey.BuiltHouse, SoundId.Build],
     [LogEventKey.BuiltHotel, SoundId.Build],

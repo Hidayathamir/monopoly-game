@@ -7,7 +7,7 @@ export function soundForLogKey(key: LogEventKeyType): SoundIdType | null {
     case LogEventKey.RolledAimed:
     case LogEventKey.DoublesAgain:
     case LogEventKey.JailFailed:
-      return SoundId.DiceLand;
+      return SoundId.DiceRoll;
     case LogEventKey.PassedGo:
     case LogEventKey.CardCollect:
     case LogEventKey.CardCollectPlayers:

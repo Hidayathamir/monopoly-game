@@ -59,7 +59,7 @@ describe('soundEngine', () => {
     const { playSound, SoundId } = await loadEngine()
     playSound(SoundId.DiceRoll)
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
-    expect(ctx.createBufferSource).toHaveBeenCalledTimes(3)
+    expect(ctx.createBufferSource.mock.calls.length).toBeGreaterThanOrEqual(15)
   })
 
   it('creates oscillators for the your-turn chime', async () => {

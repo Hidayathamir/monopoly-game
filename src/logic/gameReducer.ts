@@ -726,7 +726,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const player = state.players[state.currentPlayer];
       const pending = state.pendingAction;
       const creditorId =
-        pending?.type === PendingActionType.Bankruptcy
+        pending?.type === PendingActionType.Bankruptcy || pending?.type === PendingActionType.PayRent
           ? state.board[pending.spaceId]?.owner ?? null
           : null;
 
