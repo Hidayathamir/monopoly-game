@@ -89,6 +89,9 @@ export const GameActionType = {
 } as const;
 export type GameActionType = (typeof GameActionType)[keyof typeof GameActionType];
 
+export const BotControlReason = { Offline: 'offline', Afk: 'afk' } as const;
+export type BotControlReason = (typeof BotControlReason)[keyof typeof BotControlReason];
+
 export const LogEventKey = {
   GameStarted: 'event.gameStarted',
   Turn: 'event.turn',
@@ -255,7 +258,7 @@ export type GameAction =
   | { type: typeof GameActionType.SkipAction }
   | { type: typeof GameActionType.PayJailFine }
   | { type: typeof GameActionType.UseGetOutOfJailFree }
-  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean; reason?: 'offline' | 'afk' }
+  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean; reason?: BotControlReason }
   | { type: typeof GameActionType.SetReconnectGrace; playerId: number; until: number | null };
 
 export type GameApi = {

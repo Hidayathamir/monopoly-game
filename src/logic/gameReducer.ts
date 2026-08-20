@@ -1,4 +1,4 @@
-import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, LogEventKey, TaxType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
+import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, LogEventKey, TaxType, BotControlReason, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
 import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
@@ -806,10 +806,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       newPlayers[action.playerId] = {
         ...target,
         botControlled: action.controlled,
-        afk: action.controlled ? action.reason === 'afk' : false,
+        afk: action.controlled ? action.reason === BotControlReason.Afk : false,
       };
       const logKey = action.controlled
-        ? action.reason === 'afk'
+        ? action.reason === BotControlReason.Afk
           ? LogEventKey.PlayerAfk
           : LogEventKey.PlayerOffline
         : LogEventKey.PlayerBack;

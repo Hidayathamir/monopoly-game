@@ -1,5 +1,5 @@
 import { gameReducer, createInitialState } from '../src/logic/gameReducer'
-import { GameActionType, GamePhase, PendingActionType, type GameState, type GameAction } from '../src/types/game'
+import { GameActionType, GamePhase, PendingActionType, BotControlReason, type GameState, type GameAction } from '../src/types/game'
 import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
@@ -467,7 +467,7 @@ export class GameServer {
       const p = this.state.players[playerId]
       if (!cur || cur.isBot || !cur.connected) return
       if (!p || p.botControlled) return
-      this.dispatch({ type: GameActionType.SetBotControl, playerId, controlled: true, reason: 'afk' })
+      this.dispatch({ type: GameActionType.SetBotControl, playerId, controlled: true, reason: BotControlReason.Afk })
     }, this.afkTimeoutMs)
   }
 
