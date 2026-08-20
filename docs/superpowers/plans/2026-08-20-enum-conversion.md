@@ -492,7 +492,10 @@ git commit -m "refactor: add HttpPath shared path constants"
 
 - [ ] **Step 1: Add the consts to `src/components/Button.tsx`** (no semicolons)
 
-```ts
+Note: exporting a const object from a component file triggers the repo's `react-refresh/only-export-components` lint rule — each exported const needs the established `// eslint-disable-next-line react-refresh/only-export-components` comment (same pattern as `PlayerTokens.tsx`'s `getPath` and `CurrencyContext`).
+
+```tsx
+// eslint-disable-next-line react-refresh/only-export-components
 export const ButtonVariant = {
   Primary: 'primary',
   Success: 'success',
@@ -502,6 +505,7 @@ export const ButtonVariant = {
 } as const
 export type ButtonVariant = (typeof ButtonVariant)[keyof typeof ButtonVariant]
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ButtonSize = { Sm: 'sm', Md: 'md', Lg: 'lg' } as const
 export type ButtonSize = (typeof ButtonSize)[keyof typeof ButtonSize]
 ```
@@ -532,8 +536,9 @@ const sizeClasses: Record<ButtonSize, string> = {
 
 - [ ] **Step 3: Update `HoldToConfirmButton.tsx`**
 
-- Lines 11-12 — `variant?: 'primary' | ...` → `variant?: ButtonVariant`; `size?: 'sm' | 'md' | 'lg'` → `size?: ButtonSize`. Import `type ButtonVariant, type ButtonSize` from `'./Button'` (line 4).
+- Lines 11-12 — `variant?: 'primary' | ...` → `variant?: ButtonVariant`; `size?: 'sm' | 'md' | 'lg'` → `size?: ButtonSize`.
 - Lines 24-25 — defaults `variant = 'primary'` → `ButtonVariant.Primary`; `size = 'md'` → `ButtonSize.Md`.
+- Import: because the defaults READ the const values (`ButtonVariant.Primary`, `ButtonSize.Md`), this is a VALUE import, not `import type`: `import { ButtonVariant, ButtonSize } from './Button'` (extend line 4).
 
 Do NOT convert the `variant="danger"`/`size="sm"` usages in OTHER components (they're already string literals assignable to the union — out of scope for this refactor).
 
