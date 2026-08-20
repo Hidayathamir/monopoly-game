@@ -2,30 +2,44 @@ import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
 import { useSound } from '../audio/SoundContext'
 import { SoundId, type SoundId as SoundIdType } from '../audio/soundEngine'
 
+// eslint-disable-next-line react-refresh/only-export-components
+export const ButtonVariant = {
+  Primary: 'primary',
+  Success: 'success',
+  Secondary: 'secondary',
+  Danger: 'danger',
+  Start: 'start',
+} as const
+export type ButtonVariant = (typeof ButtonVariant)[keyof typeof ButtonVariant]
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const ButtonSize = { Sm: 'sm', Md: 'md', Lg: 'lg' } as const
+export type ButtonSize = (typeof ButtonSize)[keyof typeof ButtonSize]
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'success' | 'secondary' | 'danger' | 'start'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: ButtonVariant
+  size?: ButtonSize
   sound?: SoundIdType | null
   children?: ReactNode
 }
 
-const variantClasses: Record<string, string> = {
-  primary: 'bg-blue-primary text-white',
-  success: 'bg-green-success text-white',
-  secondary: 'bg-orange text-white',
-  danger: 'bg-red-danger text-white',
-  start: 'bg-gold text-bg-main',
+const variantClasses: Record<ButtonVariant, string> = {
+  [ButtonVariant.Primary]: 'bg-blue-primary text-white',
+  [ButtonVariant.Success]: 'bg-green-success text-white',
+  [ButtonVariant.Secondary]: 'bg-orange text-white',
+  [ButtonVariant.Danger]: 'bg-red-danger text-white',
+  [ButtonVariant.Start]: 'bg-gold text-bg-main',
 }
 
-const sizeClasses: Record<string, string> = {
-  sm: 'px-2.5 py-1 text-base',
-  md: 'px-3.5 py-1.5 text-base',
-  lg: 'px-5 py-2.5 text-xl',
+const sizeClasses: Record<ButtonSize, string> = {
+  [ButtonSize.Sm]: 'px-2.5 py-1 text-base',
+  [ButtonSize.Md]: 'px-3.5 py-1.5 text-base',
+  [ButtonSize.Lg]: 'px-5 py-2.5 text-xl',
 }
 
 export default function Button({
-  variant = 'primary',
-  size = 'md',
+  variant = ButtonVariant.Primary,
+  size = ButtonSize.Md,
   className = '',
   disabled,
   children,

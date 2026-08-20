@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import Button from './Button'
+import Button, { ButtonVariant, ButtonSize } from './Button'
 
 interface Props {
   onConfirm: () => void
   holdMs?: number
   hint?: string
   children: ReactNode
-  variant?: 'primary' | 'success' | 'secondary' | 'danger' | 'start'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: ButtonVariant
+  size?: ButtonSize
   className?: string
   disabled?: boolean
 }
@@ -21,8 +21,8 @@ export default function HoldToConfirmButton({
   holdMs = 5000,
   hint,
   children,
-  variant = 'primary',
-  size = 'md',
+  variant = ButtonVariant.Primary,
+  size = ButtonSize.Md,
   className = '',
   disabled,
 }: Props) {
