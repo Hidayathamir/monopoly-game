@@ -1,7 +1,7 @@
 import { SpaceType, TaxType, type GameState, type Space } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
-import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE } from '../data/board'
+import { getHouseCost, GO_SALARY, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, MAX_HOUSES } from '../data/board'
 import { isMonopoly, calculatePropertyRent } from '../logic/rent'
 import Button from './Button'
 
@@ -82,7 +82,7 @@ export default function PropertyTooltip({
           {space.houseCost && <div className="text-sm text-text-dim">{t('tooltip.nextHouse')}{formatMoney(nextHouseCost)}</div>}
           {space.houses > 0 && (
             <div className="text-sm text-text-dim">
-              {t('tooltip.level')}{space.houses === 5 ? t('tooltip.hotel') : '🏠'.repeat(space.houses)}
+              {t('tooltip.level')}{space.houses === MAX_HOUSES ? t('tooltip.hotel') : '🏠'.repeat(space.houses)}
             </div>
           )}
         </>
@@ -100,7 +100,7 @@ export default function PropertyTooltip({
               variant="secondary"
               onClick={(e) => { e.stopPropagation(); onSell(space.id) }}
             >
-              {t(space.houses === 5 ? 'tooltip.sellHotel' : 'tooltip.sellHouse', { amount: formatMoney(Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE)) })}
+              {t(space.houses === MAX_HOUSES ? 'tooltip.sellHotel' : 'tooltip.sellHouse', { amount: formatMoney(Math.floor(getHouseCost(space, space.houses - 1) * HOUSE_SELL_RATE)) })}
             </Button>
           )}
           {!space.mortgaged && space.houses === 0 && isOwned && (

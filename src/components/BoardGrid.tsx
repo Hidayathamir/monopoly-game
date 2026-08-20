@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { SpaceType, type GameState } from '../types/game'
+import { BOARD_CORNER_SPACES, MAX_HOUSES, type BoardCornerSpace } from '../data/board'
 import PropertyTooltip from './PropertyTooltip'
 
 interface Props {
@@ -14,14 +15,19 @@ interface Props {
   onSellProperty: (spaceId: number) => void
 }
 
+const CORNER_CELL: Record<BoardCornerSpace, { gridColumn: number; gridRow: number }> = {
+  [BOARD_CORNER_SPACES[0]]: { gridColumn: 11, gridRow: 11 },
+  [BOARD_CORNER_SPACES[1]]: { gridColumn: 1, gridRow: 11 },
+  [BOARD_CORNER_SPACES[2]]: { gridColumn: 1, gridRow: 1 },
+  [BOARD_CORNER_SPACES[3]]: { gridColumn: 11, gridRow: 1 },
+}
+
 function getCellPosition(id: number): { gridColumn: number; gridRow: number } | null {
-  if (id === 0) return { gridColumn: 11, gridRow: 11 }
+  const corner = CORNER_CELL[id as BoardCornerSpace]
+  if (corner) return corner
   if (id >= 1 && id <= 9) return { gridColumn: 10 - (id - 1), gridRow: 11 }
-  if (id === 10) return { gridColumn: 1, gridRow: 11 }
   if (id >= 11 && id <= 19) return { gridColumn: 1, gridRow: 10 - (id - 11) }
-  if (id === 20) return { gridColumn: 1, gridRow: 1 }
   if (id >= 21 && id <= 29) return { gridColumn: 2 + (id - 21), gridRow: 1 }
-  if (id === 30) return { gridColumn: 11, gridRow: 1 }
   return { gridColumn: 11, gridRow: 2 + (id - 31) }
 }
 
@@ -148,7 +154,7 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
             >
               {t('board.space.' + space.id)}
             </button>
-            {space.houses > 0 && space.houses < 5 && (
+            {space.houses > 0 && space.houses < MAX_HOUSES && (
               <button
                 type="button"
                 tabIndex={-1}
@@ -158,7 +164,7 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
                 {'🏠'.repeat(space.houses)}
               </button>
             )}
-            {space.houses === 5 && (
+            {space.houses === MAX_HOUSES && (
               <button
                 type="button"
                 tabIndex={-1}

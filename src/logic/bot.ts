@@ -1,7 +1,7 @@
 import {
   GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type TradeOffer,
 } from '../types/game';
-import { getHouseCost, JAIL_FINE } from '../data/board';
+import { getHouseCost, JAIL_FINE, MAX_HOUSES } from '../data/board';
 
 export function decideBotAction(state: GameState): GameAction | null {
   const player = state.players[state.currentPlayer];
@@ -51,7 +51,7 @@ function buildAction(state: GameState): GameAction | null {
   const space = state.board[player.position];
   if (!space || space.type !== SpaceType.Property) return null;
   if (space.owner !== state.currentPlayer) return null;
-  if (space.houses >= 5 || space.mortgaged) return null;
+  if (space.houses >= MAX_HOUSES || space.mortgaged) return null;
   if (space.id === state.justBoughtSpaceId) return null;
   if (state.builtThisStop) return null;
   const cost = getHouseCost(space, space.houses);

@@ -1,8 +1,7 @@
 import { GamePhase, type GameState, type PendingAction, type Player, type Space } from '../types/game';
-import { createInitialBoard } from '../data/board';
+import { createInitialBoard, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 
-const BOARD_SIZE = 40;
 const MAX_SLOTS = 6;
 
 export type SeedBoardOverride = { owner?: number; houses?: number; mortgaged?: boolean };
@@ -118,7 +117,7 @@ export function validateStateStructure(state: GameState): ValidationResult {
   if (state.board.some((s) => s.owner !== null && !playerIds.includes(s.owner))) {
     return { ok: false, message: 'board has an owner that is not a player id' };
   }
-  if (state.board.some((s) => s.houses < 0 || s.houses > 5)) {
+  if (state.board.some((s) => s.houses < 0 || s.houses > MAX_HOUSES)) {
     return { ok: false, message: 'houses must be within 0..5' };
   }
   for (const player of state.players) {

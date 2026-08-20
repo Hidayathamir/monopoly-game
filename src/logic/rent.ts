@@ -1,5 +1,5 @@
 import { SpaceType, type Space, type Player } from '../types/game';
-import { getTotalHouseInvestment } from '../data/board';
+import { getTotalHouseInvestment, MAX_HOUSES } from '../data/board';
 
 export function calculatePropertyRent(space: Space, dice?: [number, number]): number {
   if (!space.rent) return 0;
@@ -12,7 +12,7 @@ export function calculatePropertyRent(space: Space, dice?: [number, number]): nu
     return calculateRailroadRent(space);
   }
 
-  const houseIndex = space.houses === 5 ? (space.rent?.length ?? 0) - 1 : space.houses;
+  const houseIndex = space.houses === MAX_HOUSES ? (space.rent?.length ?? 0) - 1 : space.houses;
   if (houseIndex >= (space.rent?.length ?? 0)) return space.rent?.[space.rent.length - 1] ?? 0;
   return space.rent?.[houseIndex] ?? 0;
 }

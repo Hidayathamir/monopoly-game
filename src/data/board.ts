@@ -53,3 +53,7 @@ export const INCOME_TAX_RATE = config.incomeTaxRate;
 export const SELL_RATE = config.sellRate;
 export const MORTGAGED_SELL_EXTRA = config.mortgagedSellExtra;
 export const HOUSE_SELL_RATE = config.houseSellRate;
+export const BOARD_SIZE = 40;
+export const MAX_HOUSES = 5;
+export const BOARD_CORNER_SPACES = [0, 10, 20, 30] as const;
+export type BoardCornerSpace = (typeof BOARD_CORNER_SPACES)[number];

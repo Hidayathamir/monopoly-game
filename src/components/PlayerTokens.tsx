@@ -3,6 +3,7 @@ import type { GameState } from '../types/game'
 import { PLAYER_OFFSETS } from '../data/players'
 import { useSound } from '../audio/SoundContext'
 import { SoundId } from '../audio/soundEngine'
+import { BOARD_SIZE, JAIL_SPACE } from '../data/board'
 
 interface Props {
   state: GameState
@@ -34,11 +35,11 @@ const POSITIONS: Record<number, { x: number; y: number }> = {
 // eslint-disable-next-line react-refresh/only-export-components
 export function getPath(from: number, to: number, backward: boolean): number[] {
   if (from === to) return []
-  const steps = backward ? (from - to + 40) % 40 : (to - from + 40) % 40
+  const steps = backward ? (from - to + BOARD_SIZE) % BOARD_SIZE : (to - from + BOARD_SIZE) % BOARD_SIZE
   const path: number[] = []
   let current = from
   for (let i = 0; i < steps; i++) {
-    current = backward ? (current - 1 + 40) % 40 : (current + 1) % 40
+    current = backward ? (current - 1 + BOARD_SIZE) % BOARD_SIZE : (current + 1) % BOARD_SIZE
     path.push(current)
   }
   return path
@@ -58,7 +59,7 @@ export default function PlayerTokens({ state, playerColors }: Props) {
       if (prevTarget === player.position) return
       if (animating.current[player.id]) return
       prevTargets.current[player.id] = player.position
-      if (player.inJail && player.position === 10) {
+      if (player.inJail && player.position === JAIL_SPACE) {
         setDisplayPositions((prev) => ({ ...prev, [player.id]: 10 }))
         animating.current[player.id] = false
         return

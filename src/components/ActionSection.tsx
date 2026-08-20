@@ -1,7 +1,7 @@
 import { CardType, GamePhase, PendingActionType, SpaceType, type GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
-import { JAIL_FINE, getHouseCost } from '../data/board'
+import { JAIL_FINE, getHouseCost, MAX_HOUSES } from '../data/board'
 import Button from './Button'
 import HoldToConfirmButton from './HoldToConfirmButton'
 
@@ -98,7 +98,7 @@ export default function ActionSection({
     state.dice !== null &&
     space?.type === SpaceType.Property &&
     space.owner === state.currentPlayer &&
-    space.houses < 5 &&
+    space.houses < MAX_HOUSES &&
     !space.mortgaged &&
     space.id !== state.justBoughtSpaceId
 

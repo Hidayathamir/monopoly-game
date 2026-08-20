@@ -1,5 +1,5 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, LogEventKey, TaxType, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
-import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE } from '../data/board';
+import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
@@ -89,7 +89,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             jailTurns: 0,
           };
           const total = dice[0] + dice[1];
-          const newPos = (player.position + total) % 40;
+          const newPos = (player.position + total) % BOARD_SIZE;
           let newMoney = player.money;
           const newEventLog = [...state.eventLog, actorEntry(LogEventKey.JailBreakDoubles, player)];
           const passedGo = newPos < player.position
@@ -117,7 +117,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           if (newTurns >= MAX_JAIL_TURNS) {
             const newPlayers = [...state.players];
             const total = dice[0] + dice[1];
-            const newPos = (player.position + total) % 40;
+            const newPos = (player.position + total) % BOARD_SIZE;
             let newMoney = player.money;
             const newEventLog = [...state.eventLog, actorEntry(LogEventKey.JailForcedOut, player)];
             const forcedPassedGo = newPos < player.position
@@ -163,7 +163,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       const total = dice[0] + dice[1];
-      const newPos = (player.position + total) % 40;
+      const newPos = (player.position + total) % BOARD_SIZE;
       let newMoney = player.money;
       const target = action.target;
       const luck = action.luck;
@@ -420,7 +420,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         space.owner !== state.currentPlayer ||
         state.dice === null ||
         state.pendingAction !== null ||
-        space.houses >= 5 ||
+        space.houses >= MAX_HOUSES ||
         space.mortgaged ||
         cost === 0 ||
         player.money < cost ||
@@ -440,7 +440,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         pendingAction: null,
         builtThisStop: true,
-        eventLog: [...state.eventLog, actorEntry(space.houses === 4 ? LogEventKey.BuiltHotel : LogEventKey.BuiltHouse, player, { spaceId: space.id, amount: cost })],
+        eventLog: [...state.eventLog, actorEntry(space.houses === MAX_HOUSES - 1 ? LogEventKey.BuiltHotel : LogEventKey.BuiltHouse, player, { spaceId: space.id, amount: cost })],
       };
     }
 

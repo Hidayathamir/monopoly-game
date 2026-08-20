@@ -1,5 +1,5 @@
 import { CardActionType, LogEventKey, type Card, type GameState, type LogEntry } from '../types/game';
-import { GO_SALARY } from '../data/board';
+import { GO_SALARY, BOARD_SIZE, JAIL_SPACE, MAX_HOUSES } from '../data/board';
 import { actorEntry } from './logEntries';
 
 export interface CardResolution {
@@ -37,7 +37,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
     case CardActionType.GoToSpace: {
       const isBackward = effect.spaceId < 0;
       const targetSpace = isBackward
-        ? (player.position + effect.spaceId + 40) % 40
+        ? (player.position + effect.spaceId + BOARD_SIZE) % BOARD_SIZE
         : effect.spaceId;
       return goToSpace(newState, state.currentPlayer, targetSpace, isBackward, card.id);
     }
@@ -67,7 +67,7 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
       let hotelCount = 0;
       for (const pid of player.properties) {
         const space = newState.board[pid];
-        if (space.houses === 5) {
+        if (space.houses === MAX_HOUSES) {
           hotelCount += 1;
           totalRepairs += effect.perHotel;
         } else {
@@ -100,8 +100,8 @@ function goToSpace(state: GameState, playerIndex: number, spaceId: number, isBac
   }
 
   const steps = isBackward
-    ? -((player.position - spaceId + 40) % 40)
-    : (spaceId - player.position + 40) % 40;
+    ? -((player.position - spaceId + BOARD_SIZE) % BOARD_SIZE)
+    : (spaceId - player.position + BOARD_SIZE) % BOARD_SIZE;
   const newPlayers = [...newState.players];
   newPlayers[playerIndex] = { ...newPlayers[playerIndex], position: spaceId };
   newState = { ...newState, players: newPlayers, lastMoveSteps: steps };
@@ -134,7 +134,7 @@ function sendPlayerToJail(state: GameState, playerIndex: number): GameState {
   const newPlayers = [...state.players];
   newPlayers[playerIndex] = {
     ...newPlayers[playerIndex],
-    position: 10,
+    position: JAIL_SPACE,
     inJail: true,
     jailTurns: 0,
   };
