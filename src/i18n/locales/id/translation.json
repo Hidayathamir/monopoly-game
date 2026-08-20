@@ -70,6 +70,7 @@
   "eventlog.empty": "Belum ada kejadian",
   "eventlog.collapse": "Tutup ▴",
   "eventlog.expand": "Riwayat penuh ▾",
+  "eventlog.jumpToLatest": "Terbaru",
 
   "event.gameStarted": "Permainan dimulai!",
   "event.turn": "Giliran {{name}}",

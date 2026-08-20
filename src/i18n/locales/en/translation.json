@@ -70,6 +70,7 @@
   "eventlog.empty": "No events yet",
   "eventlog.collapse": "Close ▴",
   "eventlog.expand": "Full history ▾",
+  "eventlog.jumpToLatest": "Latest",
 
   "event.gameStarted": "Game started!",
   "event.turn": "Turn: {{name}}",

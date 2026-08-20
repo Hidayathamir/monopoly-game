@@ -37,4 +37,59 @@ describe('EventLog', () => {
     fireEvent.click(screen.getByRole('button', { name: /Full history/ }))
     expect(playSoundMock).toHaveBeenCalledWith('click')
   })
+
+  describe('scroll behavior', () => {
+    const makeLog = (n: number): LogEntry[] =>
+      Array.from({ length: n }, (_, i) => ({ key: 'event.turn', params: { name: 'P' + i } }))
+
+    function mockScroll(el: HTMLElement, scrollHeight: number, clientHeight: number) {
+      Object.defineProperty(el, 'scrollHeight', { value: scrollHeight, configurable: true })
+      Object.defineProperty(el, 'clientHeight', { value: clientHeight, configurable: true })
+    }
+
+    it('scrolls to the bottom when expanded', () => {
+      const { getByTestId, getByRole } = renderWithProviders(<EventLog log={makeLog(10)} />)
+      const container = getByTestId('event-log')
+      mockScroll(container, 500, 100)
+      fireEvent.click(getByRole('button', { name: /Full history/ }))
+      expect(container.scrollTop).toBe(500)
+    })
+
+    it('keeps the viewport at the bottom when new events arrive while at the bottom', () => {
+      const { getByTestId, getByRole, rerender } = renderWithProviders(<EventLog log={makeLog(10)} />)
+      const container = getByTestId('event-log')
+      mockScroll(container, 500, 100)
+      fireEvent.click(getByRole('button', { name: /Full history/ }))
+      container.scrollTop = 480
+      fireEvent.scroll(container)
+      mockScroll(container, 600, 100)
+      rerender(<EventLog log={makeLog(20)} />)
+      expect(container.scrollTop).toBe(600)
+    })
+
+    it('does not move the viewport when new events arrive while scrolled up', () => {
+      const { getByTestId, getByRole, rerender } = renderWithProviders(<EventLog log={makeLog(10)} />)
+      const container = getByTestId('event-log')
+      mockScroll(container, 500, 100)
+      fireEvent.click(getByRole('button', { name: /Full history/ }))
+      container.scrollTop = 50
+      fireEvent.scroll(container)
+      rerender(<EventLog log={makeLog(20)} />)
+      expect(container.scrollTop).toBe(50)
+    })
+
+    it('shows the Latest chip when scrolled up and jumps to the bottom on click', () => {
+      const { getByTestId, getByRole, queryByRole } = renderWithProviders(<EventLog log={makeLog(10)} />)
+      const container = getByTestId('event-log')
+      mockScroll(container, 500, 100)
+      fireEvent.click(getByRole('button', { name: /Full history/ }))
+      expect(queryByRole('button', { name: /Latest/ })).toBeNull()
+      container.scrollTop = 50
+      fireEvent.scroll(container)
+      const latest = getByRole('button', { name: /Latest/ })
+      fireEvent.click(latest)
+      expect(container.scrollTop).toBe(500)
+      expect(queryByRole('button', { name: /Latest/ })).toBeNull()
+    })
+  })
 })
