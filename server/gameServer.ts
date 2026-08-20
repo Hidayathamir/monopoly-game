@@ -4,6 +4,7 @@ import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
+import { MAX_PLAYERS } from '../src/data/players'
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom } from '../src/logic/seed'
 
@@ -22,8 +23,6 @@ interface Slot {
   isBot: boolean
   gracePending: boolean
 }
-
-const MAX_PLAYERS = 6
 
 const BOT_STEP_MS = 700
 const BOT_GRACE_MS = 3_000

@@ -1,8 +1,7 @@
 import { GamePhase, type GameState, type PendingAction, type Player, type Space } from '../types/game';
 import { createInitialBoard, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
-
-const MAX_SLOTS = 6;
+import { MAX_PLAYERS } from '../data/players';
 
 export type SeedBoardOverride = { owner?: number; houses?: number; mortgaged?: boolean };
 
@@ -103,8 +102,8 @@ export function validateStateStructure(state: GameState): ValidationResult {
   if (new Set(playerIds).size !== playerIds.length) {
     return { ok: false, message: 'player ids must be unique' };
   }
-  if (playerIds.some((id) => id < 0 || id >= MAX_SLOTS)) {
-    return { ok: false, message: `player ids must be in 0..${MAX_SLOTS - 1}` };
+  if (playerIds.some((id) => id < 0 || id >= MAX_PLAYERS)) {
+    return { ok: false, message: `player ids must be in 0..${MAX_PLAYERS - 1}` };
   }
   const expectedTurn = [...playerIds].sort((a, b) => a - b);
   const actualTurn = [...state.turnOrder].sort((a, b) => a - b);

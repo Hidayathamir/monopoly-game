@@ -2,7 +2,7 @@ import { ConnectionStatus } from '../types/net'
 import type { LobbyPlayer } from '../types/net'
 import type { NetworkGameApi } from '../hooks/useNetworkGame'
 import { useTranslation } from 'react-i18next'
-import { PLAYER_COLORS } from '../data/players'
+import { PLAYER_COLORS, MAX_PLAYERS } from '../data/players'
 import Button from './Button'
 import RoomExit from './RoomExit'
 import LoadScenarioPanel from './LoadScenarioPanel'
@@ -36,7 +36,7 @@ export default function Lobby({ game }: Props) {
 
         <div className="flex flex-col gap-1">
           <div className="text-xs uppercase tracking-[0.25em] text-muted mb-1.5 text-center">{t('lobby.players')}</div>
-          {Array.from({ length: 6 }).map((_, i) => {
+          {Array.from({ length: MAX_PLAYERS }).map((_, i) => {
             const p: LobbyPlayer | undefined = lobby[i]
             return (
               <div key={i} className={`flex items-center gap-2 text-base ${p && !p.connected ? 'opacity-50' : ''}`}>
@@ -61,7 +61,7 @@ export default function Lobby({ game }: Props) {
         </div>
 
         {isHost && (
-          <Button variant="secondary" size="sm" onClick={addBot} disabled={lobby.filter((p) => p.name).length >= 6}>
+          <Button variant="secondary" size="sm" onClick={addBot} disabled={lobby.filter((p) => p.name).length >= MAX_PLAYERS}>
             {t('lobby.addBot')}
           </Button>
         )}

@@ -7,6 +7,8 @@ export const PLAYER_COLORS = [
   '#E67E22',
 ]
 
+export const MAX_PLAYERS = 6
+
 export const PLAYER_OFFSETS: Record<number, { dx: number; dy: number }> = {
   0: { dx: -8, dy: -8 },
   1: { dx: 8, dy: -8 },
