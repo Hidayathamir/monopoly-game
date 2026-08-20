@@ -57,6 +57,27 @@ function colorGroup(board: Space[]): Space[] {
   return board.filter((s) => s.type === SpaceType.Property && s.color === first.color);
 }
 
+function boardWithUnowned(unowned: number, target: Space): Space[] {
+  const board = createInitialBoard();
+  const buyable = board.filter((s) =>
+    ([SpaceType.Property, SpaceType.Railroad, SpaceType.Utility] as SpaceType[]).includes(s.type),
+  );
+  const owned = buyable.length - unowned;
+  let count = 0;
+  for (const s of buyable) {
+    if (s.id === target.id) {
+      board[s.id] = { ...s, owner: 0 };
+      count++;
+    } else if (count < owned) {
+      board[s.id] = { ...s, owner: 1 };
+      count++;
+    } else {
+      board[s.id] = { ...s, owner: null };
+    }
+  }
+  return board;
+}
+
 describe('decideBotAction', () => {
   it('returns null when the current player is not a bot', () => {
     const state = makeState({}, makePlayer({ isBot: false }));
@@ -217,6 +238,30 @@ describe('decideBotAction', () => {
       makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
     );
     expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('builds only once per landing when land is not scarce (7 unowned)', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const state = makeState(
+      { board: boardWithUnowned(7, target), dice: [3, 4], builtThisStop: true },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('builds again despite builtThisStop when land is scarce (6 unowned)', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4], builtThisStop: true },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
   });
 
   it('builds exactly once per landing, end to end', () => {
