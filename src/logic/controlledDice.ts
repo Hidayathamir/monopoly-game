@@ -1,5 +1,8 @@
 export type ControlledDiceResult = { dice: [number, number]; luck: number };
 
+export const DICE_FACES = [1, 2, 3, 4, 5, 6] as const;
+export type DieFace = (typeof DICE_FACES)[number];
+
 const TOTALS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 const STANDARD_COUNTS: Record<number, number> = {
@@ -44,9 +47,9 @@ export function rollControlledDice(target: number, rng: () => number): Controlle
   }
 
   const pairs: [number, number][] = [];
-  for (let a = 1; a <= 6; a++) {
+  for (const a of DICE_FACES) {
     const b = total - a;
-    if (b >= 1 && b <= 6) pairs.push([a, b]);
+    if (DICE_FACES.includes(b as DieFace)) pairs.push([a, b]);
   }
   const dice = pairs[Math.floor(rng() * pairs.length)];
   return { dice, luck };

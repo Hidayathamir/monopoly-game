@@ -1,9 +1,11 @@
+import type { DieFace } from '../logic/controlledDice'
+
 interface DiceProps {
   value?: number | null
   rolling: boolean
 }
 
-const PIPS: Record<number, number[]> = {
+const PIPS: Record<DieFace, number[]> = {
   1: [4],
   2: [0, 8],
   3: [0, 4, 8],
@@ -28,7 +30,7 @@ export default function Dice({ value, rolling }: DiceProps) {
         <div className="grid grid-cols-3 grid-rows-3 w-full h-full p-2 gap-0.5">
           {Array.from({ length: 9 }, (_, i) => (
             <span key={i} className="flex items-center justify-center">
-              {(PIPS[value] ?? []).includes(i) && (
+              {(PIPS[value as DieFace] ?? []).includes(i) && (
                 <span data-testid="dice-pip" className="w-2 h-2 rounded-full bg-bg-main" />
               )}
             </span>
