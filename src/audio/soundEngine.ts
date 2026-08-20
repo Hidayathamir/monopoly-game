@@ -148,6 +148,12 @@ const MASTER_GAIN = 0.3;
 
 let ctx: AudioContext | null = null;
 
+// The first sound attempted before any user gesture cannot be heard (the
+// browser holds a fresh AudioContext in the suspended state until the user
+// interacts). Remember it and play it back once audio is actually unlocked, so
+// an auto-rejoin's room-join chime is not lost.
+let pendingSound: SoundId | null = null;
+
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   const AC =
@@ -157,8 +163,10 @@ function getContext(): AudioContext | null {
 }
 
 export function playSound(id: SoundId): void {
-  if (!ctx) ctx = getContext();
-  if (!ctx) return;
+  if (!ctx) {
+    if (pendingSound === null) pendingSound = id;
+    return;
+  }
   if (ctx.state === 'closed') return;
   if (ctx.state === 'suspended') void ctx.resume();
   const master = ctx.createGain();
@@ -167,8 +175,17 @@ export function playSound(id: SoundId): void {
   SOUND_GENERATORS[id](ctx, master);
 }
 
-export function unlockAudio(): void {
+// Creates/resumes the AudioContext inside a user gesture so the browser starts
+// it in the running state. Returns true once audio can actually be heard.
+export function unlockAudio(): boolean {
   if (!ctx) ctx = getContext();
-  if (!ctx) return;
+  if (!ctx) return false;
   if (ctx.state === 'suspended') void ctx.resume();
+  if (ctx.state !== 'running') return false;
+  if (pendingSound !== null) {
+    const id = pendingSound;
+    pendingSound = null;
+    playSound(id);
+  }
+  return true;
 }

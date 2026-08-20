@@ -18,6 +18,7 @@ function Consumer() {
 beforeEach(() => {
   playSoundMock.mockClear()
   unlockMock.mockClear()
+  unlockMock.mockReturnValue(true)
   cleanup()
 })
 
@@ -34,5 +35,23 @@ describe('SoundProvider', () => {
     expect(unlockMock).toHaveBeenCalledTimes(1)
     fireEvent.pointerDown(document.body)
     expect(unlockMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('unlocks audio on the first keydown only', () => {
+    render(<SoundProvider><div /></SoundProvider>)
+    fireEvent.keyDown(document.body)
+    expect(unlockMock).toHaveBeenCalledTimes(1)
+    fireEvent.keyDown(document.body)
+    expect(unlockMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps listening until audio is actually running', () => {
+    unlockMock.mockReturnValueOnce(false)
+    render(<SoundProvider><div /></SoundProvider>)
+    fireEvent.pointerDown(document.body)
+    fireEvent.pointerDown(document.body)
+    expect(unlockMock).toHaveBeenCalledTimes(2)
+    fireEvent.pointerDown(document.body)
+    expect(unlockMock).toHaveBeenCalledTimes(2)
   })
 })

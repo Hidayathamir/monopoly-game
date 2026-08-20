@@ -39,14 +39,30 @@ async function loadEngine() {
 
 describe('soundEngine', () => {
   it('no-ops when AudioContext is unavailable', async () => {
-    const { playSound, SoundId } = await loadEngine()
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+    expect(unlockAudio()).toBe(false)
     expect(() => playSound(SoundId.Click)).not.toThrow()
+  })
+
+  it('buffers the first pre-gesture sound and plays it once unlocked', async () => {
+    const FakeAC = vi.fn(function () { return new FakeAudioContext() })
+    vi.stubGlobal('AudioContext', FakeAC)
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+
+    playSound(SoundId.RoomJoin)
+    expect(FakeAC).not.toHaveBeenCalled()
+
+    expect(unlockAudio()).toBe(true)
+    const ctx = FakeAC.mock.results[0].value as FakeAudioContext
+    expect(ctx.createOscillator).toHaveBeenCalledTimes(2)
+    expect(ctx.createGain).toHaveBeenCalledTimes(3)
   })
 
   it('creates an oscillator for a tonal sound', async () => {
     const FakeAC = vi.fn(function () { return new FakeAudioContext() })
     vi.stubGlobal('AudioContext', FakeAC)
-    const { playSound, SoundId } = await loadEngine()
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+    unlockAudio()
     playSound(SoundId.Buy)
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
     expect(ctx.createOscillator).toHaveBeenCalledTimes(2)
@@ -56,7 +72,8 @@ describe('soundEngine', () => {
   it('creates noise buffers for the dice roll', async () => {
     const FakeAC = vi.fn(function () { return new FakeAudioContext() })
     vi.stubGlobal('AudioContext', FakeAC)
-    const { playSound, SoundId } = await loadEngine()
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+    unlockAudio()
     playSound(SoundId.DiceRoll)
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
     expect(ctx.createBufferSource.mock.calls.length).toBeGreaterThanOrEqual(15)
@@ -65,7 +82,8 @@ describe('soundEngine', () => {
   it('creates oscillators for the your-turn chime', async () => {
     const FakeAC = vi.fn(function () { return new FakeAudioContext() })
     vi.stubGlobal('AudioContext', FakeAC)
-    const { playSound, SoundId } = await loadEngine()
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+    unlockAudio()
     playSound(SoundId.YourTurn)
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
     expect(ctx.createOscillator).toHaveBeenCalledTimes(2)
@@ -75,7 +93,8 @@ describe('soundEngine', () => {
   it('creates oscillators for the token-step tick', async () => {
     const FakeAC = vi.fn(function () { return new FakeAudioContext() })
     vi.stubGlobal('AudioContext', FakeAC)
-    const { playSound, SoundId } = await loadEngine()
+    const { playSound, unlockAudio, SoundId } = await loadEngine()
+    unlockAudio()
     playSound(SoundId.TokenStep)
     const ctx = FakeAC.mock.results[0].value as FakeAudioContext
     expect(ctx.createOscillator).toHaveBeenCalledTimes(1)
