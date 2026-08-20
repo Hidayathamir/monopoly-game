@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
-import { CardType, type LogEntry } from '../types/game'
+import { CardType, LogParamKey, type LogEntry } from '../types/game'
 
-const MONEY_PARAM_KEYS = new Set(['amount', 'money', 'perHouse', 'perHotel', 'perPlayer'])
+const MONEY_PARAM_KEYS = new Set<string>([LogParamKey.Amount, LogParamKey.Money, LogParamKey.PerHouse, LogParamKey.PerHotel, LogParamKey.PerPlayer])
 
 export function cardKeyForId(id: number): string {
   return id >= 100 ? `card.${CardType.Community}.${id}` : `card.${CardType.Chance}.${id}`
@@ -14,10 +14,10 @@ export function resolveLogEntry(
 ): string {
   const params: Record<string, string | number> = {}
   for (const [key, value] of Object.entries(entry.params ?? {})) {
-    if (key === 'bot') continue
-    if (key === 'spaceId') {
+    if (key === LogParamKey.Bot) continue
+    if (key === LogParamKey.SpaceId) {
       params[key] = t(`board.space.${value}`)
-    } else if (key === 'cardId') {
+    } else if (key === LogParamKey.CardId) {
       params[key] = t(cardKeyForId(Number(value)))
     } else if (MONEY_PARAM_KEYS.has(key)) {
       params[key] = formatMoney(typeof value === 'number' ? value : Number(value))

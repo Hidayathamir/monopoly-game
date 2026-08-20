@@ -142,6 +142,18 @@ export const LogEventKey = {
 } as const;
 export type LogEventKey = (typeof LogEventKey)[keyof typeof LogEventKey];
 
+export const LogParamKey = {
+  Bot: 'bot',
+  SpaceId: 'spaceId',
+  CardId: 'cardId',
+  Amount: 'amount',
+  Money: 'money',
+  PerHouse: 'perHouse',
+  PerHotel: 'perHotel',
+  PerPlayer: 'perPlayer',
+} as const;
+export type LogParamKey = (typeof LogParamKey)[keyof typeof LogParamKey];
+
 export type Player = {
   id: number;
   name: string;
