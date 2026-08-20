@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { decideBotAction, shouldAcceptTrade } from '../bot';
+import { decideBotAction, shouldAcceptTrade, BUILD_CASH_RESERVE } from '../bot';
 import { gameReducer, createInitialState } from '../gameReducer';
 import {
   GameActionType, GamePhase, PendingActionType, SpaceType,
-  type GameState, type Player, type Space, type TradeOffer,
+  type GameState, type Player, type Space, type TradeOffer, type GameAction,
 } from '../../types/game';
-import { createInitialBoard, STARTING_MONEY, JAIL_FINE } from '../../data/board';
+import { createInitialBoard, STARTING_MONEY, JAIL_FINE, MAX_HOUSES, getHouseCost } from '../../data/board';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -55,6 +55,27 @@ function colorGroup(board: Space[]): Space[] {
   const first = board.find((s) => s.type === SpaceType.Property && s.color != null);
   if (!first) return [];
   return board.filter((s) => s.type === SpaceType.Property && s.color === first.color);
+}
+
+function boardWithUnowned(unowned: number, target: Space): Space[] {
+  const board = createInitialBoard();
+  const buyable = board.filter((s) =>
+    ([SpaceType.Property, SpaceType.Railroad, SpaceType.Utility] as SpaceType[]).includes(s.type),
+  );
+  const owned = buyable.length - unowned;
+  let count = 0;
+  for (const s of buyable) {
+    if (s.id === target.id) {
+      board[s.id] = { ...s, owner: 0 };
+      count++;
+    } else if (count < owned) {
+      board[s.id] = { ...s, owner: 1 };
+      count++;
+    } else {
+      board[s.id] = { ...s, owner: null };
+    }
+  }
+  return board;
 }
 
 describe('decideBotAction', () => {
@@ -217,6 +238,69 @@ describe('decideBotAction', () => {
       makePlayer({ properties: group.map((s) => s.id), money: 100000, position: target.id }),
     );
     expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('builds only once per landing when land is not scarce (7 unowned)', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const state = makeState(
+      { board: boardWithUnowned(7, target), dice: [3, 4], builtThisStop: true },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'END_TURN' });
+  });
+
+  it('builds again despite builtThisStop when land is scarce (6 unowned)', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4], builtThisStop: true },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    expect(decideBotAction(state)).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
+  });
+
+  it('builds up to MAX_HOUSES in scarce land when it can afford it', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    let state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4] },
+      makePlayer({ properties: [target.id], money: 100000, position: target.id }),
+    );
+    const actions: GameAction[] = [];
+    let action = decideBotAction(state);
+    while (action && action.type === 'BUILD_HOUSE') {
+      actions.push(action);
+      state = gameReducer(state, action);
+      action = decideBotAction(state);
+    }
+    expect(actions.length).toBe(MAX_HOUSES);
+    expect(state.board[target.id].houses).toBe(MAX_HOUSES);
+    expect(action).toEqual({ type: 'END_TURN' });
+  });
+
+  it('stops before breaching the cash reserve in scarce land', () => {
+    const board = createInitialBoard();
+    const group = colorGroup(board);
+    if (group.length === 0) throw new Error('no color group');
+    const target = group[0];
+    const cost = getHouseCost(board[target.id], 0);
+    const state = makeState(
+      { board: boardWithUnowned(6, target), dice: [3, 4] },
+      makePlayer({ properties: [target.id], money: BUILD_CASH_RESERVE + cost, position: target.id }),
+    );
+    const first = decideBotAction(state);
+    if (!first) throw new Error('expected a build');
+    expect(first).toEqual({ type: 'BUILD_HOUSE', spaceId: target.id });
+    const after = gameReducer(state, first);
+    expect(after.players[0].money).toBe(BUILD_CASH_RESERVE);
+    expect(decideBotAction(after)).toEqual({ type: 'END_TURN' });
   });
 
   it('builds exactly once per landing, end to end', () => {

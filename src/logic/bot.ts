@@ -1,7 +1,17 @@
 import {
   GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type TradeOffer,
 } from '../types/game';
-import { getHouseCost, JAIL_FINE, MAX_HOUSES } from '../data/board';
+import { getHouseCost, JAIL_FINE, MAX_HOUSES, STARTING_MONEY } from '../data/board';
+
+export const BUILD_CASH_RESERVE = Math.floor(STARTING_MONEY * 0.1);
+
+const BUYABLE_TYPES: SpaceType[] = [SpaceType.Property, SpaceType.Railroad, SpaceType.Utility];
+
+function isLandScarce(state: GameState): boolean {
+  const buyable = state.board.filter((s) => BUYABLE_TYPES.includes(s.type));
+  const unowned = buyable.filter((s) => s.owner === null).length;
+  return unowned * 4 < buyable.length;
+}
 
 export function decideBotAction(state: GameState): GameAction | null {
   const player = state.players[state.currentPlayer];
@@ -53,9 +63,10 @@ function buildAction(state: GameState): GameAction | null {
   if (space.owner !== state.currentPlayer) return null;
   if (space.houses >= MAX_HOUSES || space.mortgaged) return null;
   if (space.id === state.justBoughtSpaceId) return null;
-  if (state.builtThisStop) return null;
+  if (state.builtThisStop && !isLandScarce(state)) return null;
   const cost = getHouseCost(space, space.houses);
   if (cost === 0 || player.money < cost) return null;
+  if (isLandScarce(state) && player.money - cost < BUILD_CASH_RESERVE) return null;
   return { type: GameActionType.BuildHouse, spaceId: space.id };
 }
 
