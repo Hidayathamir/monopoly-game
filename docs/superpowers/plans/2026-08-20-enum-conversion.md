@@ -184,7 +184,7 @@ const PIPS: Record<DieFace, number[]> = {
 }
 ```
 
-The `PIPS[value]` access already guards with `?? []`; no other change. `value` is `number | null` — the existing `PIPS[value]` indexing stays as-is.
+The `PIPS[value]` access at line 33 must become `PIPS[value as DieFace] ?? []` (the `value == null` branch renders the `?` placeholder and never reaches the access, so the cast is safe — it mirrors the `b as DieFace` cast in `controlledDice.ts`). No other change; `value` is `number | null` and stays that way.
 
 - [ ] **Step 4: Verify**
 
