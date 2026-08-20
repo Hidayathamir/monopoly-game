@@ -5,7 +5,7 @@ import { createSeededState } from '../../src/logic/seed'
 import { ServerMessageType } from '../../src/types/net'
 import type { ServerMessage } from '../../src/types/net'
 
-function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean }) {
+function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean; afkTimeoutMs?: number }) {
   vi.spyOn(Math, 'random').mockReturnValue(0.5)
   const sent: ServerMessage[] = []
   const server = new GameServer(
@@ -116,6 +116,72 @@ describe('GameServer', () => {
     server.disconnect('c1')
     server.join('c2', 'Bob')
     expect(server.getPlayers().find((p) => p.id === 1)?.connected).toBe(true)
+  })
+
+  it('marks a connected human AFK after the timeout and the bot plays their turn', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng, afkTimeoutMs: 1_000 })
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+    expect(server.getState().currentPlayer).toBe(0)
+
+    // The human decides for the whole AFK window without acting.
+    vi.advanceTimersByTime(999)
+    expect(server.getState().players[0].botControlled).toBe(false)
+
+    vi.advanceTimersByTime(1) // AFK fires → bot-controlled + afk log
+    expect(server.getState().players[0].botControlled).toBe(true)
+    expect(server.getState().eventLog.some((e) => e.key === 'event.playerAfk')).toBe(true)
+
+    // The bot plays the turn at normal bot speed (no reconnect grace).
+    vi.advanceTimersByTime(700) // bot rolls
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    expect(server.getState().dice).toEqual([1, 4])
+    vi.advanceTimersByTime(500 + 5 * 150) // RESOLVE_SPACE (space 5 unowned → Waiting)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+    vi.advanceTimersByTime(700) // END_TURN → bot's turn
+    expect(server.getState().currentPlayer).toBe(1)
+    vi.useRealTimers()
+  })
+
+  it('a connected AFK human who acts takes back control immediately', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => ([0, 0.5][n++] ?? 0) // dice [1,4]
+    const { server } = setup({ rng, afkTimeoutMs: 1_000 })
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+
+    vi.advanceTimersByTime(1_000) // AFK fires
+    expect(server.getState().players[0].botControlled).toBe(true)
+
+    server.roll('c0') // human acts anyway
+    expect(server.getState().players[0].botControlled).toBe(false)
+    expect(server.getState().eventLog.some((e) => e.key === 'event.playerBack')).toBe(true)
+    expect(server.getState().phase).toBe(GamePhase.Rolling)
+
+    // A stale bot timer must not play their turn afterwards.
+    vi.advanceTimersByTime(700)
+    expect(server.getState().players[0].botControlled).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('stop() clears pending bot and afk timers', () => {
+    vi.useFakeTimers()
+    const { server } = setup({ afkTimeoutMs: 1_000 })
+    server.join('c0', 'Alice')
+    server.addBot('c0')
+    server.start('c0')
+
+    server.stop()
+    vi.advanceTimersByTime(5_000)
+    expect(server.getState().players[0].botControlled).toBe(false)
+    vi.useRealTimers()
   })
 
   it('ends the turn and advances to the next player', () => {

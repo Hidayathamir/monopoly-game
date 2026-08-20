@@ -114,6 +114,7 @@
   "event.bankruptcyWin": "{{name}} bangkrut! {{winner}} menang!",
   "event.bankruptcyTransfer": "Aset {{name}} dilikuidasi untuk {{creditor}} sebesar {{amount}}",
   "event.playerOffline": "{{name}} offline — bot akan memainkan gilirannya",
+  "event.playerAfk": "{{name}} AFK — bot akan memainkan gilirannya",
   "event.playerBack": "{{name}} kembali — kendali diambil lagi",
   "event.reconnectWait": "Menunggu {{name}} untuk terhubung kembali…",
 

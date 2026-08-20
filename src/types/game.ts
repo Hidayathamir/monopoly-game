@@ -133,6 +133,7 @@ export const LogEventKey = {
   BankruptcyWin: 'event.bankruptcyWin',
   BankruptcyTransfer: 'event.bankruptcyTransfer',
   PlayerOffline: 'event.playerOffline',
+  PlayerAfk: 'event.playerAfk',
   PlayerBack: 'event.playerBack',
   ReconnectWait: 'event.reconnectWait',
 } as const;
@@ -253,7 +254,7 @@ export type GameAction =
   | { type: typeof GameActionType.SkipAction }
   | { type: typeof GameActionType.PayJailFine }
   | { type: typeof GameActionType.UseGetOutOfJailFree }
-  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean }
+  | { type: typeof GameActionType.SetBotControl; playerId: number; controlled: boolean; reason?: 'offline' | 'afk' }
   | { type: typeof GameActionType.SetReconnectGrace; playerId: number; until: number | null };
 
 export type GameApi = {

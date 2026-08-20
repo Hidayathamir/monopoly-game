@@ -18,7 +18,7 @@ const MIME: Record<string, string> = {
   '.json': 'application/json',
 }
 
-export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean; seedEnabled?: boolean }) {
+export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean; seedEnabled?: boolean; roomEmptyGraceMs?: number; afkTimeoutMs?: number }) {
   const root = resolve(distDir)
   const sockets = new Map<string, WebSocket>()
   const seedEnabled = opts?.seedEnabled ?? false
@@ -31,7 +31,12 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
 
   const roomManager = new RoomManager(
     { send },
-    { tradesEnabled: opts?.tradesEnabled ?? false, seedEnabled },
+    {
+      tradesEnabled: opts?.tradesEnabled ?? false,
+      seedEnabled,
+      roomEmptyGraceMs: opts?.roomEmptyGraceMs,
+      afkTimeoutMs: opts?.afkTimeoutMs,
+    },
   )
 
   const httpServer = createHttpServer(async (req, res) => {

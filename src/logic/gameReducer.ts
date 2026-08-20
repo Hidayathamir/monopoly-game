@@ -803,7 +803,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!target || target.botControlled === action.controlled) return state;
       const newPlayers = [...state.players];
       newPlayers[action.playerId] = { ...target, botControlled: action.controlled };
-      const logKey = action.controlled ? LogEventKey.PlayerOffline : LogEventKey.PlayerBack;
+      const logKey = action.controlled
+        ? action.reason === 'afk'
+          ? LogEventKey.PlayerAfk
+          : LogEventKey.PlayerOffline
+        : LogEventKey.PlayerBack;
       return {
         ...state,
         players: newPlayers,

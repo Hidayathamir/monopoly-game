@@ -123,6 +123,17 @@ describe('gameReducer', () => {
       expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerOffline', params: { name: 'Alice' } });
     });
 
+    it('logs the AFK notice when marked bot-controlled with reason afk', () => {
+      const state = gameReducer(makeStartedState(2), {
+        type: GameActionType.SetBotControl,
+        playerId: 0,
+        controlled: true,
+        reason: 'afk',
+      });
+      expect(state.players[0].botControlled).toBe(true);
+      expect(state.eventLog.at(-1)).toEqual({ key: 'event.playerAfk', params: { name: 'Alice' } });
+    });
+
     it('is idempotent when the player is already bot-controlled', () => {
       let state = gameReducer(makeStartedState(2), { type: GameActionType.SetBotControl, playerId: 0, controlled: true });
       state = gameReducer(state, { type: GameActionType.SetBotControl, playerId: 0, controlled: true });

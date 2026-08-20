@@ -8,6 +8,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 - `npm run server` — `tsx server/main.ts`, serves `dist/` + WebSocket at `ws://<host>/ws` on port `3001` (env `PORT`, `DIST_DIR`)
 - `TRADES_ENABLED=true npm run server` — enables the trade feature (env `TRADES_ENABLED`, default disabled; anything other than the literal `true` disables trades for every room on the server)
 - `E2E_SEED_ENABLED=true npm run server` — enables the dev/test seed feature (env `E2E_SEED_ENABLED`, default disabled; anything other than the literal `true` disables it). When on, the server exposes `GET /config` (`{seedEnabled: true}`) and `POST /seed` (`{code, state}`), and the lobby shows a Load Scenario panel for pasting a full game-state JSON. Seeds replace the room's state wholesale (any phase) and broadcast to all clients.
+- `AFK_TIMEOUT_MS` (integer ms, default `30000`) — how long a connected human can stall before the server marks them AFK (`event.playerAfk`) and the bot plays their turn. Also `ROOM_EMPTY_GRACE_MS` (integer ms, default `30000`) — the reconnect window after the last human leaves/disconnects before the room is stopped and removed.
 - `VITE_ID_IDR_ENABLED=true npm run dev`/`npm run build` — enables the Indonesian language and IDR currency options (env `VITE_ID_IDR_ENABLED`, default disabled; anything other than the literal `true` leaves only English/USD available)
 - `npm run build` — `tsc -b && vite build` (typechecks all 3 TS projects, then builds `dist/`)
 - `npm run typecheck` — `tsc -b`

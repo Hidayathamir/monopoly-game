@@ -6,24 +6,31 @@ export type ClientId = string
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 const CODE_LENGTH = 5
+const ROOM_EMPTY_GRACE_MS = 30_000
+const AFK_TIMEOUT_MS = 30_000
 
 export class RoomManager {
   private rooms = new Map<string, GameServer>()
   private clientRoom = new Map<ClientId, string>()
   private roomClients = new Map<string, Set<ClientId>>()
+  private teardownTimers = new Map<string, ReturnType<typeof setTimeout>>()
   private rng: () => number
   private tradesEnabled: boolean
   private seedEnabled: boolean
+  private roomEmptyGraceMs: number
+  private afkTimeoutMs: number
   private events: { send(clientId: ClientId, message: ServerMessage): void }
 
   constructor(
     events: { send(clientId: ClientId, message: ServerMessage): void },
-    opts?: { rng?: () => number; tradesEnabled?: boolean; seedEnabled?: boolean },
+    opts?: { rng?: () => number; tradesEnabled?: boolean; seedEnabled?: boolean; roomEmptyGraceMs?: number; afkTimeoutMs?: number },
   ) {
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.tradesEnabled = opts?.tradesEnabled ?? false
     this.seedEnabled = opts?.seedEnabled ?? false
+    this.roomEmptyGraceMs = opts?.roomEmptyGraceMs ?? ROOM_EMPTY_GRACE_MS
+    this.afkTimeoutMs = opts?.afkTimeoutMs ?? AFK_TIMEOUT_MS
   }
 
   create(): { code: string; game: GameServer } {
@@ -36,7 +43,7 @@ export class RoomManager {
           this.broadcastToRoom(code, { type: ServerMessageType.Lobby, players, hostPlayerId }),
         send: (clientId, msg) => this.events.send(clientId, msg),
       },
-      { code, rng: this.rng, tradesEnabled: this.tradesEnabled, seedEnabled: this.seedEnabled },
+      { code, rng: this.rng, tradesEnabled: this.tradesEnabled, seedEnabled: this.seedEnabled, afkTimeoutMs: this.afkTimeoutMs },
     )
     this.rooms.set(code, game)
     this.roomClients.set(code, new Set())
@@ -67,6 +74,7 @@ export class RoomManager {
   addClient(code: string, clientId: ClientId): void {
     this.clientRoom.set(clientId, code)
     this.roomClients.get(code)?.add(clientId)
+    this.clearTeardown(code)
   }
 
   removeClient(clientId: ClientId): string | undefined {
@@ -75,14 +83,46 @@ export class RoomManager {
     const members = this.roomClients.get(code)
     members?.delete(clientId)
     if (members && members.size === 0) {
-      this.roomClients.delete(code)
       const game = this.rooms.get(code)
-      if (game && game.getPlayers().every((p) => !p.connected && !p.name)) {
-        this.rooms.delete(code)
-      }
+      if (game) this.evaluateTeardown(code, game)
     }
     this.clientRoom.delete(clientId)
     return code
+  }
+
+  private evaluateTeardown(code: string, game: GameServer): void {
+    const players = game.getPlayers()
+    const hasNamedHuman = players.some((p) => !p.isBot && p.name !== null)
+    const hasConnectedHuman = players.some((p) => !p.isBot && p.connected)
+    this.clearTeardown(code)
+    if (!hasNamedHuman) {
+      this.deleteRoom(code)
+      return
+    }
+    if (!hasConnectedHuman) {
+      const timer = setTimeout(() => this.deleteRoom(code), this.roomEmptyGraceMs)
+      this.teardownTimers.set(code, timer)
+    }
+  }
+
+  private clearTeardown(code: string): void {
+    const timer = this.teardownTimers.get(code)
+    if (timer) {
+      clearTimeout(timer)
+      this.teardownTimers.delete(code)
+    }
+  }
+
+  private deleteRoom(code: string): void {
+    this.clearTeardown(code)
+    const game = this.rooms.get(code)
+    if (!game) return
+    game.stop()
+    this.rooms.delete(code)
+    this.roomClients.delete(code)
+    for (const [clientId, roomCode] of this.clientRoom) {
+      if (roomCode === code) this.clientRoom.delete(clientId)
+    }
   }
 
   private broadcastToRoom(code: string, message: ServerMessage): void {

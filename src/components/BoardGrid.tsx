@@ -124,6 +124,7 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
         return (
           <div
             key={space.id}
+            data-testid={'board-cell-' + space.id}
             className={[
               'border border-border text-sm flex flex-col items-center justify-center relative overflow-hidden p-0.5 select-none',
               'hover:bg-bg-cell-hover hover:z-[2]',

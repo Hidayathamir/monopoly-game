@@ -27,6 +27,7 @@ const MAX_PLAYERS = 6
 
 const BOT_STEP_MS = 700
 const BOT_GRACE_MS = 3_000
+const AFK_TIMEOUT_MS = 30_000
 
 export class GameServer {
   private state: GameState
@@ -43,14 +44,17 @@ export class GameServer {
   private hostSlotIndex = 0
   private botSteps = 0
   private botTimer: ReturnType<typeof setTimeout> | null = null
+  private afkTimer: ReturnType<typeof setTimeout> | null = null
   private seedEnabled: boolean
+  private afkTimeoutMs: number
 
-  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean }) {
+  constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean; afkTimeoutMs?: number }) {
     this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
     this.events = events
     this.rng = opts?.rng ?? Math.random
     this.code = opts?.code ?? ''
     this.seedEnabled = opts?.seedEnabled ?? false
+    this.afkTimeoutMs = opts?.afkTimeoutMs ?? AFK_TIMEOUT_MS
   }
 
   getState(): GameState {
@@ -199,6 +203,7 @@ export class GameServer {
       throw new Error(`Invalid seed state: ${roomCheck.message}`)
     }
     this.clearBotTimer()
+    this.clearAfkTimer()
     this.botSteps = 0
     this.state = { ...state, tradesEnabled: this.state.tradesEnabled }
     this.broadcast()
@@ -246,6 +251,7 @@ export class GameServer {
       this.events.send(clientId, { type: ServerMessageType.Error, message: 'Belum bisa melempar dadu' })
       return
     }
+    this.clearAfkIfHuman(clientId)
     this.startRoll(target)
   }
 
@@ -314,6 +320,7 @@ export class GameServer {
       this.events.send(clientId, { type: ServerMessageType.Error, message: 'Bukan giliranmu' })
       return
     }
+    this.clearAfkIfHuman(clientId)
     this.dispatch(action)
   }
 
@@ -384,17 +391,28 @@ export class GameServer {
   private driveBots(): void {
     if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) {
       this.clearBotTimer()
+      this.clearAfkTimer()
       return
     }
     const currentPlayer = this.state.currentPlayer
     const slot = this.slots[currentPlayer]
-    if (!slot) {
+    const player = this.state.players[currentPlayer]
+    if (!slot || !player) {
       this.clearBotTimer()
+      this.clearAfkTimer()
       this.botSteps = 0
       return
     }
-    const botControlled = this.state.players[currentPlayer]?.botControlled === true
-    const isDriveable = slot.isBot || (!slot.connected && botControlled)
+    const isHumanDeciding = !slot.isBot && slot.connected && player.botControlled !== true
+    if (isHumanDeciding) {
+      this.clearBotTimer()
+      this.botSteps = 0
+      this.scheduleAfkTimer(currentPlayer)
+      return
+    }
+    this.clearAfkTimer()
+    const botControlled = player.botControlled === true
+    const isDriveable = slot.isBot || botControlled
     if (!isDriveable) {
       this.clearBotTimer()
       this.botSteps = 0
@@ -419,8 +437,7 @@ export class GameServer {
       if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
       const current = this.slots[currentPlayer]
       const stillBotControlled = this.state.players[currentPlayer]?.botControlled === true
-      const stillDriveable =
-        current?.isBot === true || (current !== undefined && !current.connected && stillBotControlled)
+      const stillDriveable = current?.isBot === true || stillBotControlled
       if (!current || !stillDriveable) return
       const actionNow = decideBotAction(this.state)
       if (!actionNow) {
@@ -439,6 +456,41 @@ export class GameServer {
         until: Date.now() + BOT_GRACE_MS,
       })
     }
+  }
+
+  private scheduleAfkTimer(playerId: number): void {
+    this.clearAfkTimer()
+    this.afkTimer = setTimeout(() => {
+      this.afkTimer = null
+      if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.GameOver) return
+      if (this.state.currentPlayer !== playerId) return
+      const cur = this.slots[playerId]
+      const p = this.state.players[playerId]
+      if (!cur || cur.isBot || !cur.connected) return
+      if (!p || p.botControlled) return
+      this.dispatch({ type: GameActionType.SetBotControl, playerId, controlled: true, reason: 'afk' })
+    }, this.afkTimeoutMs)
+  }
+
+  private clearAfkTimer(): void {
+    if (this.afkTimer !== null) {
+      clearTimeout(this.afkTimer)
+      this.afkTimer = null
+    }
+  }
+
+  private clearAfkIfHuman(clientId: ClientId): void {
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) return
+    const slot = this.slots[index]
+    if (slot.connected && this.state.players[index]?.botControlled === true) {
+      this.dispatch({ type: GameActionType.SetBotControl, playerId: index, controlled: false })
+    }
+  }
+
+  stop(): void {
+    this.clearBotTimer()
+    this.clearAfkTimer()
   }
 
   private clearReconnectGrace(playerId: number): void {

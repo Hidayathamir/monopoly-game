@@ -28,8 +28,8 @@
   "board.space.24": "Shanghai",
   "board.space.25": "CDG Airport",
   "board.space.26": "Lyon",
-  "board.space.27": "Water Company",
-  "board.space.28": "Toulouse",
+  "board.space.27": "Toulouse",
+  "board.space.28": "Water Company",
   "board.space.29": "Paris",
   "board.space.30": "Go to Prison",
   "board.space.31": "Liverpool",
@@ -114,6 +114,7 @@
   "event.bankruptcyWin": "{{name}} went bankrupt! {{winner}} wins!",
   "event.bankruptcyTransfer": "{{name}}'s assets were liquidated to {{creditor}} for {{amount}}",
   "event.playerOffline": "{{name}} went offline — a bot will play their turn",
+  "event.playerAfk": "{{name}} is AFK — a bot will play their turn",
   "event.playerBack": "{{name}} is back — taking back control",
   "event.reconnectWait": "Waiting for {{name}} to reconnect…",
 

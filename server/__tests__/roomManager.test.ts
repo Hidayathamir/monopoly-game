@@ -1,16 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { RoomManager } from '../roomManager'
 import { GamePhase } from '../../src/types/game'
 import type { ServerMessage } from '../../src/types/net'
 import { createSeededState } from '../../src/logic/seed'
 
-function setup() {
+function setup(opts?: { tradesEnabled?: boolean; seedEnabled?: boolean; roomEmptyGraceMs?: number }) {
   const sent: { clientId: string; message: ServerMessage }[] = []
-  const rm = new RoomManager({ send: (clientId, message) => sent.push({ clientId, message }) })
+  const rm = new RoomManager({ send: (clientId, message) => sent.push({ clientId, message }) }, opts)
   return { rm, sent }
 }
 
 describe('RoomManager', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
   it('generates a unique 5-char code', () => {
     const { rm } = setup()
     const a = rm.create()
@@ -50,6 +53,65 @@ describe('RoomManager', () => {
     game.disconnect('c1')
     rm.removeClient('c1')
     expect(rm.get(code)).toBeDefined()
+  })
+
+  it('stops and removes a room when the last human disconnects after the grace window', () => {
+    vi.useFakeTimers()
+    const { rm } = setup({ roomEmptyGraceMs: 1_000 })
+    const { code, game } = rm.create()
+    rm.addClient(code, 'c1')
+    game.join('c1', 'Alice')
+    game.addBot('c1')
+    game.start('c1')
+
+    game.disconnect('c1') // last human goes offline mid-game
+    rm.removeClient('c1')
+    expect(rm.get(code)).toBeDefined() // grace window still open
+
+    vi.advanceTimersByTime(500)
+    expect(rm.get(code)).toBeDefined()
+
+    vi.advanceTimersByTime(500) // grace elapsed → room torn down
+    expect(rm.get(code)).toBeUndefined()
+  })
+
+  it('cancels room teardown when a human rejoins within the grace window', () => {
+    vi.useFakeTimers()
+    const { rm } = setup({ roomEmptyGraceMs: 1_000 })
+    const { code, game } = rm.create()
+    rm.addClient(code, 'c1')
+    game.join('c1', 'Alice')
+    game.addBot('c1')
+    game.start('c1')
+
+    game.disconnect('c1')
+    rm.removeClient('c1')
+
+    vi.advanceTimersByTime(500)
+    rm.addClient(code, 'c2') // reconnect before the grace expires
+    game.join('c2', 'Alice')
+
+    vi.advanceTimersByTime(2_000)
+    expect(rm.get(code)).toBeDefined()
+  })
+
+  it('stops the game server when tearing a room down', () => {
+    vi.useFakeTimers()
+    const { rm } = setup({ roomEmptyGraceMs: 1_000 })
+    const { code, game } = rm.create()
+    rm.addClient(code, 'c1')
+    game.join('c1', 'Alice')
+    game.addBot('c1')
+    game.start('c1')
+
+    game.disconnect('c1')
+    rm.removeClient('c1')
+    vi.advanceTimersByTime(1_000) // teardown fires → game.stop() clears bot timers
+    expect(rm.get(code)).toBeUndefined()
+
+    // No stray bot timers fire on the deleted room.
+    vi.advanceTimersByTime(5_000)
+    expect(rm.get(code)).toBeUndefined()
   })
 
   it('seeds created games with tradesEnabled from config (default false)', () => {

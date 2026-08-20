@@ -34,7 +34,7 @@ test('wire values are locked for all enum-like consts', () => {
     'event.usedJailCard', 'event.doublesAgain', 'event.cardCollect', 'event.cardPay',
     'event.cardToJail', 'event.gotJailCard', 'event.cardCollectPlayers', 'event.cardStreetRepairs',
     'event.movedForward', 'event.movedBack', 'event.bankruptcy', 'event.bankruptcyWin',
-    'event.bankruptcyTransfer', 'event.playerOffline', 'event.playerBack', 'event.reconnectWait',
+    'event.bankruptcyTransfer', 'event.playerOffline', 'event.playerAfk', 'event.playerBack', 'event.reconnectWait',
   ]);
   expect(Object.values(Currency)).toEqual(['USD', 'IDR']);
 });
