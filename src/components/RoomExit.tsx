@@ -3,16 +3,19 @@ import { useTranslation } from 'react-i18next'
 import Button from './Button'
 import Modal from './Modals/Modal'
 
+const RoomExitVariant = { Icon: 'icon', Button: 'button' } as const
+type RoomExitVariant = (typeof RoomExitVariant)[keyof typeof RoomExitVariant]
+
 interface Props {
   onLeave: () => void
-  variant?: 'icon' | 'button'
+  variant?: RoomExitVariant
   labelKey?: string
   titleKey?: string
   messageKey?: string
   confirmKey?: string
 }
 
-export default function RoomExit({ onLeave, variant = 'button', labelKey, titleKey, messageKey, confirmKey }: Props) {
+export default function RoomExit({ onLeave, variant = RoomExitVariant.Button, labelKey, titleKey, messageKey, confirmKey }: Props) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
   const label = t(labelKey ?? 'lobby.leaveRoom')
@@ -21,8 +24,8 @@ export default function RoomExit({ onLeave, variant = 'button', labelKey, titleK
   const confirmLabel = t(confirmKey ?? 'confirm.leave')
 
   return (
-    <div className={variant === 'icon' ? 'flex flex-col items-center' : 'flex flex-col items-stretch gap-1.5 w-full'}>
-      {variant === 'icon' ? (
+    <div className={variant === RoomExitVariant.Icon ? 'flex flex-col items-center' : 'flex flex-col items-stretch gap-1.5 w-full'}>
+      {variant === RoomExitVariant.Icon ? (
         <button
           type="button"
           aria-label={label}
