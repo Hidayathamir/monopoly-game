@@ -2,7 +2,7 @@ import { GamePhase, type GameState, type PendingAction, type Player, type Space,
 import { createInitialBoard, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
 import { MAX_PLAYERS, PLAYER_COLORS } from '../data/players';
-import { DEFAULT_AVATAR } from '../data/avatars';
+import { DEFAULT_AVATAR, isValidAvatar } from '../data/avatars';
 
 export type SeedBoardOverride = { owner?: number; houses?: number; mortgaged?: boolean };
 
@@ -141,6 +141,14 @@ export function validateStateStructure(state: GameState): ValidationResult {
   }
   if (state.players.some((p) => p.position < 0 || p.position >= BOARD_SIZE)) {
     return { kind: ValidationKind.Error, message: 'player position must be within 0..39' };
+  }
+  for (const player of state.players) {
+    if (!PLAYER_COLORS.includes(player.color)) {
+      return { kind: ValidationKind.Error, message: `player ${player.id} (${player.name}) has an invalid color` };
+    }
+    if (!isValidAvatar(player.avatar)) {
+      return { kind: ValidationKind.Error, message: `player ${player.id} (${player.name}) has an invalid avatar` };
+    }
   }
   if (state.phase === GamePhase.Waiting && (state.pendingAction !== null || state.dice !== null)) {
     return { kind: ValidationKind.Error, message: 'Waiting state must have pendingAction === null and dice === null' };

@@ -1,6 +1,8 @@
 import { test, expect } from './fixtures'
 import { seedGame } from './helpers/seed'
 import { INITIAL_BOARD } from './fixtures/initial-state'
+import { PLAYER_COLORS } from '../src/data/players'
+import { DEFAULT_AVATAR } from '../src/data/avatars'
 import {
   GamePhase, PendingActionType, CardActionType, SpaceType,
   type GameState, type Space, type Card,
@@ -47,8 +49,8 @@ async function seedBotBuildTurn(url: string, code: string, opts: BotTurnOptions)
   const state: GameState = {
     phase: GamePhase.Resolving,
     players: [
-      { id: 0, name: 'Host', money: 1500, position: 0, properties: hostProps, passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false },
-      { id: 1, name: 'Droid', money: opts.money, position: target.id, properties: botProps, passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: true, botControlled: false, afk: false },
+      { id: 0, name: 'Host', money: 1500, position: 0, properties: hostProps, passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+      { id: 1, name: 'Droid', money: opts.money, position: target.id, properties: botProps, passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: true, botControlled: false, afk: false, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
     ],
     turnOrder: [1, 0],
     currentPlayer: 1,

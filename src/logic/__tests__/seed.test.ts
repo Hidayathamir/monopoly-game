@@ -113,6 +113,23 @@ describe('validateStateStructure', () => {
     const bad = { ...s, phase: GamePhase.Resolving, pendingAction: null };
     expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
   });
+
+  it('rejects a player with a color outside the palette', () => {
+    const s = createSeededState({ players: [{ id: 0, name: 'A', money: 100 }], currentPlayer: 0 });
+    const bad = { ...s, players: [{ ...s.players[0], color: '#123456' }] };
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
+  });
+
+  it('rejects a player with an invalid avatar', () => {
+    const s = createSeededState({ players: [{ id: 0, name: 'A', money: 100 }], currentPlayer: 0 });
+    const bad = { ...s, players: [{ ...s.players[0], avatar: { kind: 'custom' as never, dataUrl: 'nope' } }] };
+    expect(validateStateStructure(bad).kind).toBe(ValidationKind.Error);
+  });
+
+  it('accepts default seeded players', () => {
+    const s = createSeededState({ players: [{ id: 0, name: 'A', money: 100 }], currentPlayer: 0 });
+    expect(validateStateStructure(s).kind).toBe(ValidationKind.Ok);
+  });
 });
 
 describe('validateStateForRoom', () => {
