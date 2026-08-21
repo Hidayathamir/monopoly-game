@@ -106,9 +106,12 @@ avatar: PlayerAvatar
   Uniqueness is enforced server-side, first-come. `PLAYER_COLORS`
   (`src/data/players.ts`) is the palette; max 6 players already.
 - New setup-phase wire message `SetIdentity { color?, avatar? }`; server
-  validates color is free (or your own) and avatar valid; mid-game changes are
-  rejected. On success the server broadcasts the updated lobby (and the next
-  state snapshot carries it via `Player`).
+  validates the color is free (or your own) and the avatar is valid; a taken
+  color is rejected with an error (the lobby picker prevents selecting taken
+  colors, so this is only a race guard) — unlike join, which silently
+  auto-assigns the next free color. Mid-game changes are rejected. On success
+  the server broadcasts the updated lobby (and the next state snapshot carries
+  it via `Player`).
 - Custom data URLs are capped (~100KB string length) server-side.
 - `addBot()` auto-assigns the next free color + a default preset avatar
   (deterministic by slot).
@@ -207,10 +210,10 @@ display-only):
 
 ### Tests
 
-- Server (`server/__tests__/*`): color uniqueness (taken → auto-assign next
-  free / rejection), `SetIdentity` validation (mid-game rejected, oversized
-  custom rejected), avatar validity, join/rejoin identity preservation, bots
-  get free colors.
+- Server (`server/__tests__/*`): join with a taken color auto-assigns the next
+  free color; `SetIdentity` with a taken color is rejected; `SetIdentity`
+  mid-game rejected; oversized custom avatar rejected; invalid avatar rejected;
+  join/rejoin preserves the slot's existing identity; bots get free colors.
 - Reducer/unit: `StartGame` writes colors/avatars; identity preserved through
   history (pure reducer).
 - Client: lobby picker sends `SetIdentity`; upload downscale; component
