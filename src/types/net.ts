@@ -19,6 +19,7 @@ export const ClientMessageType = {
   AddBot: 'addBot',
   RemoveBot: 'removeBot',
   Action: 'action',
+  SetIdentity: 'setIdentity',
 } as const
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType]
 
@@ -40,8 +41,9 @@ export const HttpPath = {
 export type HttpPath = (typeof HttpPath)[keyof typeof HttpPath]
 
 export type ClientMessage =
-  | { type: typeof ClientMessageType.Create; name: string }
-  | { type: typeof ClientMessageType.Join; code: string; name: string }
+  | { type: typeof ClientMessageType.Create; name: string; color?: string; avatar?: PlayerAvatar }
+  | { type: typeof ClientMessageType.Join; code: string; name: string; color?: string; avatar?: PlayerAvatar }
+  | { type: typeof ClientMessageType.SetIdentity; color?: string; avatar?: PlayerAvatar }
   | { type: typeof ClientMessageType.Start }
   | { type: typeof ClientMessageType.Leave }
   | { type: typeof ClientMessageType.AddBot }

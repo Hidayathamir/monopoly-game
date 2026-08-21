@@ -1,11 +1,11 @@
 import { gameReducer, createInitialState } from '../src/logic/gameReducer'
-import { GameActionType, GamePhase, PendingActionType, BotControlReason, type GameState, type GameAction } from '../src/types/game'
+import { GameActionType, GamePhase, PendingActionType, BotControlReason, type GameState, type GameAction, type PlayerAvatar } from '../src/types/game'
 import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
 import { MAX_PLAYERS, PLAYER_COLORS } from '../src/data/players'
-import { DEFAULT_AVATAR } from '../src/data/avatars'
+import { DEFAULT_AVATAR, isValidAvatar } from '../src/data/avatars'
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 
@@ -23,6 +23,8 @@ interface Slot {
   connected: boolean
   isBot: boolean
   gracePending: boolean
+  color: string | null
+  avatar: PlayerAvatar | null
 }
 
 const BOT_STEP_MS = 700
@@ -37,6 +39,8 @@ export class GameServer {
     connected: false,
     isBot: false,
     gracePending: false,
+    color: null,
+    avatar: null,
   }))
   private events: GameServerEvents
   private rng: () => number
@@ -70,10 +74,17 @@ export class GameServer {
   }
 
   getPlayers(): LobbyPlayer[] {
-    return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected, isBot: s.isBot, color: PLAYER_COLORS[i % PLAYER_COLORS.length], avatar: DEFAULT_AVATAR }))
+    return this.slots.map((s, i) => ({
+      id: i,
+      name: s.name,
+      connected: s.connected,
+      isBot: s.isBot,
+      color: s.color ?? PLAYER_COLORS[i % PLAYER_COLORS.length],
+      avatar: s.avatar ?? DEFAULT_AVATAR,
+    }))
   }
 
-  join(clientId: ClientId, name: string): boolean {
+  join(clientId: ClientId, name: string, opts?: { color?: string; avatar?: PlayerAvatar }): boolean {
     const trimmed = name.trim()
     if (!trimmed) {
       this.events.send(clientId, { type: ServerMessageType.Error, message: 'Nama tidak boleh kosong' })
@@ -121,7 +132,15 @@ export class GameServer {
       return false
     }
 
-    this.slots[index] = { clientId, name: trimmed, connected: true, isBot: false, gracePending: false }
+    this.slots[index] = {
+      clientId,
+      name: trimmed,
+      connected: true,
+      isBot: false,
+      gracePending: false,
+      color: opts?.color !== undefined && this.isColorFree(opts.color) ? opts.color : this.nextFreeColor(),
+      avatar: opts?.avatar !== undefined && isValidAvatar(opts.avatar) ? opts.avatar : DEFAULT_AVATAR,
+    }
     this.events.send(clientId, {
       type: ServerMessageType.Welcome,
       playerId: index,
@@ -132,6 +151,32 @@ export class GameServer {
     })
     this.broadcast()
     return true
+  }
+
+  setIdentity(clientId: ClientId, opts: { color?: string; avatar?: PlayerAvatar }): void {
+    if (this.state.phase !== GamePhase.Setup) {
+      this.events.send(clientId, { type: ServerMessageType.Error, message: 'Identitas hanya bisa diubah sebelum permainan dimulai' })
+      return
+    }
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) return
+    const slot = this.slots[index]
+    if (opts.color !== undefined) {
+      const takenBy = this.slots.findIndex((s, i) => i !== index && s.name !== null && s.color === opts.color)
+      if (takenBy !== -1) {
+        this.events.send(clientId, { type: ServerMessageType.Error, message: 'Warna sudah dipakai' })
+        return
+      }
+      slot.color = opts.color
+    }
+    if (opts.avatar !== undefined) {
+      if (!isValidAvatar(opts.avatar)) {
+        this.events.send(clientId, { type: ServerMessageType.Error, message: 'Avatar tidak valid' })
+        return
+      }
+      slot.avatar = opts.avatar
+    }
+    this.broadcast()
   }
 
   addBot(clientId: ClientId): void {
@@ -150,7 +195,7 @@ export class GameServer {
     }
     const used = new Set(this.slots.map((s) => s.name).filter((n): n is string => n !== null))
     const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${index + 1}`
-    this.slots[index] = { clientId: null, name, connected: true, isBot: true, gracePending: false }
+    this.slots[index] = { clientId: null, name, connected: true, isBot: true, gracePending: false, color: this.nextFreeColor(), avatar: DEFAULT_AVATAR }
     this.broadcast()
   }
 
@@ -165,7 +210,7 @@ export class GameServer {
     }
     const slot = this.slots[playerId]
     if (!slot || !slot.isBot) return
-    this.slots[playerId] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
+    this.slots[playerId] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false, color: null, avatar: null }
     this.broadcast()
   }
 
@@ -187,6 +232,8 @@ export class GameServer {
       playerCount: joined.length,
       names: joined.map((s, i) => s.name ?? `P${i + 1}`),
       isBot: joined.map((s) => s.isBot),
+      colors: joined.map((s) => s.color ?? PLAYER_COLORS[this.slots.indexOf(s) % PLAYER_COLORS.length]),
+      avatars: joined.map((s) => s.avatar ?? DEFAULT_AVATAR),
     })
   }
 
@@ -218,14 +265,14 @@ export class GameServer {
     }
 
     if (this.state.phase === GamePhase.Setup) {
-      this.slots[index] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
+      this.slots[index] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false, color: null, avatar: null }
       if (index === this.hostSlotIndex) {
         this.hostSlotIndex = this.nextConnectedSlot(this.hostSlotIndex)
       }
       const hasHuman = this.slots.some((s) => s.clientId !== null || (s.name !== null && !s.isBot))
       if (!hasHuman) {
         this.slots.forEach((s, i) => {
-          if (s.isBot) this.slots[i] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false }
+          if (s.isBot) this.slots[i] = { clientId: null, name: null, connected: false, isBot: false, gracePending: false, color: null, avatar: null }
         })
       }
     } else {
@@ -345,6 +392,15 @@ export class GameServer {
     if (this.state.phase === GamePhase.Setup) return false
     const index = this.slots.findIndex((s) => s.clientId === clientId)
     return index !== -1 && index === this.state.currentPlayer
+  }
+
+  private isColorFree(color: string): boolean {
+    return !this.slots.some((s) => s.name !== null && s.color === color)
+  }
+
+  private nextFreeColor(): string {
+    const used = new Set(this.slots.map((s) => s.color).filter((c): c is string => c !== null))
+    return PLAYER_COLORS.find((c) => !used.has(c)) ?? PLAYER_COLORS[0]
   }
 
   private isHost(clientId: ClientId): boolean {

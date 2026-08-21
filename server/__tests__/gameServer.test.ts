@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { GameServer } from '../gameServer'
-import { GamePhase, PendingActionType } from '../../src/types/game'
+import { GamePhase, PendingActionType, AvatarKind } from '../../src/types/game'
 import { createSeededState } from '../../src/logic/seed'
 import { ServerMessageType } from '../../src/types/net'
 import type { ServerMessage } from '../../src/types/net'
+import { PLAYER_COLORS } from '../../src/data/players'
+import { DEFAULT_AVATAR, PRESET_AVATARS } from '../../src/data/avatars'
 
 function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean; afkTimeoutMs?: number }) {
   vi.spyOn(Math, 'random').mockReturnValue(0.5)
@@ -692,5 +694,91 @@ describe('GameServer', () => {
 
     vi.advanceTimersByTime(700) // BOT_STEP_MS — the bot's timer fires and it rolls
     expect(server.getState().phase).toBe(GamePhase.Rolling)
+  })
+
+  it('auto-assigns the first free color on join and keeps uniqueness', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[0] }) // taken -> first free
+    const players = server.getPlayers()
+    expect(players[0].color).toBe(PLAYER_COLORS[0])
+    expect(players[1].color).toBe(PLAYER_COLORS[1])
+  })
+
+  it('stores the requested avatar on the slot and surfaces it via getPlayers', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } })
+    expect(server.getPlayers()[0].avatar).toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog })
+  })
+
+  it('setIdentity updates color and avatar and broadcasts the lobby', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const before = sent.length
+    server.setIdentity('c0', { color: PLAYER_COLORS[4], avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Fox } })
+    expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[4])
+    const lobbyMsg = sent.slice(before).find((m) => m.type === 'lobby') as { type: string; players: { color: string }[] } | undefined
+    expect(lobbyMsg?.players[0].color).toBe(PLAYER_COLORS[4])
+  })
+
+  it('rejects setIdentity onto a color another player holds', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[1] })
+    server.setIdentity('c1', { color: PLAYER_COLORS[0] })
+    expect(sent.some((m) => m.type === 'error' && m.message === 'Warna sudah dipakai')).toBe(true)
+    expect(server.getPlayers()[1].color).toBe(PLAYER_COLORS[1])
+  })
+
+  it('rejects setIdentity after the game has started', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+    server.setIdentity('c0', { color: PLAYER_COLORS[2] })
+    expect(sent.some((m) => m.type === 'error')).toBe(true)
+    expect(server.getState().players[0].color).not.toBe(PLAYER_COLORS[2])
+  })
+
+  it('rejects an invalid or oversized custom avatar', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.setIdentity('c0', { avatar: { kind: AvatarKind.Custom, dataUrl: 'https://x/y.png' } })
+    expect(sent.some((m) => m.type === 'error')).toBe(true)
+  })
+
+  it('assigns bots the next free color and the default avatar', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
+    server.addBot('c0')
+    const players = server.getPlayers()
+    expect(players[1].isBot).toBe(true)
+    expect(players[1].color).toBe(PLAYER_COLORS[1])
+    expect(players[1].avatar).toEqual(DEFAULT_AVATAR)
+  })
+
+  it('passes colors and avatars into the StartGame action at start', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[2], avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Robot } })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[3], avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Ghost } })
+    server.start('c0')
+    const players = server.getState().players
+    expect(players[0].color).toBe(PLAYER_COLORS[2])
+    expect(players[1].color).toBe(PLAYER_COLORS[3])
+    expect(players[0].avatar).toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Robot })
+    expect(players[1].avatar).toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Ghost })
+  })
+
+  it('preserves identity when a disconnected player rejoins', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[4] })
+    server.join('c1', 'Bob')
+    server.start('c0')
+    server.disconnect('c0')
+    server.join('c9', 'Alice', { color: PLAYER_COLORS[5] }) // in-game reconnect path keeps the slot's identity
+    const players = server.getState().players
+    expect(players[0].color).toBe(PLAYER_COLORS[4])
+    expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[4])
   })
 })

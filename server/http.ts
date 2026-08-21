@@ -142,16 +142,18 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
         const msg = JSON.parse(raw.toString()) as ClientMessage
         if (msg.type === ClientMessageType.Create) {
           const { code, game } = roomManager.create()
-          if (game.join(clientId, msg.name)) roomManager.addClient(code, clientId)
+          if (game.join(clientId, msg.name, { color: msg.color, avatar: msg.avatar })) roomManager.addClient(code, clientId)
         } else if (msg.type === ClientMessageType.Join) {
           const game = roomManager.get(msg.code)
           if (!game) {
             send(clientId, { type: ServerMessageType.Error, message: 'Ruangan tidak ditemukan' })
             return
           }
-          if (game.join(clientId, msg.name)) roomManager.addClient(msg.code, clientId)
+          if (game.join(clientId, msg.name, { color: msg.color, avatar: msg.avatar })) roomManager.addClient(msg.code, clientId)
         } else if (msg.type === ClientMessageType.Start) {
           roomManager.gameFor(clientId)?.start(clientId)
+        } else if (msg.type === ClientMessageType.SetIdentity) {
+          roomManager.gameFor(clientId)?.setIdentity(clientId, { color: msg.color, avatar: msg.avatar })
         } else if (msg.type === ClientMessageType.Leave) {
           const game = roomManager.gameFor(clientId)
           if (game) game.leave(clientId)
