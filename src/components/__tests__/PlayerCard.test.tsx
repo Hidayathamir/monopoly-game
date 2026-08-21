@@ -20,26 +20,26 @@ afterEach(cleanup)
 
 describe('PlayerCard', () => {
   it('shows the player money', () => {
-    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} diff={null} board={board} />)
     expect(screen.getByText(/\$/)).toBeTruthy()
   })
 
   it('shows a free-jail badge when the player holds the card', () => {
-    renderWithProviders(<PlayerCard player={{ ...player, getOutOfJailFreeCards: 1 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={{ ...player, getOutOfJailFreeCards: 1 }} isCurrent={false} diff={null} board={board} />)
     expect(screen.getByTitle('Get Out of Jail Free')).toBeTruthy()
   })
 
   it('does not show the free-jail badge by default', () => {
-    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} diff={null} board={board} />)
     expect(screen.queryByTitle('Get Out of Jail Free')).toBeNull()
   })
 
   it('shows negative money in red and positive money in green', () => {
-    renderWithProviders(<PlayerCard player={{ ...player, money: -5 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={{ ...player, money: -5 }} isCurrent={false} diff={null} board={board} />)
     const negativeDiv = screen.getByText(/-\$5/).closest('div')!
     expect(negativeDiv.className).toContain('text-red-danger')
 
-    renderWithProviders(<PlayerCard player={{ ...player, money: 15000 }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={{ ...player, money: 15000 }} isCurrent={false} diff={null} board={board} />)
     const positiveDiv = screen.getByText(/\$15K/).closest('div')!
     expect(positiveDiv.className).toContain('text-green-money')
   })
@@ -53,7 +53,6 @@ describe('PlayerCard popup trade button', () => {
       <PlayerCard
         player={otherPlayer}
         isCurrent={false}
-        color="#E74C3C"
         diff={null}
         board={board}
         currentPlayerId={0}
@@ -113,14 +112,14 @@ describe('PlayerCard popup trade button', () => {
 
 describe('PlayerCard connection indicator', () => {
   it('shows the OFFLINE label and dims the card when disconnected', () => {
-    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} connected={false} />)
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} diff={null} board={board} connected={false} />)
     const card = screen.getByTestId('player-card')
     expect(within(card).getByText('OFFLINE')).toBeTruthy()
     expect(card.className).toContain('opacity-50')
   })
 
   it('does not show the OFFLINE label when connected (default)', () => {
-    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} diff={null} board={board} />)
     expect(screen.queryByText('OFFLINE')).toBeNull()
     expect(screen.getByTestId('player-card').className).not.toContain('opacity-50')
   })
@@ -128,12 +127,12 @@ describe('PlayerCard connection indicator', () => {
 
 describe('PlayerCard bot-control badge', () => {
   it('shows a bot-control badge when the player is bot-controlled', () => {
-    renderWithProviders(<PlayerCard player={{ ...player, botControlled: true }} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={{ ...player, botControlled: true }} isCurrent={false} diff={null} board={board} />)
     expect(screen.getByText(/BOT/)).toBeTruthy()
   })
 
   it('does not show the bot-control badge by default', () => {
-    renderWithProviders(<PlayerCard player={player} isCurrent={false} color="#E74C3C" diff={null} board={board} />)
+    renderWithProviders(<PlayerCard player={player} isCurrent={false} diff={null} board={board} />)
     expect(screen.queryByText(/BOT/)).toBeNull()
   })
 })

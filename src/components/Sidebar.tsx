@@ -1,6 +1,5 @@
 import type { GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
-import { PLAYER_COLORS } from '../data/players'
 import TurnHeader from './TurnHeader'
 import DiceRoller from './DiceRoller'
 import RoomExit from './RoomExit'
@@ -76,7 +75,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeT
             )}
           </button>
         )}
-        <PlayerPanel state={state} playerColors={PLAYER_COLORS} onProposeTrade={onProposeTrade} canTrade={canTrade} connectedPlayerIds={connectedPlayerIds} tradesEnabled={tradesEnabled} />
+        <PlayerPanel state={state} onProposeTrade={onProposeTrade} canTrade={canTrade} connectedPlayerIds={connectedPlayerIds} tradesEnabled={tradesEnabled} />
         <EventLog log={state.eventLog} />
       </div>
     </div>

@@ -31,7 +31,6 @@ function renderBoard(touch: boolean) {
     <BoardGrid
       state={s}
       isMyTurn={true}
-      playerColors={['#000', '#fff']}
       onSell={() => {}}
       onMortgage={() => {}}
       onUnmortgage={() => {}}

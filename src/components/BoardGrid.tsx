@@ -8,7 +8,6 @@ import PropertyTooltip from './PropertyTooltip'
 interface Props {
   state: GameState
   isMyTurn: boolean
-  playerColors: string[]
   onSell: (spaceId: number) => void
   onMortgage: (spaceId: number) => void
   onUnmortgage: (spaceId: number) => void
@@ -83,7 +82,7 @@ function computeTooltipPosition(
   return { top, left }
 }
 
-export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
+export default function BoardGrid({ state, isMyTurn, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   const { t } = useTranslation()
   const { board } = state
   const [hoveredId, setHoveredId] = useState<number | null>(null)
@@ -223,7 +222,7 @@ export default function BoardGrid({ state, isMyTurn, playerColors, onSell, onMor
             {owner && (
               <div
                 className="absolute bottom-0 left-0 w-full h-1 z-[1]"
-                style={{ backgroundColor: playerColors[owner.id] }}
+                style={{ backgroundColor: state.players[owner.id]?.color ?? '#000' }}
               />
             )}
           </div>

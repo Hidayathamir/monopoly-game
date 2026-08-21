@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import type { GameState } from '../types/game'
-import { PLAYER_COLORS } from '../data/players'
 import BoardGrid from './BoardGrid'
 import PlayerTokens from './PlayerTokens'
 
@@ -24,13 +23,12 @@ export default function GameBoard({ state, isMyTurn, children, onSell, onMortgag
         <BoardGrid
           state={state}
           isMyTurn={isMyTurn}
-          playerColors={PLAYER_COLORS}
           onSell={onSell}
           onMortgage={onMortgage}
           onUnmortgage={onUnmortgage}
           onSellProperty={onSellProperty}
         />
-        <PlayerTokens state={state} playerColors={PLAYER_COLORS} />
+        <PlayerTokens state={state} />
         {children}
       </div>
     </div>

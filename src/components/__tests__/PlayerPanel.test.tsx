@@ -7,8 +7,6 @@ import { gameReducer, createInitialState } from '../../logic/gameReducer'
 import { GameActionType, type GameState } from '../../types/game'
 import { GO_SALARY } from '../../data/board'
 
-const COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#E67E22']
-
 function makeState(money: number, position: number): GameState {
   const s = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] })
   return { ...s, players: s.players.map((p, i) => i === 0 ? { ...p, money, position } : p) }
@@ -19,7 +17,6 @@ describe('PlayerPanel', () => {
     const { rerender } = renderWithProviders(
       <PlayerPanel
         state={makeState(1000, 38)}
-        playerColors={COLORS}
         onProposeTrade={() => {}}
         canTrade
       />,
@@ -27,7 +24,6 @@ describe('PlayerPanel', () => {
     rerender(
       <PlayerPanel
         state={makeState(1000 + GO_SALARY, 5)}
-        playerColors={COLORS}
         onProposeTrade={() => {}}
         canTrade
       />,
@@ -40,7 +36,6 @@ describe('PlayerPanel', () => {
     renderWithProviders(
       <PlayerPanel
         state={{ ...s, turnOrder: [1, 0], currentPlayer: 1 }}
-        playerColors={COLORS}
         onProposeTrade={() => {}}
         canTrade
       />,
@@ -53,7 +48,6 @@ describe('PlayerPanel', () => {
     renderWithProviders(
       <PlayerPanel
         state={makeState(1000, 0)}
-        playerColors={COLORS}
         onProposeTrade={() => {}}
         canTrade
         connectedPlayerIds={new Set([1])}
@@ -64,7 +58,7 @@ describe('PlayerPanel', () => {
 
   it('treats everyone as connected when connectedPlayerIds is omitted', () => {
     renderWithProviders(
-      <PlayerPanel state={makeState(1000, 0)} playerColors={COLORS} onProposeTrade={() => {}} canTrade />,
+      <PlayerPanel state={makeState(1000, 0)} onProposeTrade={() => {}} canTrade />,
     )
     expect(screen.queryByText('OFFLINE')).toBeNull()
   })

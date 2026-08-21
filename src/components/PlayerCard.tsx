@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { Player, Space } from '../types/game'
 import { useCurrency } from '../i18n/CurrencyContext'
 import Button from './Button'
+import Avatar from './Avatar'
 
 function MoneyChange({ diff }: { diff: number }) {
   const { formatMoney } = useCurrency()
@@ -30,7 +31,6 @@ function MoneyChange({ diff }: { diff: number }) {
 interface PlayerCardProps {
   player: Player
   isCurrent: boolean
-  color: string
   diff?: { diff: number; key: number } | null
   board: Space[]
   connected?: boolean
@@ -55,7 +55,7 @@ export function computePopupPosition(
   return { left, top }
 }
 
-export default function PlayerCard({ player, isCurrent, color, diff, board, connected = true, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, diff, board, connected = true, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
@@ -104,12 +104,13 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
           isCurrent ? 'ring-2 ring-gold/80 bg-[#1a4a7a]/70' : '',
           player.bankrupt || !connected ? 'opacity-50' : '',
         ].join(' ')}
-        style={{ borderLeft: `3px solid ${color}` }}
+        style={{ borderLeft: `3px solid ${player.color}` }}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
         <div className="flex items-center gap-1.5 text-base">
-          <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
+          <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: player.color }} />
+          <Avatar avatar={player.avatar} className="w-4 h-4 rounded-full object-cover flex-shrink-0" title={player.name} />
           <strong className="truncate">{player.name}</strong>
           {player.inJail && <span>🔒</span>}
           {player.getOutOfJailFreeCards > 0 && (
@@ -133,7 +134,7 @@ export default function PlayerCard({ player, isCurrent, color, diff, board, conn
           <PlayerPopup
             player={player}
             owned={owned}
-            color={color}
+            color={player.color}
             rect={popupRect}
             popupRef={popupRef}
             onEnter={() => clearTimeout(timerRef.current)}

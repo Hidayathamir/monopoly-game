@@ -4,10 +4,10 @@ import { PLAYER_OFFSETS } from '../data/players'
 import { useSound } from '../audio/SoundContext'
 import { SoundId } from '../audio/soundEngine'
 import { BOARD_SIZE, JAIL_SPACE } from '../data/board'
+import Avatar from './Avatar'
 
 interface Props {
   state: GameState
-  playerColors: string[]
 }
 
 const RATIO = 100 / 11
@@ -45,7 +45,7 @@ export function getPath(from: number, to: number, backward: boolean): number[] {
   return path
 }
 
-export default function PlayerTokens({ state, playerColors }: Props) {
+export default function PlayerTokens({ state }: Props) {
   const play = useSound()
   const { players } = state
   const lastMoveSteps = state.lastMoveSteps
@@ -94,14 +94,14 @@ export default function PlayerTokens({ state, playerColors }: Props) {
               player.bankrupt ? 'opacity-30' : '',
             ].join(' ')}
             style={{
-              backgroundColor: playerColors[player.id],
+              backgroundColor: player.color,
               left: `calc(${pos.x}% + ${offset.dx}px)`,
               top: `calc(${pos.y}% + ${offset.dy}px)`,
               transition: 'left 0.12s ease-in-out, top 0.12s ease-in-out',
             }}
             title={player.name}
           >
-            {player.id + 1}
+            <Avatar avatar={player.avatar} className="w-4 h-4 rounded-full" title={player.name} />
           </div>
         )
       })}
