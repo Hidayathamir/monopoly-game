@@ -163,7 +163,7 @@ export const CUSTOM_AVATAR_MAX_DIMENSION = 96;
 export function isPresetAvatar(value: unknown): value is { kind: typeof AvatarKind.Preset; id: PresetAvatarId } {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
-  return v.kind === AvatarKind.Preset && typeof v.id === 'string' && v.id in PRESET_EMOJI;
+  return v.kind === AvatarKind.Preset && typeof v.id === 'string' && Object.hasOwn(PRESET_EMOJI, v.id);
 }
 
 export function isCustomAvatar(value: unknown): value is { kind: typeof AvatarKind.Custom; dataUrl: string } {
@@ -181,7 +181,7 @@ export function isValidAvatar(value: unknown): value is PlayerAvatar {
 
 export function avatarEmoji(avatar: PlayerAvatar): string | null {
   if (avatar.kind !== AvatarKind.Preset) return null;
-  return PRESET_EMOJI[avatar.id] ?? null;
+  return Object.hasOwn(PRESET_EMOJI, avatar.id) ? (PRESET_EMOJI[avatar.id] ?? null) : null;
 }
 ```
 
