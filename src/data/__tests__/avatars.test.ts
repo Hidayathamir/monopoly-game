@@ -29,6 +29,11 @@ describe('avatars', () => {
     expect(avatarEmoji({ kind: AvatarKind.Preset, id: 'unicorn' as never })).toBeNull()
   })
 
+  it('rejects prototype-chain keys like toString', () => {
+    expect(isPresetAvatar({ kind: AvatarKind.Preset, id: 'toString' })).toBe(false)
+    expect(isValidAvatar({ kind: AvatarKind.Preset, id: 'toString' })).toBe(false)
+  })
+
   it('accepts a custom data URL avatar within the cap', () => {
     const dataUrl = `data:image/jpeg;base64,${'a'.repeat(100)}`
     expect(isCustomAvatar({ kind: AvatarKind.Custom, dataUrl })).toBe(true)
