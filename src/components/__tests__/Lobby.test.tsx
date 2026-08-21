@@ -20,6 +20,7 @@ function makeGame(overrides: Partial<NetworkGameApi> = {}): NetworkGameApi {
     error: null,
     create: vi.fn(),
     join: vi.fn(),
+    setIdentity: vi.fn(),
     leave: vi.fn(),
     start: vi.fn(),
     addBot: vi.fn(),

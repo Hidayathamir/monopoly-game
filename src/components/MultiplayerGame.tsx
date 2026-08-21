@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { GamePhase } from '../types/game'
 import { useNetworkGame } from '../hooks/useNetworkGame'
 import { saveSession, clearSession } from '../net/session'
+import { loadIdentity } from '../net/identity'
 import Lobby from './Lobby'
 import GameView from './GameView'
 import { useSound } from '../audio/SoundContext'
@@ -23,6 +24,7 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
   const { create, join } = game
   const name = joinInfo.name
   const code = joinInfo.code
+  const identity = useMemo(() => loadIdentity(), [])
 
   const play = useSound()
   const prevCodeRef = useRef(game.code)
@@ -47,9 +49,9 @@ export default function MultiplayerGame({ joinInfo, onLeft }: Props) {
   }, [game.code, game.state.phase, play])
 
   useEffect(() => {
-    if (code === null) create(name)
-    else join(code, name)
-  }, [code, name, create, join])
+    if (code === null) create(name, identity ?? undefined)
+    else join(code, name, identity ?? undefined)
+  }, [code, name, create, join, identity])
 
   useEffect(() => {
     if (game.state.phase !== GamePhase.Setup && game.code && name) saveSession({ name, code: game.code })

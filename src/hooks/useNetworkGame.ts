@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createInitialState } from '../logic/gameReducer'
 import { GameClient } from '../net/client'
 import { GameActionType } from '../types/game'
-import type { GameApi, GameAction, GameState, TradeOffer } from '../types/game'
+import type { GameApi, GameAction, GameState, PlayerAvatar, TradeOffer } from '../types/game'
 import { ClientMessageType, ConnectionStatus, ServerMessageType } from '../types/net'
 import type { LobbyPlayer } from '../types/net'
+import type { PlayerIdentity } from '../net/identity'
 
 export type NetworkGameApi = GameApi & {
   playerId: number | null
@@ -13,8 +14,9 @@ export type NetworkGameApi = GameApi & {
   lobby: LobbyPlayer[]
   status: ConnectionStatus
   error: string | null
-  create: (name: string) => void
-  join: (code: string, name: string) => void
+  create: (name: string, identity?: PlayerIdentity) => void
+  join: (code: string, name: string, identity?: PlayerIdentity) => void
+  setIdentity: (patch: { color?: string; avatar?: PlayerAvatar }) => void
   leave: () => void
   start: () => void
   addBot: () => void
@@ -75,8 +77,20 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     [send],
   )
 
-  const create = useCallback((name: string) => send({ type: ClientMessageType.Create, name }), [send])
-  const join = useCallback((code: string, name: string) => send({ type: ClientMessageType.Join, code, name }), [send])
+  const create = useCallback(
+    (name: string, identity?: PlayerIdentity) =>
+      send({ type: ClientMessageType.Create, name, color: identity?.color, avatar: identity?.avatar }),
+    [send],
+  )
+  const join = useCallback(
+    (code: string, name: string, identity?: PlayerIdentity) =>
+      send({ type: ClientMessageType.Join, code, name, color: identity?.color, avatar: identity?.avatar }),
+    [send],
+  )
+  const setIdentity = useCallback(
+    (patch: { color?: string; avatar?: PlayerAvatar }) => send({ type: ClientMessageType.SetIdentity, ...patch }),
+    [send],
+  )
   const leave = useCallback(() => {
     send({ type: ClientMessageType.Leave })
     onLeftRef.current()
@@ -121,6 +135,7 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     error,
     create,
     join,
+    setIdentity,
     leave,
     start,
     addBot,

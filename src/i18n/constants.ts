@@ -8,5 +8,6 @@ export const StorageKey = {
   Currency: 'monopoly-currency',
   MpSession: 'monopoly-mp-session',
   PlayerName: 'monopoly-player-name',
+  PlayerIdentity: 'monopoly-player-identity',
 } as const
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]

@@ -59,6 +59,14 @@ describe('GameClient', () => {
     expect(JSON.parse(getInstance()!.sent[0])).toEqual({ type: 'leave' })
   })
 
+  it('serializes setIdentity messages', () => {
+    const { client, getInstance } = setup()
+    client.connect()
+    getInstance()!.readyState = 1
+    client.send({ type: 'setIdentity', color: '#fff' })
+    expect(JSON.parse(getInstance()!.sent[0])).toEqual({ type: 'setIdentity', color: '#fff' })
+  })
+
   it('parses and forwards server messages', () => {
     const { client, received, getInstance } = setup()
     client.connect()
