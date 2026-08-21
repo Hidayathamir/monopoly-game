@@ -36,7 +36,6 @@ test('board city names are not clipped at phone viewport', async ({ browser, ser
       const name = el as HTMLElement
       const cell = name.closest('[data-testid^="board-cell-"]') as HTMLElement
       const style = getComputedStyle(name)
-      const cellStyle = getComputedStyle(cell)
       return {
         text: name.textContent,
         fontSize: style.fontSize,
