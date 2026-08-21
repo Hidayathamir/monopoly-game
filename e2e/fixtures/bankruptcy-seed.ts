@@ -22,7 +22,12 @@ export const bankruptcySeed: GameState = {
       "getOutOfJailFreeCards": 0,
       "isBot": false,
       "botControlled": false,
-      "afk": false
+      "afk": false,
+      "color": "#E74C3C",
+      "avatar": {
+        "kind": "preset",
+        "id": "cat"
+      }
     },
     {
       "id": 1,
@@ -37,7 +42,12 @@ export const bankruptcySeed: GameState = {
       "getOutOfJailFreeCards": 0,
       "isBot": false,
       "botControlled": false,
-      "afk": false
+      "afk": false,
+      "color": "#3498DB",
+      "avatar": {
+        "kind": "preset",
+        "id": "cat"
+      }
     }
   ],
   "turnOrder": [

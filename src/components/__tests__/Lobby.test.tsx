@@ -5,6 +5,8 @@ import Lobby from '../Lobby'
 import { renderWithProviders } from '../../test/test-utils'
 import { createInitialState } from '../../logic/gameReducer'
 import type { NetworkGameApi } from '../../hooks/useNetworkGame'
+import { PLAYER_COLORS } from '../../data/players'
+import { DEFAULT_AVATAR } from '../../data/avatars'
 
 function makeGame(overrides: Partial<NetworkGameApi> = {}): NetworkGameApi {
   return {
@@ -62,8 +64,8 @@ describe('Lobby', () => {
     renderWithProviders(<Lobby game={makeGame({
       removeBot,
       lobby: [
-        { id: 0, name: 'Host', connected: true, isBot: false },
-        { id: 1, name: 'Droid', connected: true, isBot: true },
+        { id: 0, name: 'Host', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+        { id: 1, name: 'Droid', connected: true, isBot: true, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
       ],
     })} />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove Droid' }))
@@ -78,8 +80,8 @@ describe('Lobby', () => {
   it('dims the row of a disconnected player', () => {
     renderWithProviders(<Lobby game={makeGame({
       lobby: [
-        { id: 0, name: 'Host', connected: true, isBot: false },
-        { id: 1, name: 'Gone', connected: false, isBot: false },
+        { id: 0, name: 'Host', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+        { id: 1, name: 'Gone', connected: false, isBot: false, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
       ],
     })} />)
     const goneRow = screen.getByText(/Gone/).closest('div')!

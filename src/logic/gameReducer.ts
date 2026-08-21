@@ -1,6 +1,8 @@
 import { GamePhase, GameActionType, PendingActionType, SpaceType, CardType, CardActionType, LogEventKey, LogParamKey, TaxType, BotControlReason, type GameState, type GameAction, type Player, type LogEntry, type PendingTrade } from '../types/game';
 import { createInitialBoard, getHouseCost, getTotalHouseInvestment, GO_SALARY, JAIL_SPACE, STARTING_MONEY, MAX_JAIL_TURNS, JAIL_FINE, SELL_RATE, MORTGAGED_SELL_EXTRA, HOUSE_SELL_RATE, INCOME_TAX_RATE, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
+import { PLAYER_COLORS } from '../data/players';
+import { DEFAULT_AVATAR } from '../data/avatars';
 import { resolveCardEffect } from './cards';
 import { calculatePropertyRent, calculateRailroadRentFromBoard, calculateUtilityRentFromBoard, isMonopoly } from './rent';
 import { shouldAcceptTrade } from './bot';
@@ -53,6 +55,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           isBot: action.isBot?.[i] ?? false,
           botControlled: false,
           afk: false,
+          color: action.colors?.[i] ?? PLAYER_COLORS[i % PLAYER_COLORS.length],
+          avatar: action.avatars?.[i] ?? DEFAULT_AVATAR,
         });
       }
       const turnOrder = shuffle(Array.from({ length: action.playerCount }, (_, i) => i));

@@ -1,6 +1,6 @@
-import type { GameState, GameAction, GamePhase } from './game'
+import type { GameState, GameAction, GamePhase, PlayerAvatar } from './game'
 
-export type LobbyPlayer = { id: number; name: string | null; connected: boolean; isBot: boolean }
+export type LobbyPlayer = { id: number; name: string | null; connected: boolean; isBot: boolean; color: string; avatar: PlayerAvatar }
 
 export type RoomInfo = { code: string; hostName: string | null; playerCount: number; phase: GamePhase }
 

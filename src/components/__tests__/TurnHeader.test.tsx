@@ -4,6 +4,8 @@ import { afterEach, describe, it, expect } from 'vitest'
 import TurnHeader from '../TurnHeader'
 import { GamePhase, type GameState } from '../../types/game'
 import { renderWithProviders } from '../../test/test-utils'
+import { PLAYER_COLORS } from '../../data/players'
+import { DEFAULT_AVATAR } from '../../data/avatars'
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -12,6 +14,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
       {
         id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
         passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false,
+        color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR,
       },
     ],
     currentPlayer: 0,

@@ -6,10 +6,13 @@ import type { ComponentProps } from 'react'
 import PlayerCard, { computePopupPosition } from '../PlayerCard'
 import { renderWithProviders } from '../../test/test-utils'
 import type { Player, Space } from '../../types/game'
+import { PLAYER_COLORS } from '../../data/players'
+import { DEFAULT_AVATAR } from '../../data/avatars'
 
 const player: Player = {
   id: 0, name: 'Alpha', money: 15000, position: 0, properties: [],
   passedGo: false, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false,
+  color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR,
 }
 const board: Space[] = []
 

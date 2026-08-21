@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { gameReducer, createInitialState } from '../gameReducer';
-import { GamePhase, GameActionType, PendingActionType, type GameState } from '../../types/game';
+import { GamePhase, GameActionType, PendingActionType, AvatarKind, type GameState } from '../../types/game';
 import { STARTING_MONEY, GO_SALARY, SELL_RATE } from '../../data/board';
+import { PLAYER_COLORS } from '../../data/players';
+import { DEFAULT_AVATAR } from '../../data/avatars';
 
 function makeStartedState(playerCount = 2, initialState: GameState = createInitialState()): GameState {
   const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
@@ -109,6 +111,30 @@ describe('gameReducer', () => {
     it('initializes botControlled and afk to false', () => {
       const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['Alice', 'Bob'] });
       expect(state.players.every((p) => p.botControlled === false && p.afk === false)).toBe(true);
+    });
+
+    it('writes color and avatar onto each player at start, defaulting when absent', () => {
+      const state = gameReducer(createInitialState(), {
+        type: GameActionType.StartGame,
+        playerCount: 2,
+        names: ['Alice', 'Bob'],
+      });
+      expect(state.players[0].color).toBe(PLAYER_COLORS[0]);
+      expect(state.players[1].color).toBe(PLAYER_COLORS[1]);
+      expect(state.players[0].avatar).toEqual(DEFAULT_AVATAR);
+      expect(state.players[1].avatar).toEqual(DEFAULT_AVATAR);
+
+      const custom = { kind: AvatarKind.Preset, id: 'dog' as const }
+      const state2 = gameReducer(createInitialState(), {
+        type: GameActionType.StartGame,
+        playerCount: 2,
+        names: ['Alice', 'Bob'],
+        colors: [PLAYER_COLORS[4], PLAYER_COLORS[5]],
+        avatars: [custom, custom],
+      });
+      expect(state2.players[0].color).toBe(PLAYER_COLORS[4]);
+      expect(state2.players[1].color).toBe(PLAYER_COLORS[5]);
+      expect(state2.players[0].avatar).toEqual(custom);
     });
   });
 

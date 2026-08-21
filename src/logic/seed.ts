@@ -1,7 +1,8 @@
-import { GamePhase, type GameState, type PendingAction, type Player, type Space } from '../types/game';
+import { GamePhase, type GameState, type PendingAction, type Player, type Space, type PlayerAvatar } from '../types/game';
 import { createInitialBoard, BOARD_SIZE, MAX_HOUSES } from '../data/board';
 import { CHANCE_CARDS, COMMUNITY_CARDS } from '../data/cards';
-import { MAX_PLAYERS } from '../data/players';
+import { MAX_PLAYERS, PLAYER_COLORS } from '../data/players';
+import { DEFAULT_AVATAR } from '../data/avatars';
 
 export type SeedBoardOverride = { owner?: number; houses?: number; mortgaged?: boolean };
 
@@ -18,6 +19,8 @@ export interface SeedPlayerSpec {
   botControlled?: boolean;
   afk?: boolean;
   passedGo?: boolean;
+  color?: string;
+  avatar?: PlayerAvatar;
 }
 
 export interface SeedSpec {
@@ -60,6 +63,8 @@ export function createSeededState(spec: SeedSpec): GameState {
       isBot: p.isBot ?? false,
       botControlled: p.botControlled ?? false,
       afk: p.afk ?? false,
+      color: p.color ?? PLAYER_COLORS[p.id % PLAYER_COLORS.length],
+      avatar: p.avatar ?? DEFAULT_AVATAR,
     }));
   return {
     phase: spec.phase ?? GamePhase.Waiting,

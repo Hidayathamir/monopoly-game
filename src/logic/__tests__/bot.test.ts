@@ -6,6 +6,8 @@ import {
   type GameState, type Player, type Space, type TradeOffer, type GameAction,
 } from '../../types/game';
 import { createInitialBoard, STARTING_MONEY, JAIL_FINE, MAX_HOUSES, getHouseCost } from '../../data/board';
+import { PLAYER_COLORS } from '../../data/players';
+import { DEFAULT_AVATAR } from '../../data/avatars';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -22,6 +24,8 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     isBot: true,
     botControlled: false,
     afk: false,
+    color: PLAYER_COLORS[0],
+    avatar: DEFAULT_AVATAR,
     ...overrides,
   };
 }

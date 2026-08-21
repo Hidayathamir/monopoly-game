@@ -3,13 +3,15 @@ import { resolveCardEffect } from '../cards';
 import { CardType, CardActionType, GamePhase, type GameState, type Card } from '../../types/game';
 import { createInitialBoard } from '../../data/board';
 import { GO_SALARY } from '../../data/board';
+import { PLAYER_COLORS } from '../../data/players';
+import { DEFAULT_AVATAR } from '../../data/avatars';
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     phase: GamePhase.Waiting,
     players: [
-      { id: 0, name: 'Alice', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false },
-      { id: 1, name: 'Bob', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false },
+      { id: 0, name: 'Alice', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+      { id: 1, name: 'Bob', money: 500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
     ],
     currentPlayer: 0,
     turnOrder: [0],

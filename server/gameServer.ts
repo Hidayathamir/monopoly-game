@@ -4,7 +4,8 @@ import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
-import { MAX_PLAYERS } from '../src/data/players'
+import { MAX_PLAYERS, PLAYER_COLORS } from '../src/data/players'
+import { DEFAULT_AVATAR } from '../src/data/avatars'
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 
@@ -69,7 +70,7 @@ export class GameServer {
   }
 
   getPlayers(): LobbyPlayer[] {
-    return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected, isBot: s.isBot }))
+    return this.slots.map((s, i) => ({ id: i, name: s.name, connected: s.connected, isBot: s.isBot, color: PLAYER_COLORS[i % PLAYER_COLORS.length], avatar: DEFAULT_AVATAR }))
   }
 
   join(clientId: ClientId, name: string): boolean {

@@ -176,6 +176,8 @@ export type Player = {
   isBot: boolean;
   botControlled: boolean;
   afk: boolean;
+  color: string;
+  avatar: PlayerAvatar;
 };
 
 export type PlayerAvatar =
@@ -255,7 +257,7 @@ export type TradeOffer = {
 export type PendingTrade = TradeOffer & { id: number };
 
 export type GameAction =
-  | { type: typeof GameActionType.StartGame; playerCount: number; names: string[]; isBot?: boolean[] }
+  | { type: typeof GameActionType.StartGame; playerCount: number; names: string[]; isBot?: boolean[]; colors?: string[]; avatars?: PlayerAvatar[] }
   | { type: typeof GameActionType.RollDice; target?: number }
   | { type: typeof GameActionType.DiceAnimated; dice: [number, number]; target?: number; luck?: number }
   | { type: typeof GameActionType.MoveToken; spaces: number }

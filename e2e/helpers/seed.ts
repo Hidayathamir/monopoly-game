@@ -1,5 +1,7 @@
 import type { GameState, Player } from '../../src/types/game'
 import { GamePhase } from '../../src/types/game'
+import { PLAYER_COLORS } from '../../src/data/players'
+import { DEFAULT_AVATAR } from '../../src/data/avatars'
 import { INITIAL_BOARD, INITIAL_CHANCE_DECK, INITIAL_COMMUNITY_DECK } from '../fixtures/initial-state'
 
 export async function seedGame(url: string, code: string, state: GameState): Promise<void> {
@@ -44,6 +46,8 @@ export function buildWaitingState(opts: SeedWaitingOptions): GameState {
       isBot: p.isBot ?? false,
       botControlled: false,
       afk: false,
+      color: PLAYER_COLORS[p.id % PLAYER_COLORS.length],
+      avatar: DEFAULT_AVATAR,
     }))
   return {
     phase: GamePhase.Waiting,
