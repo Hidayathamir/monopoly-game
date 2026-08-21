@@ -13,6 +13,7 @@
     "print-seed": "tsx scripts/print-seed.ts",
     "print-monopoly-rent-seed": "tsx scripts/print-monopoly-rent-seed.ts",
     "print-bankruptcy-liquidation-seed": "tsx scripts/print-bankruptcy-liquidation-seed.ts",
+    "print-custom-seed": "tsx scripts/print-custom-seed.ts",
     "server": "tsx server/main.ts",
     "start": "npm run build && npm run server",
     "tunnel": "cloudflared tunnel run monopoly-local",
