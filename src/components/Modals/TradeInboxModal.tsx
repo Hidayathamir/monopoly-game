@@ -34,7 +34,7 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
           const canAccept = myPlayerId === null || tr.toId === myPlayerId
           const canCancel = myPlayerId === null || tr.fromId === myPlayerId
           return (
-            <div key={tr.id} className="bg-bg-darker rounded p-2">
+            <div key={tr.id} data-testid="trade-offer" className="bg-bg-darker rounded p-2">
               <p className="text-sm text-text-dim">
                 <strong>{from}</strong> → <strong>{to}</strong>
               </p>
