@@ -51,7 +51,7 @@ className="cell-name m-0 p-0 border-0 bg-transparent appearance-none cursor-defa
 ```
 
 Notes:
-- `w-full min-w-0` — the button fills the cell and, as a flex item, is allowed to shrink below its content width so text wraps instead of overflowing the cell's `overflow-hidden`.
+- `w-full min-w-0` — `w-full` makes the button take the cell's content width (cell has `p-0.5`) so text wraps inside the cell instead of overflowing; `min-w-0` is retained as a defensive guard for the flex min-size rule.
 - `break-words` = `overflow-wrap: break-word` — breaks long tokens ("Water Company") on the narrowest cells.
 - `text-balance` = `text-wrap: balance` — evens out wrapped lines; harmless no-op fallback in older browsers.
 - `text-[clamp(9px,min(2.6vw,2.4vh),14px)]` — Tailwind v4 arbitrary value; commas are fine inside arbitrary values, no spaces allowed (there are none).

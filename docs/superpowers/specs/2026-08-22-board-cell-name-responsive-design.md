@@ -38,7 +38,7 @@ Pure CSS change in `BoardGrid.tsx`; no new dependencies, no JS measurement, no i
 
 In `BoardGrid.tsx` (the button at line ~184-191), replace the fixed `text-xs` with:
 
-- `w-full` + `min-w-0` — the button takes the cell width and, as a flex item, is allowed to shrink, so text wraps inside the cell instead of overflowing.
+- `w-full` + `min-w-0` — `w-full` makes the button take the cell's content width (cell has `p-0.5`) so text wraps inside the cell instead of overflowing; `min-w-0` is retained as a defensive guard for the flex min-size rule.
 - `break-words` (`overflow-wrap: break-word`) — breaks long single tokens ("Water Company" on the narrowest cells).
 - `text-balance` (`text-wrap: balance`) — evenly distributes wrapped lines (modern browsers; harmless fallback otherwise).
 - `text-[clamp(9px,min(2.6vw,2.4vh),14px)]` — fluid font size driven by the smaller viewport dimension, clamped to a 9–14px range. This keeps names legible on desktop (14px) while small enough on phones (≈10px at 390px width, 9px at 320px) to wrap in ≤3 lines.
@@ -71,6 +71,6 @@ The cell size is a deterministic fraction of the viewport (board = viewport − 
 
 ## Risks / mitigations
 
-- `text-wrap: balance` is newer CSS; on older browsers it simply wraps normally — no breakage. Font-size clamp and `min-w-0` are the actual guarantees.
+- `text-wrap: balance` is newer CSS; on older browsers it simply wraps normally — no breakage. Font-size clamp and `w-full` are the actual guarantees.
 - Extremely narrow cells (320px-wide phones, ID locale like "St. Ps. Senen") still fit: 9px floor + `break-words` keeps them ≤3 lines; verified at 320×568.
 - No changes to data contracts, i18n keys, or wire messages — client/server unaffected.

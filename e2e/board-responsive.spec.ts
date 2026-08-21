@@ -48,4 +48,8 @@ test('board city names are not clipped at phone viewport', async ({ browser, ser
   expect(results.length).toBe(40)
   const clipped = results.filter((r) => r.hOverflow || r.vOverflow)
   expect(clipped).toEqual([])
+
+  const sizes = results.map((r) => parseFloat(r.fontSize)).filter((n) => !Number.isNaN(n))
+  expect(sizes.length).toBe(40)
+  expect(Math.max(...sizes)).toBeLessThan(12)
 })
