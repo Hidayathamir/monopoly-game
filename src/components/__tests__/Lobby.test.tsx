@@ -6,7 +6,8 @@ import { renderWithProviders } from '../../test/test-utils'
 import { createInitialState } from '../../logic/gameReducer'
 import type { NetworkGameApi } from '../../hooks/useNetworkGame'
 import { PLAYER_COLORS } from '../../data/players'
-import { DEFAULT_AVATAR } from '../../data/avatars'
+import { DEFAULT_AVATAR, PRESET_AVATARS } from '../../data/avatars'
+import { AvatarKind } from '../../types/game'
 
 function makeGame(overrides: Partial<NetworkGameApi> = {}): NetworkGameApi {
   return {
@@ -89,5 +90,43 @@ describe('Lobby', () => {
     expect(goneRow.className).toContain('opacity-50')
     const hostRow = screen.getByText('Host').closest('div')!
     expect(hostRow.className).not.toContain('opacity-50')
+  })
+})
+
+describe('Lobby identity panel', () => {
+  it('sends setIdentity when the player picks a color', () => {
+    const setIdentity = vi.fn()
+    renderWithProviders(<Lobby game={makeGame({
+      setIdentity,
+      lobby: [
+        { id: 0, name: 'Alice', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+      ],
+    })} />)
+    const swatches = screen.getAllByTestId('color-swatch')
+    fireEvent.click(swatches[2])
+    expect(setIdentity).toHaveBeenCalledWith({ color: PLAYER_COLORS[2] })
+  })
+
+  it('sends setIdentity when the player picks a preset avatar', () => {
+    const setIdentity = vi.fn()
+    renderWithProviders(<Lobby game={makeGame({
+      setIdentity,
+      lobby: [
+        { id: 0, name: 'Alice', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+      ],
+    })} />)
+    const options = screen.getAllByTestId('avatar-option')
+    fireEvent.click(options[3])
+    expect(setIdentity).toHaveBeenCalledWith({ avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Alien } })
+  })
+
+  it('marks taken colors as unavailable', () => {
+    renderWithProviders(<Lobby game={makeGame({
+      lobby: [
+        { id: 0, name: 'Alice', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+        { id: 1, name: 'Bob', connected: true, isBot: false, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
+      ],
+    })} />)
+    expect(screen.getAllByTestId('color-swatch')[1].getAttribute('aria-disabled')).toBe('true')
   })
 })
