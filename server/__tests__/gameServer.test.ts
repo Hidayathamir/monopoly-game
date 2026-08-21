@@ -741,6 +741,33 @@ describe('GameServer', () => {
     expect(server.getState().players[0].color).not.toBe(PLAYER_COLORS[2])
   })
 
+  it('treats a non-palette color on join as unspecified and auto-assigns the first free', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: 'not-a-color' })
+    expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[0])
+  })
+
+  it('rejects setIdentity with a non-palette color and leaves the slot color unchanged', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const before = sent.length
+    server.setIdentity('c0', { color: 'not-a-color' })
+    expect(sent.slice(before).some((m) => m.type === 'error' && m.message === 'Warna tidak valid')).toBe(true)
+    expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[0])
+  })
+
+  it('validates everything before mutating: an invalid avatar blocks a valid color with no broadcast', () => {
+    const { server, sent } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    const before = sent.length
+    server.setIdentity('c0', { color: PLAYER_COLORS[4], avatar: { kind: AvatarKind.Custom, dataUrl: 'https://x/y.png' } })
+    expect(sent.slice(before).some((m) => m.type === 'error' && m.message === 'Avatar tidak valid')).toBe(true)
+    expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[0])
+    expect(sent.slice(before).some((m) => m.type === 'lobby')).toBe(false)
+  })
+
   it('rejects an invalid or oversized custom avatar', () => {
     const { server, sent } = setup()
     server.join('c0', 'Alice')

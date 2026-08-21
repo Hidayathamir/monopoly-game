@@ -138,7 +138,7 @@ export class GameServer {
       connected: true,
       isBot: false,
       gracePending: false,
-      color: opts?.color !== undefined && this.isColorFree(opts.color) ? opts.color : this.nextFreeColor(),
+      color: opts?.color !== undefined && PLAYER_COLORS.includes(opts.color) && this.isColorFree(opts.color) ? opts.color : this.nextFreeColor(),
       avatar: opts?.avatar !== undefined && isValidAvatar(opts.avatar) ? opts.avatar : DEFAULT_AVATAR,
     }
     this.events.send(clientId, {
@@ -162,20 +162,24 @@ export class GameServer {
     if (index === -1) return
     const slot = this.slots[index]
     if (opts.color !== undefined) {
+      if (!PLAYER_COLORS.includes(opts.color)) {
+        this.events.send(clientId, { type: ServerMessageType.Error, message: 'Warna tidak valid' })
+        return
+      }
       const takenBy = this.slots.findIndex((s, i) => i !== index && s.name !== null && s.color === opts.color)
       if (takenBy !== -1) {
         this.events.send(clientId, { type: ServerMessageType.Error, message: 'Warna sudah dipakai' })
         return
       }
-      slot.color = opts.color
     }
     if (opts.avatar !== undefined) {
       if (!isValidAvatar(opts.avatar)) {
         this.events.send(clientId, { type: ServerMessageType.Error, message: 'Avatar tidak valid' })
         return
       }
-      slot.avatar = opts.avatar
     }
+    if (opts.color !== undefined) slot.color = opts.color
+    if (opts.avatar !== undefined) slot.avatar = opts.avatar
     this.broadcast()
   }
 

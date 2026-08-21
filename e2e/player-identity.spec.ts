@@ -69,4 +69,10 @@ test('host identity is shared cross-device and reflected on the board', async ({
   await expect(hostCard).toBeVisible({ timeout: 5000 })
   await expect(hostCard).toHaveCSS('border-left-color', hexToRgb(CHOSEN_COLOR))
   await expect(hostCard.getByTitle('Host')).toHaveText(CHOSEN_EMOJI)
+
+  // The host's board token reflects the chosen color and avatar.
+  const hostToken = pageA.locator('[data-game-board]').getByTitle('Host').first()
+  await expect(hostToken).toBeVisible({ timeout: 5000 })
+  await expect(hostToken).toHaveCSS('background-color', hexToRgb(CHOSEN_COLOR))
+  await expect(hostToken).toHaveText(CHOSEN_EMOJI)
 })

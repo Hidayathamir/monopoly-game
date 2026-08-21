@@ -1,6 +1,49 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest'
-import { getPath } from '../PlayerTokens'
+import { cleanup } from '@testing-library/react'
+import { afterEach, describe, it, expect } from 'vitest'
+import '@testing-library/jest-dom/vitest'
+import PlayerTokens, { getPath } from '../PlayerTokens'
+import { renderWithProviders } from '../../test/test-utils'
+import { SoundProvider } from '../../audio/SoundContext'
+import { gameReducer, createInitialState } from '../../logic/gameReducer'
+import { GameActionType, type GameState } from '../../types/game'
+import { PLAYER_COLORS } from '../../data/players'
+import { DEFAULT_AVATAR, PRESET_AVATARS, PRESET_EMOJI } from '../../data/avatars'
+
+function makeState(): GameState {
+  return gameReducer(createInitialState(), {
+    type: GameActionType.StartGame,
+    playerCount: 1,
+    names: ['Host'],
+    colors: [PLAYER_COLORS[1]],
+    avatars: [DEFAULT_AVATAR],
+  })
+}
+
+function renderTokens() {
+  const { container } = renderWithProviders(
+    <SoundProvider>
+      <PlayerTokens state={makeState()} />
+    </SoundProvider>,
+  )
+  const token = container.querySelector('[title="Host"]') as HTMLElement
+  expect(token).not.toBeNull()
+  return token
+}
+
+afterEach(cleanup)
+
+describe('PlayerTokens', () => {
+  it('renders a token per player with the chosen color as background', () => {
+    const token = renderTokens()
+    expect(token).toHaveStyle({ backgroundColor: PLAYER_COLORS[1] })
+  })
+
+  it('renders the chosen avatar inside the token', () => {
+    const token = renderTokens()
+    expect(token.textContent).toContain(PRESET_EMOJI[PRESET_AVATARS.Cat])
+  })
+})
 
 describe('getPath', () => {
   it('walks forward wrapping past GO', () => {
