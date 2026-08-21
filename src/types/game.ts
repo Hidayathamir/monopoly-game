@@ -1,3 +1,5 @@
+import type { PresetAvatarId } from '../data/avatars';
+
 export const SpaceType = {
   Property: 'property',
   Railroad: 'railroad',
@@ -17,6 +19,12 @@ export const CardType = {
   Community: 'community',
 } as const;
 export type CardType = (typeof CardType)[keyof typeof CardType];
+
+export const AvatarKind = {
+  Preset: 'preset',
+  Custom: 'custom',
+} as const;
+export type AvatarKind = (typeof AvatarKind)[keyof typeof AvatarKind];
 
 export const CardActionType = {
   Collect: 'collect',
@@ -169,6 +177,10 @@ export type Player = {
   botControlled: boolean;
   afk: boolean;
 };
+
+export type PlayerAvatar =
+  | { kind: typeof AvatarKind.Preset; id: PresetAvatarId }
+  | { kind: typeof AvatarKind.Custom; dataUrl: string };
 
 export type Space = {
   id: number;
