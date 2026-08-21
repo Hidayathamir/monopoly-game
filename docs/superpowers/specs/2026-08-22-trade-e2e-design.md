@@ -84,7 +84,7 @@
 - **Board cells** (`BoardGrid.tsx`): owner stripe is the `div.absolute` at the
   bottom of the cell with an inline `backgroundColor` = owner color
   (`#E74C3C` → `rgb(231, 76, 60)` Alpha, `#3498DB` → `rgb(52, 152, 219)` Bravo,
-  `#2ECC71` → `rgb(46, 204, 113)` Droid). Board names (en):
+  `#3498DB` → `rgb(52, 152, 219)` Droid). Board names (en):
   `board.space.1` = "Salvador", `3` = "Rio", `5` = "TLV Airport", `6` = "Tel
   Aviv", `9` = "Jerusalem".
 
@@ -172,7 +172,7 @@ trade offer"; no ownership change.
 Host adds a bot (`Droid`) in the lobby, seeds `tradeBotSeed`, proposes TLV
 Airport (5, `$200`) for Tel Aviv (6, `$100`) to Droid. `shouldAcceptTrade`
 (200 ≥ 100) accepts immediately. Assert: log "Alpha and Droid completed a
-trade"; `board-cell-5` stripe → Droid (`rgb(46, 204, 113)`); `board-cell-6`
+trade"; `board-cell-5` stripe → Droid (`rgb(52, 152, 219)`); `board-cell-6`
 stripe → Alpha; no pending trades (opening the inbox shows
 `No pending trade offers`).
 

@@ -6,6 +6,7 @@ import { tradeBotSeed } from './fixtures/trade-bot-seed'
 
 const ALPHA_STRIPE = 'rgb(231, 76, 60)'
 const BRAVO_STRIPE = 'rgb(52, 152, 219)'
+// Droid sits at player id 1, so createSeededState colors it PLAYER_COLORS[1] — the color comes from the generated seed, not a bot-specific palette.
 const DROID_STRIPE = 'rgb(52, 152, 219)'
 
 async function makePage(browser: Browser): Promise<Page> {
@@ -92,6 +93,7 @@ test('Alpha proposes a trade and Bravo accepts — properties and cash swap', as
   const inboxBtn = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
+  // The labels are offerer-relative: TradeInboxModal always renders the OFFERER's side under "You offer" regardless of viewer.
   await expect(pageB.getByText(/You offer: Rio \+ \$100/)).toBeVisible({ timeout: 5000 })
   await expect(pageB.getByText(/You request: Tel Aviv \+ \$0/)).toBeVisible()
   await pageB.getByRole('button', { name: 'Accept' }).click()
