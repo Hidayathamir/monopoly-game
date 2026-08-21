@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import Button from './Button'
 import { useRoomList } from '../hooks/useRoomList'
 import { GamePhase } from '../types/game'
+import { StorageKey } from '../i18n/constants'
 
 const MpAction = {
   Create: 'create',
@@ -17,7 +18,7 @@ interface Props {
 
 export default function GameSetup({ onCreate, onJoin }: Props) {
   const { t } = useTranslation()
-  const [myName, setMyName] = useState('')
+  const [myName, setMyName] = useState(() => localStorage.getItem(StorageKey.PlayerName) ?? '')
   const [roomCode, setRoomCode] = useState('')
   const [mpAction, setMpAction] = useState<MpAction>(MpAction.Create)
   const { rooms, error } = useRoomList()
@@ -41,7 +42,11 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
           <input
             type="text"
             value={myName}
-            onChange={(e) => setMyName(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value
+              setMyName(value)
+              localStorage.setItem(StorageKey.PlayerName, value)
+            }}
             placeholder={t('setup.namePlaceholder')}
             maxLength={12}
             className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
