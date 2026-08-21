@@ -1,4 +1,4 @@
-# Responsive Board Cell Name Typography
+# Responsive Board Cell Name Typography (Rotation)
 
 Date: 2026-08-22
 
@@ -14,51 +14,62 @@ The 40-space Monopoly board is rendered as an 11×11 CSS grid (`BoardGrid.tsx`) 
 | Desktop 1440×900 | 1424×884 | ~129×80 | wide & short |
 | Big desktop 1920×1080 | 1904×1064 | ~173×97 | wide & short |
 
-City names are rendered with a fixed `text-xs` (12px) on a `<button class="cell-name">` that is a flex item inside a `flex flex-col items-center justify-center` cell. Two problems result:
+City names are rendered on a `<button class="cell-name">` that is a flex item inside a `flex flex-col items-center justify-center` cell. Two problems resulted from the original fixed `text-xs`:
 
-1. **Clipping (the main bug)**: the name button is a flex item with `min-width: auto` (the default). Inside a `flex-col items-center` cell it refuses to shrink below its content width, so on phone portrait a name like "Manchester" (66px wide at 12px) overflows the 34px cell and is cut off by the cell's `overflow-hidden`. Verified live at 390×844: `scrollWidth 66 > clientWidth 32` for space 32.
-2. **Fixed typography**: a single 12px size is too small on big desktop cells (~173px wide, lots of empty space) and too large on phones. There is no responsive behavior.
+1. **Clipping (the main bug)**: the name button is a flex item with `min-width: auto` (the default). Inside a `flex-col items-center` cell it refuses to shrink below its content width, so on phone portrait a name like "Manchester" (66px wide at 12px) overflowed the 34px cell and was cut off by the cell's `overflow-hidden`. Verified: `scrollWidth 66 > clientWidth 32` for space 32 at 390×844.
+2. **Fixed typography**: a single 12px size was too small on big desktop cells and too large on phones. There was no responsive behavior.
 
-The i18n strings themselves are fine; this is purely a rendering/layout problem in `BoardGrid.tsx` (plus a regression test).
+The i18n strings themselves are fine; this is purely a rendering/layout problem in `BoardGrid.tsx` + `index.css` (plus regression tests).
 
 ## Goal
 
 City names render well on every screen size and orientation, with phone portrait as the priority. Concretely:
 
 - No cell-name text is ever clipped (horizontal or vertical) at any viewport.
-- Names wrap gracefully to a small number of lines (≤3) when the cell is narrow.
+- Phone portrait: names read **vertically** (top-to-bottom, like a real Monopoly board) so the narrow cell width stops being the binding constraint — the tall cell height is used instead. Never wrapped.
+- Landscape/desktop: names stay horizontal on one line.
 - Font size scales with the screen (fluid typography) instead of being a fixed 12px.
-- Existing behavior on desktop is preserved or improved (names readable, not tiny).
+- Houses/hotel markers still render alongside the name in portrait.
 
-## Chosen approach: CSS-only fluid typography + wrap fix
+## Chosen approach: rotate names in portrait, fluid font
 
-Pure CSS change in `BoardGrid.tsx`; no new dependencies, no JS measurement, no i18n changes, no board data changes. The board keeps its "fills the viewport" layout (that's already the phone-friendly, vertical-focused design).
+Pure CSS + tiny TSX class change. No new dependencies, no JS measurement, no i18n changes, no board data changes. The board keeps its "fills the viewport" layout (that's already the phone-friendly, vertical-focused design).
 
-### Change: the `.cell-name` button classes
+### Portrait (`@media (orientation: portrait)`)
 
-In `BoardGrid.tsx` (the button at line ~184-191), replace the fixed `text-xs` with:
+Cells are tall-and-narrow (e.g. 34×75 at 390×844). In portrait only:
 
-- `w-full` + `min-w-0` — `w-full` makes the button take the cell's content width (cell has `p-0.5`) so text wraps inside the cell instead of overflowing; `min-w-0` is retained as a defensive guard for the flex min-size rule.
-- `break-words` (`overflow-wrap: break-word`) — breaks long single tokens ("Water Company" on the narrowest cells).
-- `text-balance` (`text-wrap: balance`) — evenly distributes wrapped lines (modern browsers; harmless fallback otherwise).
-- `text-[clamp(9px,min(2.6vw,2.4vh),14px)]` — fluid font size driven by the smaller viewport dimension, clamped to a 9–14px range. This keeps names legible on desktop (14px) while small enough on phones (≈10px at 390px width, 9px at 320px) to wrap in ≤3 lines.
+- `.cell-name` gets `writing-mode: vertical-rl` + `white-space: nowrap` — the name flows top-to-bottom in a column roughly `font-size` wide, using the 75px cell height instead of the 34px width. Even "Water Company" (13 glyphs) fits.
+- Fluid font: `clamp(6px, min(2.6vw, 1.05vh), 14px)`. The `1.05vh` term bounds the font by the cell height, which is the binding constraint in portrait (the name column's height = glyph count × font size). Verified against the e2e Chromium font metrics (see Testing).
+- The cell switches to `flex-direction: row` so the houses/hotel button renders **beside** the rotated name instead of below it (the 34px width fits name column + house column; the stacked-column layout would overflow the 75px height).
+- `.cell-houses` also goes `writing-mode: vertical-rl`, `font-size: 9px`.
 
-Keep everything else: `m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-center font-semibold leading-tight text-text-dim`, plus the existing Chance/Community color overrides (they target `.cell-name` via `[&_.cell-name]`, which still works).
+### Landscape / desktop (default, no media query)
+
+Cells are wide-and-short. Names stay horizontal, one line:
+
+- `.cell-name` keeps `w-full min-w-0 whitespace-nowrap` with fluid `text-[clamp(7px,min(2.6vw,2.2vh),14px)]` (in the TSX className).
+- `.cell-houses` shrinks to `clamp(8px, min(2.2vw, 2vh), 12px)` so a 4-house row doesn't eat the short cell.
 
 ### Why viewport units, not container queries
 
-The cell size is a deterministic fraction of the viewport (board = viewport − 16px, cells = board/11), so `min(2.6vw, 2.4vh)` tracks cell size across all screens and orientations without needing per-cell `container-type` (which can have surprising sizing interactions with grid items) or ResizeObserver JS. Measured live across four viewports:
+The cell size is a deterministic fraction of the viewport (board = viewport − 16px, cells = board/11), so `min(2.6vw, 1.05vh)` tracks cell size across all screens and orientations without needing per-cell `container-type` or ResizeObserver JS. Orientation maps 1:1 to cell shape because the board fills the viewport.
 
-| Viewport | font-size | max lines | clipping |
-|----------|-----------|-----------|----------|
-| 320×568 | 9px | 3 | none |
-| 390×844 | 10.1px | 2 | none |
-| 844×390 | 9.4px | 1 | none |
-| 1440×900 | 14px | 1 | none |
+Measured live (real e2e Chromium, no injected CSS) at phone sizes:
+
+| Viewport | font-size | writing-mode | longest name height / cell height | clipped |
+|----------|-----------|--------------|-----------------------------------|---------|
+| 320×568 | 6px | vertical-rl | fits (50px cell) | none |
+| 360×800 | 8.4px | vertical-rl | fits | none |
+| 375×667 | 7.0px | vertical-rl | fits | none |
+| 390×844 | 8.9px | vertical-rl | 72/73 (Power Company) | none |
+| 844×390 | horizontal | horizontal-tb | fits (1 line) | none |
+| 1440×900 | 14px | horizontal-tb | fits (1 line) | none |
 
 ## Testing
 
-- **New e2e spec** `e2e/board-responsive.spec.ts` (following the pattern of `e2e/board-naming.spec.ts`): seed a waiting game via `seedWaitingGame`, then assert, at a phone viewport (390×844), that **every** board cell's `.cell-name` fits inside its cell — `name.scrollWidth <= name.clientWidth + 1` and `name.scrollHeight <= name.clientHeight + 1` (allow 1px rounding). Also assert a long-name cell (space 32 "Manchester") is fully visible. This directly encodes "names are never clipped" and fails on the pre-fix code.
+- **e2e spec** `e2e/board-responsive.spec.ts` (replaces the earlier wrap-based spec): seeds a waiting game via `seedWaitingGame`, then asserts at 390×844 (portrait) that **all 40** `.cell-name`s are `vertical-rl` AND never overflow their cell (`scrollWidth <= cell.clientWidth + 1` and `scrollHeight <= cell.clientHeight + 1`), and that font-size is fluid (< 12px at this viewport). A second test asserts at 844×390 (landscape) that all 40 are `horizontal-tb` and never clipped. This directly encodes "names are never clipped and orientation is handled"; it failed on the pre-fix code (30/40 names overflowed horizontally at 12px).
+- The initial clamp (`1.15vh`) was tuned down to `1.05vh` after the real e2e Chromium measured "Power Company"/"Water Company" at 78px in a 73px cell (the earlier prototype browser rendered 72px) — the +1px tolerance in the assertion exposed it.
 - Existing `e2e/board-naming.spec.ts` keeps passing (text content unchanged; `toContainText` unaffected by class changes).
 - `BoardGrid.test.tsx` unit tests assert tooltip behavior, not classes — unaffected.
 - Verify with `npm run build`, `npm run lint`, `npm run test:unit`, `npm run test:e2e`.
@@ -66,11 +77,13 @@ The cell size is a deterministic fraction of the viewport (board = viewport − 
 ## Out of scope
 
 - Changing board layout to a centered square (the current "fill the viewport" layout already suits phone portrait).
-- Rotating side-column text, hiding/reordering the house rows, or editing translation strings.
+- Shortening/abbreviating city names or editing translation strings (tooltip and log keep full names).
+- Rotating only side columns (all edges are equally narrow-tall in portrait, so rotating every cell is uniform).
 - Non-board screens (sidebar, lobby, tooltips).
 
 ## Risks / mitigations
 
-- `text-wrap: balance` is newer CSS; on older browsers it simply wraps normally — no breakage. Font-size clamp and `w-full` are the actual guarantees.
-- Extremely narrow cells (320px-wide phones, ID locale like "St. Ps. Senen") still fit: 9px floor + `break-words` keeps them ≤3 lines; verified at 320×568.
+- `writing-mode: vertical-rl` on every cell name in portrait is a deliberate visual choice (names read top-to-bottom). Browsers all support it; the e2e locks the behavior.
+- Font metric differences between browsers can shift a long name by a few px — the fluid clamp's `1.05vh` term leaves ~1-2px headroom for the two longest names (13 glyphs) at the tested viewports; the e2e runs in real Chromium.
+- Extremely narrow cells (320px-wide phones) still fit: 6px floor + vertical mode; verified at 320×568.
 - No changes to data contracts, i18n keys, or wire messages — client/server unaffected.

@@ -1,10 +1,9 @@
 import { test, expect } from './fixtures'
+import type { Browser, Page } from '@playwright/test'
 import { seedWaitingGame } from './helpers/seed'
 
-test('board city names are not clipped at phone viewport', async ({ browser, serverUrl }) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-  })
+async function seedGamePage(browser: Browser, serverUrl: string, width: number, height: number): Promise<Page> {
+  const context = await browser.newContext({ viewport: { width, height } })
   await context.addInitScript(() => {
     localStorage.setItem('monopoly-language', 'en')
     localStorage.setItem('monopoly-currency', 'USD')
@@ -30,8 +29,11 @@ test('board city names are not clipped at phone viewport', async ({ browser, ser
   })
 
   await expect(page.locator('[data-testid="board-cell-1"]')).toBeVisible({ timeout: 5000 })
+  return page
+}
 
-  const results = await page.$$eval('[data-testid^="board-cell-"] .cell-name', (names) =>
+function cellMetrics(page: Page) {
+  return page.$$eval('[data-testid^="board-cell-"] .cell-name', (names) =>
     names.map((el) => {
       const name = el as HTMLElement
       const cell = name.closest('[data-testid^="board-cell-"]') as HTMLElement
@@ -39,17 +41,40 @@ test('board city names are not clipped at phone viewport', async ({ browser, ser
       return {
         text: name.textContent,
         fontSize: style.fontSize,
+        writingMode: style.writingMode,
         hOverflow: name.scrollWidth > cell.clientWidth + 1,
         vOverflow: name.scrollHeight > cell.clientHeight + 1,
       }
     }),
   )
+}
+
+test('portrait: board city names rotate vertically and are never clipped', async ({ browser, serverUrl }) => {
+  const page = await seedGamePage(browser, serverUrl, 390, 844)
+
+  const results = await cellMetrics(page)
 
   expect(results.length).toBe(40)
   const clipped = results.filter((r) => r.hOverflow || r.vOverflow)
   expect(clipped).toEqual([])
 
+  const rotated = results.filter((r) => r.writingMode === 'vertical-rl')
+  expect(rotated.length).toBe(40)
+
   const sizes = results.map((r) => parseFloat(r.fontSize)).filter((n) => !Number.isNaN(n))
   expect(sizes.length).toBe(40)
   expect(Math.max(...sizes)).toBeLessThan(12)
+})
+
+test('landscape: board city names stay horizontal and are never clipped', async ({ browser, serverUrl }) => {
+  const page = await seedGamePage(browser, serverUrl, 844, 390)
+
+  const results = await cellMetrics(page)
+
+  expect(results.length).toBe(40)
+  const clipped = results.filter((r) => r.hOverflow || r.vOverflow)
+  expect(clipped).toEqual([])
+
+  const horizontal = results.filter((r) => r.writingMode === 'horizontal-tb')
+  expect(horizontal.length).toBe(40)
 })

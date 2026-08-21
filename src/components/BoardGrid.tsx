@@ -185,7 +185,7 @@ export default function BoardGrid({ state, isMyTurn, onSell, onMortgage, onUnmor
               type="button"
               tabIndex={-1}
               onClick={(e) => e.preventDefault()}
-              className="cell-name m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none w-full min-w-0 break-words text-balance text-center font-semibold leading-tight text-text-dim text-[clamp(9px,min(2.6vw,2.4vh),14px)]"
+              className="cell-name m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none w-full min-w-0 whitespace-nowrap text-center font-semibold leading-tight text-text-dim text-[clamp(7px,min(2.6vw,2.2vh),14px)]"
             >
               {t('board.space.' + space.id)}
             </button>
@@ -194,7 +194,7 @@ export default function BoardGrid({ state, isMyTurn, onSell, onMortgage, onUnmor
                 type="button"
                 tabIndex={-1}
                 onClick={(e) => e.preventDefault()}
-                className="m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-xs tracking-[-1px]"
+                className="cell-houses m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-xs tracking-[-1px]"
               >
                 {'🏠'.repeat(space.houses)}
               </button>
@@ -204,7 +204,7 @@ export default function BoardGrid({ state, isMyTurn, onSell, onMortgage, onUnmor
                 type="button"
                 tabIndex={-1}
                 onClick={(e) => e.preventDefault()}
-                className="m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-base"
+                className="cell-houses m-0 p-0 border-0 bg-transparent appearance-none cursor-default select-none text-base"
               >
                 🏨
               </button>

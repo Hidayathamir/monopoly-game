@@ -56,3 +56,26 @@ body {
   max-width: 100%;
   min-height: 100vh;
 }
+
+[data-testid^="board-cell-"] .cell-houses {
+  font-size: clamp(8px, min(2.2vw, 2vh), 12px);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+@media (orientation: portrait) {
+  [data-testid^="board-cell-"] {
+    flex-direction: row;
+  }
+  [data-testid^="board-cell-"] .cell-name {
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-size: clamp(6px, min(2.6vw, 1.05vh), 14px);
+  }
+  [data-testid^="board-cell-"] .cell-houses {
+    writing-mode: vertical-rl;
+    font-size: 9px;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+}
