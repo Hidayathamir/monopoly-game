@@ -68,9 +68,12 @@ export const PRESET_AVATARS = {
 export type PresetAvatarId = (typeof PRESET_AVATARS)[keyof typeof PRESET_AVATARS]
 ```
 
+`AvatarKind` lives in `src/types/game.ts` next to `PlayerAvatar` (the type
+references `typeof AvatarKind`; keeping both in game.ts avoids a circular
+import between game.ts and avatars.ts).
+
 Contents of `avatars.ts`:
 
-- `AvatarKind` const object + union type.
 - `PRESET_AVATARS` const object + `PresetAvatarId` derived union (10 emoji
   presets).
 - `PRESET_EMOJI: Record<PresetAvatarId, string>` mapping each id to its emoji.
@@ -83,6 +86,12 @@ Contents of `avatars.ts`:
 ### Types (`src/types/game.ts`)
 
 ```ts
+export const AvatarKind = {
+  Preset: 'preset',
+  Custom: 'custom',
+} as const
+export type AvatarKind = (typeof AvatarKind)[keyof typeof AvatarKind]
+
 export type PlayerAvatar =
   | { kind: typeof AvatarKind.Preset; id: PresetAvatarId }
   | { kind: typeof AvatarKind.Custom; dataUrl: string }
@@ -148,20 +157,24 @@ refactoring.
 
 ### Client (`src/net/client.ts`, `src/hooks/useNetworkGame.ts`)
 
-- `create(name, { color, avatar })`, `join(code, name, { color, avatar })`,
-  new `setIdentity({ color, avatar })`.
-- `useNetworkGame` accepts an optional persisted identity at construction and
-  includes `color`/`avatar` when creating/joining/rejoining.
+- `create(name, identity?)`, `join(code, name, identity?)`, new
+  `setIdentity({ color?, avatar? })`.
+- `useNetworkGame` includes the persisted identity when creating/joining/
+  rejoining, so a refresh auto-reapplies the last chosen look.
 
-### Persistence (`src/net/session.ts`, `src/i18n/constants.ts`)
+### Persistence (`src/net/identity.ts`, `src/i18n/constants.ts`)
 
-- `StorageKey.PlayerIdentity` (new): stores the chosen `{ color, avatar }`
-  per name in `localStorage`, mirroring `StorageKey.PlayerName`.
-- `StorageKey.MpSession` already exists; extend the saved session to carry
-  `color` + `avatar` so a refresh auto-rejoin re-sends them (see
-  `src/components/MultiplayerGame.tsx` `saveSession`).
-- `GameSetup.tsx` persists the chosen color/avatar on load/change, pre-filled
-  from `localStorage`.
+- New `StorageKey.PlayerIdentity` + `src/net/identity.ts` with
+  `PlayerIdentity = { color, avatar }`, `loadIdentity()`, `saveIdentity()`,
+  `clearIdentity()` — stored per name in `localStorage`, mirroring
+  `StorageKey.PlayerName`.
+- The lobby identity panel (Section 3) is where choices are made; on every
+  change it persists via `saveIdentity()` and re-sends via `setIdentity`.
+- `src/components/MultiplayerGame.tsx` passes `loadIdentity()` into
+  `create`/`join` (covering refresh auto-rejoin via the existing
+  `StorageKey.MpSession` name/code flow — the session itself is unchanged).
+- `GameSetup.tsx` is unchanged (identity is chosen in the lobby, not on the
+  setup screen).
 
 ## Section 3 — Lobby UI
 
