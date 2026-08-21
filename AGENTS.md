@@ -28,7 +28,7 @@ Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a N
 
 - **Vitest**: config lives inside `vite.config.ts` (setup `src/test/setup.ts`, excludes `e2e/**`). Unit tests colocated in `__tests__/` dirs next to source.
 - `src/test/setup.ts` installs an in-memory `localStorage` if absent and pins language/currency to `en`/`USD`. Components using i18n/currency must be rendered with `renderWithProviders` from `src/test/test-utils.tsx`.
-- **Playwright** (`e2e/`): config auto-starts Vite dev on port 4173. **Server-backed specs use the shared worker-scoped `serverUrl` fixture (`e2e/fixtures.ts`), which spawns `tsx server/main.ts` on port `4000 + workerIndex` serving `dist/` — run `npm run build` first or those specs fail** (`dist/` is gitignored).
+- **Playwright** (`e2e/`): config auto-starts Vite dev on port 4173. **Server-backed specs use the shared worker-scoped `serverUrl` fixture (`e2e/fixtures.ts`), which spawns `tsx server/main.ts` on port `4000 + workerIndex` serving `dist/` — run `npm run build` first or those specs fail** (`dist/` is gitignored). Trade e2e specs use the sibling `serverUrlTrades` fixture (port `4100 + workerIndex`), which additionally launches the server with `TRADES_ENABLED=true`.
 - e2e tests targeting English UI set `localStorage` (`monopoly-language` = `en`) via `addInitScript`; the default language is English. UI test hooks: `data-testid`s (`sidebar`, `room-code`, `player-card`, `waiting-for`, ...), `aria-label`s, and visible button text.
 - Multiplayer e2e uses the real server + two browser contexts sharing nothing; don't skip the `dist/` requirement.
 
