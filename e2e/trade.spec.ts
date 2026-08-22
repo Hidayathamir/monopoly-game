@@ -7,6 +7,7 @@ import { tradeCashSeed } from './fixtures/trade-cash-seed'
 
 const ALPHA_STRIPE = 'rgb(231, 76, 60)'
 const BRAVO_STRIPE = 'rgb(52, 152, 219)'
+const CHARLIE_STRIPE = 'rgb(46, 204, 113)'
 // Droid sits at player id 1, so createSeededState colors it PLAYER_COLORS[1] — the color comes from the generated seed, not a bot-specific palette.
 const DROID_STRIPE = 'rgb(52, 152, 219)'
 
@@ -19,21 +20,42 @@ async function makePage(browser: Browser): Promise<Page> {
   return context.newPage()
 }
 
-async function joinRoom(host: Page, guest: Page, serverUrl: string): Promise<string> {
-  await host.goto(serverUrl)
-  await host.fill('input[placeholder="Name"]', 'Alpha')
-  await host.click('button:has-text("Continue")')
-  const codeLocator = host.locator('[data-testid="room-code"]')
+async function createRoom(page: Page, url: string, name: string): Promise<string> {
+  await page.goto(url)
+  await page.fill('input[placeholder="Name"]', name)
+  await page.click('button:has-text("Continue")')
+  const codeLocator = page.locator('[data-testid="room-code"]')
   await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
-  const code = (await codeLocator.innerText()).trim()
+  return (await codeLocator.innerText()).trim()
+}
 
-  await guest.goto(serverUrl)
-  await guest.fill('input[placeholder="Name"]', 'Bravo')
-  await guest.click('button:has-text("Join Room")')
-  await guest.fill('input[placeholder="Code"]', code)
-  await guest.click('button:has-text("Continue")')
+async function joinByCode(page: Page, url: string, code: string, name: string): Promise<void> {
+  await page.goto(url)
+  await page.fill('input[placeholder="Name"]', name)
+  await page.click('button:has-text("Join Room")')
+  await page.fill('input[placeholder="Code"]', code)
+  await page.click('button:has-text("Continue")')
+}
+
+async function joinRoom(host: Page, guest: Page, serverUrl: string): Promise<string> {
+  const code = await createRoom(host, serverUrl, 'Alpha')
+  await joinByCode(guest, serverUrl, code, 'Bravo')
   await expect(host.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
   return code
+}
+
+async function joinThree(host: Page, pageB: Page, pageC: Page, serverUrl: string): Promise<string> {
+  const code = await createRoom(host, serverUrl, 'Alpha')
+  await joinByCode(pageB, serverUrl, code, 'Bravo')
+  await expect(host.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+  await joinByCode(pageC, serverUrl, code, 'Charlie')
+  await expect(host.locator('text=Charlie')).toBeVisible({ timeout: 5000 })
+  return code
+}
+
+async function addBot(page: Page): Promise<void> {
+  await page.click('button:has-text("Add Bot")')
+  await expect(page.locator('text=Droid')).toBeVisible()
 }
 
 async function openTradeModal(page: Page, targetCardText: string): Promise<void> {
