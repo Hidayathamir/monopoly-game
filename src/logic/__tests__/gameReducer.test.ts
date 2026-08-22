@@ -1292,6 +1292,32 @@ describe('trade negotiation', () => {
     expect(s1.board[3].owner).toBe(0);
   });
 
+  it('accepts a proposal offering a mortgaged property and transfers the debt', () => {
+    let state = makeSubjects();
+    state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, mortgaged: true } : s)) };
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 0, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(1);
+    const accepted = gameReducer(s1, { type: GameActionType.AcceptTrade, tradeId: 0 });
+    expect(accepted.board[1].owner).toBe(1);
+    expect(accepted.board[1].mortgaged).toBe(true);
+  });
+
+  it('accepts a proposal offering a developed property and transfers the houses', () => {
+    let state = makeSubjects();
+    state = { ...state, board: state.board.map((s) => (s.id === 1 ? { ...s, houses: 2 } : s)) };
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 0, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(1);
+    const accepted = gameReducer(s1, { type: GameActionType.AcceptTrade, tradeId: 0 });
+    expect(accepted.board[1].owner).toBe(1);
+    expect(accepted.board[1].houses).toBe(2);
+  });
+
   it('resolves a proposal to a bot instantly with a reject on a losing deal', () => {
     let state = makeSubjects();
     state = { ...state, players: state.players.map((p, i) => (i === 1 ? { ...p, isBot: true } : p)) };

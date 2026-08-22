@@ -853,11 +853,11 @@ function isTradeValid(state: GameState, trade: PendingTrade): boolean {
   }
   for (const id of trade.offerProperties) {
     const space = state.board[id];
-    if (!space || space.owner !== trade.fromId || space.mortgaged || space.houses > 0) return false;
+    if (!space || space.owner !== trade.fromId) return false;
   }
   for (const id of trade.requestProperties) {
     const space = state.board[id];
-    if (!space || space.owner !== trade.toId || space.mortgaged || space.houses > 0) return false;
+    if (!space || space.owner !== trade.toId) return false;
   }
   if (state.players[trade.fromId].money < trade.offerCash) return false;
   if (state.players[trade.toId].money < trade.requestCash) return false;

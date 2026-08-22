@@ -82,7 +82,7 @@ test('requesting a property the target does not own rejects the proposal', async
   await expect(pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })).not.toContainText('1')
 })
 
-test('mortgaged properties are excluded from the trade modal', async ({ browser, serverUrlTrades }) => {
+test('mortgaged properties are included and tradeable in the trade modal', async ({ browser, serverUrlTrades }) => {
   const pageA = await makePage(browser)
   const pageB = await makePage(browser)
   const code = await joinRoom(pageA, pageB, serverUrlTrades)
@@ -91,15 +91,15 @@ test('mortgaged properties are excluded from the trade modal', async ({ browser,
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
   await openTradeModal(pageA, 'Bravo')
-  // Offer column: Salvador (1) listed; mortgaged Rio (3) is not.
+  // Offer column: Salvador (1) and mortgaged Rio (3) are both listed.
   await expect(pageA.getByLabel('Salvador', { exact: true })).toHaveCount(1)
-  await expect(pageA.getByLabel('Rio', { exact: true })).toHaveCount(0)
-  // Request column: Jerusalem (9) listed; mortgaged Tel Aviv (6) is not.
+  await expect(pageA.getByLabel('Rio', { exact: true })).toHaveCount(1)
+  // Request column: Jerusalem (9) and mortgaged Tel Aviv (6) are both listed.
   await expect(pageA.getByLabel('Jerusalem', { exact: true })).toHaveCount(1)
-  await expect(pageA.getByLabel('Tel Aviv', { exact: true })).toHaveCount(0)
+  await expect(pageA.getByLabel('Tel Aviv', { exact: true })).toHaveCount(1)
 })
 
-test('properties with houses or a hotel are excluded from the trade modal', async ({ browser, serverUrlTrades }) => {
+test('properties with houses or a hotel are included and tradeable in the trade modal', async ({ browser, serverUrlTrades }) => {
   const pageA = await makePage(browser)
   const pageB = await makePage(browser)
   const code = await joinRoom(pageA, pageB, serverUrlTrades)
@@ -109,9 +109,34 @@ test('properties with houses or a hotel are excluded from the trade modal', asyn
 
   await openTradeModal(pageA, 'Bravo')
   await expect(pageA.getByLabel('Salvador', { exact: true })).toHaveCount(1)
-  await expect(pageA.getByLabel('Rio', { exact: true })).toHaveCount(0)
+  await expect(pageA.getByLabel('Rio', { exact: true })).toHaveCount(1)
   await expect(pageA.getByLabel('Jerusalem', { exact: true })).toHaveCount(1)
-  await expect(pageA.getByLabel('Tel Aviv', { exact: true })).toHaveCount(0)
+  await expect(pageA.getByLabel('Tel Aviv', { exact: true })).toHaveCount(1)
+})
+
+test('a trade of a mortgaged property transfers ownership and the mortgage debt', async ({ browser, serverUrlTrades }) => {
+  const pageA = await makePage(browser)
+  const pageB = await makePage(browser)
+  const code = await joinRoom(pageA, pageB, serverUrlTrades)
+
+  await seedGame(serverUrlTrades, code, tradeMortgageSeed)
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  // Alpha offers his mortgaged Rio (3) and requests Bravo's mortgaged Tel Aviv (6).
+  await openTradeModal(pageA, 'Bravo')
+  await pageA.getByLabel('Rio').check()
+  await pageA.getByLabel('Tel Aviv').check()
+  await pageA.getByRole('button', { name: 'Propose' }).click()
+
+  const inboxBtn = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await expect(inboxBtn).toContainText('1', { timeout: 5000 })
+  await inboxBtn.click()
+  await pageB.getByRole('button', { name: 'Accept' }).click()
+  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+
+  // Ownership swapped; the mortgage flag rides along to the new owner.
+  await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
+  await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
 })
 
 

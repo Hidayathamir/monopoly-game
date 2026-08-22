@@ -85,7 +85,7 @@ describe('TradeModal', () => {
     expect(offer).toHaveValue(0)
   })
 
-  it('excludes mortgaged and developed properties from both columns', () => {
+  it('includes mortgaged and developed properties in both columns', () => {
     const s = makeState()
     const state = {
       ...s,
@@ -100,8 +100,8 @@ describe('TradeModal', () => {
     }
     renderWithProviders(<TradeModal state={state} targetPlayerId={1} onPropose={() => {}} onClose={() => {}} />)
     expect(screen.getByRole('checkbox', { name: /Salvador/ })).toBeTruthy()
-    expect(screen.queryByRole('checkbox', { name: /Rio/ })).toBeNull()
+    expect(screen.getByRole('checkbox', { name: /Rio/ })).toBeTruthy()
     expect(screen.getByRole('checkbox', { name: /Jerusalem/ })).toBeTruthy()
-    expect(screen.queryByRole('checkbox', { name: /Tel Aviv/ })).toBeNull()
+    expect(screen.getByRole('checkbox', { name: /Tel Aviv/ })).toBeTruthy()
   })
 })

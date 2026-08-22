@@ -23,13 +23,9 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   const currentPlayerMoney = state.players[state.currentPlayer]?.money ?? 0
   const targetPlayerMoney = state.players[targetPlayerId]?.money ?? 0
 
-  const currentProps = state.board.filter(
-    (s) => s.owner === state.currentPlayer && !s.mortgaged && s.houses === 0
-  )
+  const currentProps = state.board.filter((s) => s.owner === state.currentPlayer)
 
-  const targetProps = state.board.filter(
-    (s) => s.owner === targetPlayerId && !s.mortgaged && s.houses === 0
-  )
+  const targetProps = state.board.filter((s) => s.owner === targetPlayerId)
 
   function clampCash(value: number, max: number): number {
     return Math.max(0, Math.min(value, max))
