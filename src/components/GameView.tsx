@@ -17,7 +17,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
     : game.myPlayerId === state.currentPlayer
   useMyTurnSound(isMyTurn)
   const tradesEnabled = state.tradesEnabled
-  const canTrade = tradesEnabled && isMyTurn && state.phase === GamePhase.Waiting && !state.pendingAction
+  const canTrade = tradesEnabled && state.phase === GamePhase.Waiting && !state.pendingAction
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTrades, setShowTrades] = useState(false)
   const tradeCount = state.pendingTrades.filter((tr) =>
