@@ -45,7 +45,6 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           canTrade={canTrade}
           tradesEnabled={tradesEnabled}
           connectedPlayerIds={connectedPlayerIds}
-          onDrawCard={game.drawCard}
           onBuyProperty={game.buyProperty}
           onDeclineBuy={game.declineBuy}
           onPayRent={game.payRent}

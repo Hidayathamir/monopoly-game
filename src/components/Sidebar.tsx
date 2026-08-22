@@ -13,7 +13,6 @@ interface Props {
   state: GameState
   onRoll: (target?: number) => void
   onProposeTrade: (playerId: number) => void
-  onDrawCard: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
   onPayRent: () => void

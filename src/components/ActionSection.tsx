@@ -8,7 +8,6 @@ import HoldToConfirmButton from './HoldToConfirmButton'
 
 interface Props {
   state: GameState
-  onDrawCard: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
   onPayRent: () => void
@@ -20,7 +19,7 @@ interface Props {
 }
 
 export default function ActionSection({
-  state, onDrawCard, onBuyProperty,
+  state, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
   onBuild, isMyTurn = true,
 }: Props) {
@@ -68,14 +67,6 @@ export default function ActionSection({
             {t('action.declareBankruptcy')}
           </HoldToConfirmButton>
         </div>
-      </div>
-    )
-  }
-
-  if (pending?.type === PendingActionType.DrawCard) {
-    return (
-      <div className="flex flex-col gap-1.5 w-full items-stretch">
-        <Button variant="primary" onClick={onDrawCard}>{t('action.drawCard')}</Button>
       </div>
     )
   }

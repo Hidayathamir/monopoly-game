@@ -34,7 +34,6 @@ function makeProps() {
     onProposeTrade: noop,
     canTrade: true,
     tradesEnabled: true,
-    onDrawCard: noop,
     onBuyProperty: noop,
     onDeclineBuy: noop,
     onPayRent: noop,

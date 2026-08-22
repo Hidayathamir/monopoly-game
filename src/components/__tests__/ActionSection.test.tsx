@@ -9,7 +9,7 @@ import { GameActionType, PendingActionType, type GameState } from '../../types/g
 
 const noop = () => {}
 const actions = {
-  onDrawCard: noop, onBuyProperty: noop,
+  onBuyProperty: noop,
   onDeclineBuy: noop, onPayRent: noop, onDeclareBankruptcy: noop,
   onPayJailFine: noop, onUseGetOutOfJailFree: noop,
 }
