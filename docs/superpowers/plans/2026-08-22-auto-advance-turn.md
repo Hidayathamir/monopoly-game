@@ -27,8 +27,10 @@
 - Modify: `src/components/Sidebar.tsx` — drop `onEndTurn` from props
 - Modify: `src/components/GameView.tsx` — stop passing `onEndTurn`
 - Modify: `src/components/__tests__/ActionSection.test.tsx` — update Roll Again test
-- Modify: `server/gameServer.ts` — add auto-advance branch + constant + guard method
-- Modify: `server/__tests__/gameServer.test.ts` — update doubles test, add auto-advance tests
+- Modify: `server/gameServer.ts` — add auto-advance branch + constant + guard method; make `seedState` schedule auto-steps
+- Modify: `server/__tests__/gameServer.test.ts` — update doubles test, add auto-advance + seed tests
+- Modify: `e2e/helpers/gameplay.ts` — remove dead `end`/`settleEnd` logic in `playHostTurns`
+- Create: `e2e/auto-advance.spec.ts` — seed-driven e2e covering the feature
 
 ---
 
@@ -324,6 +326,14 @@ In `scheduleAutoSteps()` (currently lines 450-465), after the existing `else if 
 
 The double-check inside the timeout (same pattern as the existing `DrawCard` branch) re-verifies that the human is still the deciding player and conditions still hold.
 
+**Make `seedState` schedule auto-steps.** `seedState` (currently lines 247-265) replaces state and calls `broadcast()` + `driveBots()` but never `scheduleAutoSteps()`. This means seeding a mid-turn state (used by the Task 4 e2e) never arms the auto-advance timer. Add the call after `driveBots()`:
+
+```ts
+    this.broadcast()
+    this.driveBots()
+    this.scheduleAutoSteps()
+```
+
 - [ ] **Step 5: Run the server test suite**
 
 Run: `npx vitest run server/__tests__/gameServer.test.ts`
@@ -440,17 +450,126 @@ git commit -m "feat: remove end-of-turn button, rely on server auto-advance"
 
 ---
 
+### Task 4: e2e — seed-driven spec + `playHostTurns` helper cleanup
+
+**Files:**
+- Modify: `e2e/helpers/gameplay.ts:12-20,31,38-45,81-85`
+- Create: `e2e/auto-advance.spec.ts`
+
+**Interfaces:**
+- Consumes: `test`, `expect` from `./fixtures`; `seedGame` / `buildWaitingState` from `./helpers/seed`; the auto-advance server behavior from Task 2.
+- Produces: `e2e/auto-advance.spec.ts` with three tests (below).
+
+**Context — why this task exists:** With the "Roll Again" / "End Turn" button removed (Task 3), the `playHostTurns` helper at `e2e/helpers/gameplay.ts:31` references a locator that no longer matches any element. It is used by `e2e/monopoly.spec.ts:58,114` (the "gameplay survives turns" smoke tests). Those tests still pass — the `end` branch is simply dead code now because the turn auto-advances on its own — but the dead branch and `settleEnd` helper are misleading and should be removed. Separately, we add a seed-driven spec (`e2e/auto-advance.spec.ts`) that exercises the exact feature: the human's turn auto-advances when it's the only action, and does **not** advance when the Build button is available.
+
+- [ ] **Step 1: Clean up `playHostTurns`**
+
+In `e2e/helpers/gameplay.ts`:
+
+1. Delete the `end` entry from the `HostButtons` interface (line 19) and from the `buttons` object literal (line 31).
+2. Delete the `settleEnd` function (lines 38-45).
+3. Delete the `if (await visible(buttons.end)) { ... }` block (lines 81-85).
+4. If `expect` (the Playwright import) becomes unused, remove it from the `@playwright/test` import at line 1 — keep `type Locator, type Page`.
+
+Verify the diff is purely deletion + import cleanup; no logic change to the remaining branches.
+
+- [ ] **Step 2: Write the failing e2e spec**
+
+Create `e2e/auto-advance.spec.ts`:
+
+```ts
+import { test, expect } from './fixtures'
+import { seedGame, buildWaitingState } from './helpers/seed'
+
+// Mirrors e2e/monopoly-rent.spec.ts room setup: Alpha creates a room, Bravo joins.
+async function createRoom(page: import('@playwright/test').Page, serverUrl: string, name: string): Promise<string> {
+  await page.goto(serverUrl)
+  await page.fill('input[placeholder="Name"]', name)
+  await page.click('button:has-text("Continue")')
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  return (await codeLocator.innerText()).trim()
+}
+
+test('auto-advances a human turn with no action available, without any click', async ({ browser, serverUrl }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await contextB.newPage()
+
+  const code = await createRoom(pageA, serverUrl, 'Alpha')
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Bravo')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+  // Seed Alpha's turn mid-roll: dice already thrown, standing on an unowned
+  // property (space 1), no properties owned -> no Build button can appear.
+  const state = buildWaitingState({
+    players: [
+      { id: 0, name: 'Alpha', money: 1500 },
+      { id: 1, name: 'Bravo', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
+  state.dice = [1, 2] // non-doubles
+  state.players[0].position = 1 // unowned property space
+  await seedGame(serverUrl, code, state)
+
+  // Alpha's turn must auto-advance to Bravo (the "waiting for Bravo" pill
+  // appears) WITHOUT clicking any End Turn / Roll Again button.
+  await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo', { timeout: 5000 })
+  await expect(pageA.getByRole('button', { name: /End Turn|Roll Again/ })).toHaveCount(0)
+})
+```
+
+> **Seed-dice note:** The reducer's auto-advance requires `dice !== null`. `buildWaitingState` hardcodes `dice: null`, so the test sets `state.dice` after building. `[1, 2]` (non-doubles) is required — a doubles value would route through the "roll again" branch (still auto-advanced, same player) and would make the "advances to Bravo" assertion wrong. If `validateStateStructure` rejects a manually-assembled `GameState` (e.g., it cross-checks `currentPlayer` against `turnOrder`), prefer adding an optional `dice?: [number, number]` override to `buildWaitingState`'s options and setting it there, rather than mutating the returned object.
+
+- [ ] **Step 3: Run the spec to verify it fails**
+
+Run: `npm run build && npx playwright test e2e/auto-advance.spec.ts`
+Expected: FAIL (times out waiting for "waiting for Bravo") **before** Task 2 is implemented — with the old code, Alpha's turn waits forever for a click. After Task 2 is in place, this passes. If it still fails on the seed-dice shape, adjust per the note in Step 2.
+
+- [ ] **Step 4: Run the full e2e suite**
+
+Run: `npm run build && npx playwright test`
+Expected: all PASS, including the previously-affected `e2e/monopoly.spec.ts` ("gameplay survives turns", "4-player game survives many turns") and the new `e2e/auto-advance.spec.ts`.
+
+- [ ] **Step 5: Full verification + commit**
+
+Run: `npm run typecheck && npm run lint && npm run test:unit && npm run build && npx playwright test`
+Expected: all green.
+
+```bash
+git add e2e/helpers/gameplay.ts e2e/auto-advance.spec.ts
+git commit -m "test(e2e): cover turn auto-advance, drop dead end-turn helper"
+```
+
+---
+
 ## Self-Review
 
 **Spec coverage:**
 - Shared `canBuildOnCurrentSpace` helper → Task 1.
 - Server auto-advance branch in `scheduleAutoSteps` with 300ms delay, human-only guard, re-check inside timeout → Task 2.
+- `seedState` schedules auto-steps so seeded mid-turn states auto-advance → Task 2.
 - Guard against build-available (via `canBuildOnCurrentSpace`) → Tasks 1+2.
 - Remove button + prop threading cleanup → Task 3.
 - Update `gameServer.test.ts:208` doubles test → Task 2.
+- e2e coverage: helper cleanup + `auto-advance.spec.ts` → Task 4.
 - i18n: no new strings; `action.rollAgain`/`action.endTurn` keys left in place → covered, no task needed.
 - Out-of-scope tradeoff (mortgaging/selling/trading mid-turn) documented → no task.
 
 **Placeholder scan:** No TBD/TODO; all steps carry concrete code or exact file:line references.
 
-**Type consistency:** `canBuildOnCurrentSpace(state: GameState): boolean` is defined in Task 1 and consumed with the same name/signature in Tasks 1 and 2. `AUTO_END_TURN_MS` constant used only in Task 2. `canAutoAdvanceTurn()` private method referenced consistently. `END_TURN`/`EndTurn` action naming matches the existing `GameActionType.EndTurn` constant used by the reducer.
+**Type consistency:** `canBuildOnCurrentSpace(state: GameState): boolean` is defined in Task 1 and consumed with the same name/signature in Tasks 1 and 2. `AUTO_END_TURN_MS` constant used only in Task 2. `canAutoAdvanceTurn()` private method referenced consistently. `END_TURN`/`EndTurn` action naming matches the existing `GameActionType.EndTurn` constant used by the reducer. Task 4's spec uses the same `test`/`expect`/`seedGame`/`buildWaitingState` imports and patterns as `e2e/monopoly-rent.spec.ts` and the seed helpers.
