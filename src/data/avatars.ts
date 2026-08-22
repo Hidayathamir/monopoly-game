@@ -1,7 +1,5 @@
 import { AvatarKind, type PlayerAvatar } from '../types/game';
 
-export { AvatarKind } from '../types/game';
-
 export const PRESET_AVATARS = {
   Cat: 'cat',
   Dog: 'dog',
