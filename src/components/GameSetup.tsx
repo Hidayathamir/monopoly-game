@@ -22,15 +22,17 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
   const [roomCode, setRoomCode] = useState('')
   const [mpAction, setMpAction] = useState<MpAction>(MpAction.Create)
   const { rooms, error } = useRoomList()
-
-  function resolveName() {
-    return myName.trim() || t('lobby.player')
-  }
+  const [nameError, setNameError] = useState<string | null>(null)
 
   function handleSubmit() {
-    const name = resolveName()
-    if (mpAction === MpAction.Create) onCreate(name)
-    else onJoin(name, roomCode.trim().toUpperCase())
+    const trimmed = myName.trim()
+    if (!trimmed) {
+      setNameError(t('setup.nameRequired'))
+      return
+    }
+    setNameError(null)
+    if (mpAction === MpAction.Create) onCreate(trimmed)
+    else onJoin(trimmed, roomCode.trim().toUpperCase())
   }
 
   return (
@@ -45,12 +47,14 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
             onChange={(e) => {
               const value = e.target.value
               setMyName(value)
+              if (nameError) setNameError(null)
               localStorage.setItem(StorageKey.PlayerName, value)
             }}
             placeholder={t('setup.namePlaceholder')}
             maxLength={12}
             className="px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
           />
+          {nameError && <p className="text-red-danger text-xs mt-0.5">{nameError}</p>}
         </div>
         <div className="flex gap-2">
           <Button
@@ -101,7 +105,12 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
                   <button
                     type="button"
                     data-testid="room-row"
-                    onClick={() => onJoin(resolveName(), room.code)}
+                    onClick={() => {
+                      const trimmed = myName.trim()
+                      if (!trimmed) { setNameError(t('setup.nameRequired')); return }
+                      setNameError(null)
+                      onJoin(trimmed, room.code)
+                    }}
                     className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
                   >
                     <span>{room.hostName ?? '—'}</span>

@@ -133,6 +133,7 @@
   "setup.openRooms": "Open Rooms",
   "setup.noRooms": "No open rooms yet",
   "setup.playerCount": "{{n}}/{{max}}",
+  "setup.nameRequired": "Name is required",
   "setup.statusLobby": "Lobby",
   "setup.statusInGame": "In game",
 
