@@ -711,6 +711,15 @@ describe('GameServer', () => {
     expect(server.getPlayers()[0].avatar).toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog })
   })
 
+  it('reassigns a joining player off a duplicate avatar to a free preset', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } })
+    server.join('c1', 'Bob', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } })
+    const bob = server.getPlayers()[1]
+    expect(bob.avatar).not.toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog })
+    expect(bob.avatar).toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Cat })
+  })
+
   it('setIdentity updates color and avatar and broadcasts the lobby', () => {
     const { server, sent } = setup()
     server.join('c0', 'Alice')

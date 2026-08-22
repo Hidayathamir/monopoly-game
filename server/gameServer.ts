@@ -139,7 +139,7 @@ export class GameServer {
       isBot: false,
       gracePending: false,
       color: opts?.color !== undefined && isValidColor(opts.color) && !this.isColorTaken(opts.color, index) ? opts.color : this.nextFreeColor(),
-      avatar: opts?.avatar !== undefined && isValidAvatar(opts.avatar) ? opts.avatar : DEFAULT_AVATAR,
+      avatar: opts?.avatar !== undefined && isValidAvatar(opts.avatar) && !this.isAvatarTaken(opts.avatar, index) ? opts.avatar : this.nextFreePresetAvatar(),
     }
     this.events.send(clientId, {
       type: ServerMessageType.Welcome,
