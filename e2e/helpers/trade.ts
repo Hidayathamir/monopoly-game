@@ -55,7 +55,18 @@ export async function addBot(page: Page): Promise<void> {
 
 export async function openTradeModal(page: Page, targetCardText: string): Promise<void> {
   const card = page.locator('[data-testid="player-card"]').filter({ hasText: targetCardText })
-  await card.hover()
+  // Park the pointer off the player row so any popup from a previous hover
+  // closes, then move straight to the card in a single pointer step so sibling
+  // cards' popups never open and cover the target (a multi-step hover path
+  // across the row would open the wrong popup and swallow the hover).
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(250)
+  const box = await card.boundingBox()
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  } else {
+    await card.hover()
+  }
   const tradeBtn = page.getByRole('button', { name: /^🤝 Trade$/ })
   await expect(tradeBtn).toBeVisible({ timeout: 5000 })
   await tradeBtn.hover()
