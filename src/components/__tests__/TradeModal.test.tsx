@@ -38,8 +38,21 @@ describe('TradeModal', () => {
     renderWithProviders(
       <TradeModal state={makeState()} targetPlayerId={1} onPropose={onPropose} onClose={() => {}} />,
     )
+    fireEvent.change(screen.getAllByRole('spinbutton')[0], { target: { value: '100' } })
     screen.getByRole('button', { name: /Propose/i }).click()
-    expect(onPropose).toHaveBeenCalledWith(expect.objectContaining({ toId: 1 }))
+    expect(onPropose).toHaveBeenCalledWith(expect.objectContaining({ toId: 1, offerCash: 100 }))
+  })
+
+  it('disables Propose until the trade has at least one item', () => {
+    const onPropose = vi.fn()
+    renderWithProviders(
+      <TradeModal state={makeStateWithRecipientProperties()} targetPlayerId={1} onPropose={onPropose} onClose={() => {}} />,
+    )
+    const propose = screen.getByRole('button', { name: /Propose/i })
+    expect(propose).toBeDisabled()
+    fireEvent.click(screen.getByRole('checkbox', { name: /Rio/ }))
+    expect(propose).toBeEnabled()
+    expect(onPropose).not.toHaveBeenCalled()
   })
 
   it("renders the recipient's tradeable properties as request checkboxes", () => {

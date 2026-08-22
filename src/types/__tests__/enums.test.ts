@@ -30,7 +30,7 @@ test('wire values are locked for all enum-like consts', () => {
     'event.ownerInJail', 'event.monopolyRent', 'event.mustCircleBoard', 'event.bought',
     'event.paidRent', 'event.builtHouse', 'event.builtHotel', 'event.soldHouse',
     'event.mortgaged', 'event.unmortgaged', 'event.soldToBank', 'event.tradeProposed',
-    'event.tradeAccepted', 'event.tradeRejected', 'event.tradeCancelled', 'event.paidJailFine',
+    'event.tradeAccepted', 'event.tradeRejected', 'event.tradeProposalRejected', 'event.tradeCancelled', 'event.paidJailFine',
     'event.usedJailCard', 'event.doublesAgain', 'event.cardCollect', 'event.cardPay',
     'event.cardToJail', 'event.gotJailCard', 'event.cardCollectPlayers', 'event.cardStreetRepairs',
     'event.movedForward', 'event.movedBack', 'event.bankruptcy', 'event.bankruptcyWin',

@@ -548,7 +548,7 @@ describe('GameServer', () => {
     server.start('c0')
 
     server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
-      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 100, requestProperties: [], requestCash: 0,
     } })
     const tradeId = server.getState().pendingTrades[0].id
     // c0 is current player; c1 is NOT. The accept must bypass the turn gate.
@@ -576,7 +576,7 @@ describe('GameServer', () => {
     server.start('c0')
 
     server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
-      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 100, requestProperties: [], requestCash: 0,
     } })
     const tradeId = server.getState().pendingTrades[0].id
     // c0 is current player; c1 is NOT. The reject must bypass the turn gate.
@@ -592,7 +592,7 @@ describe('GameServer', () => {
     server.join('c2', 'Charlie')
     server.start('c0')
     server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
-      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 100, requestProperties: [], requestCash: 0,
     } })
     const tradeId = server.getState().pendingTrades[0].id
     server.handleAction('c2', { type: 'ACCEPT_TRADE', tradeId })
@@ -606,7 +606,7 @@ describe('GameServer', () => {
     server.join('c1', 'Bob')
     server.start('c0')
     server.handleAction('c0', { type: 'PROPOSE_TRADE', offer: {
-      fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0,
+      fromId: 0, toId: 1, offerProperties: [], offerCash: 100, requestProperties: [], requestCash: 0,
     } })
     expect(sent.some((m) => m.type === 'error' && m.message === 'Fitur pertukaran tidak tersedia')).toBe(true)
     expect(server.getState().pendingTrades).toHaveLength(0)

@@ -530,12 +530,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const from = state.players[offer.fromId];
       const to = state.players[offer.toId];
       if (!from || !to || offer.fromId === offer.toId || to.bankrupt) return state;
-      const validOffer = offer.offerProperties.every(
-        (id) => state.board[id]?.owner === offer.fromId && !state.board[id].mortgaged && state.board[id].houses === 0,
-      );
-      if (!validOffer) return state;
+      const trade: PendingTrade = { ...offer, id: state.nextTradeId };
+      if (!isTradeValid(state, trade)) {
+        return {
+          ...state,
+          eventLog: [...state.eventLog, { key: LogEventKey.TradeProposalRejected, params: { from: from.name, to: to.name } }],
+        };
+      }
       if (to.isBot || to.botControlled) {
-        const trade: PendingTrade = { ...offer, id: state.nextTradeId };
         if (shouldAcceptTrade(state, trade)) {
           const applied = applyTrade(state, trade);
           return {
@@ -547,7 +549,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
       return {
         ...state,
-        pendingTrades: [...state.pendingTrades, { ...offer, id: state.nextTradeId }],
+        pendingTrades: [...state.pendingTrades, trade],
         nextTradeId: state.nextTradeId + 1,
         eventLog: [...state.eventLog, { key: LogEventKey.TradeProposed, params: { from: from.name, to: to.name } }],
       };
@@ -841,6 +843,14 @@ function getNextPlayer(state: GameState): number {
 }
 
 function isTradeValid(state: GameState, trade: PendingTrade): boolean {
+  if (
+    trade.offerCash <= 0 &&
+    trade.offerProperties.length === 0 &&
+    trade.requestCash <= 0 &&
+    trade.requestProperties.length === 0
+  ) {
+    return false;
+  }
   for (const id of trade.offerProperties) {
     const space = state.board[id];
     if (!space || space.owner !== trade.fromId || space.mortgaged || space.houses > 0) return false;

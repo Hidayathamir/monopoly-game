@@ -128,6 +128,7 @@ export const LogEventKey = {
   TradeProposed: 'event.tradeProposed',
   TradeAccepted: 'event.tradeAccepted',
   TradeRejected: 'event.tradeRejected',
+  TradeProposalRejected: 'event.tradeProposalRejected',
   TradeCancelled: 'event.tradeCancelled',
   PaidJailFine: 'event.paidJailFine',
   UsedJailCard: 'event.usedJailCard',

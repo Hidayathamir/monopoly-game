@@ -43,6 +43,24 @@ const botState = createSeededState({
   tradesEnabled: true,
 });
 
+const cashState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 50 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+    [TLV_AIRPORT]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1 },
+    [JERUSALEM]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
 const header = (comment: string) =>
   "import type { GameState } from '../../src/types/game'\n" +
   '\n' +
@@ -59,4 +77,9 @@ writeFileSync(
   header('Alpha (current, $1200) owns Salvador/Rio/TLV Airport; bot Droid ($1200) owns Tel Aviv.') +
     `export const tradeBotSeed: GameState = ${JSON.stringify(botState, null, 2)}\n`,
 );
-console.log('wrote e2e/fixtures/trade-seed.ts and e2e/fixtures/trade-bot-seed.ts');
+writeFileSync(
+  'e2e/fixtures/trade-cash-seed.ts',
+  header('Alpha (current, $1200) owns Salvador/Rio/TLV Airport; Bravo ($50) owns Tel Aviv/Jerusalem.') +
+    `export const tradeCashSeed: GameState = ${JSON.stringify(cashState, null, 2)}\n`,
+);
+console.log('wrote e2e/fixtures/trade-seed.ts, e2e/fixtures/trade-bot-seed.ts and e2e/fixtures/trade-cash-seed.ts');

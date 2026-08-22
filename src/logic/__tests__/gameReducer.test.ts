@@ -1163,6 +1163,73 @@ describe('trade negotiation', () => {
     expect(s1.pendingTrades).toHaveLength(0);
   });
 
+  it('rejects a proposal that offers more cash than the proposer has', () => {
+    const state = setMoney(makeSubjects(), 0, 100);
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 150, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposalRejected', params: { from: 'Alice', to: 'Bob' } });
+  });
+
+  it('rejects a proposal that requests more cash than the target has', () => {
+    const state = setMoney(makeSubjects(), 1, 50);
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 100 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposalRejected', params: { from: 'Alice', to: 'Bob' } });
+    expect(s1.players[1].money).toBe(50);
+  });
+
+  it('rejects a proposal requesting a property the target does not own', () => {
+    const state = makeSubjects();
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 0, requestProperties: [1], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposalRejected', params: { from: 'Alice', to: 'Bob' } });
+  });
+
+  it('rejects a bot-facing proposal whose requested cash the bot cannot afford', () => {
+    let state = makeSubjects();
+    state = {
+      ...state,
+      players: state.players.map((p, i) => (i === 1 ? { ...p, isBot: true, money: 50 } : p)),
+    };
+    // Value is fair (offer 60 + 40 = 100 >= request 100) but the bot only has $50.
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 40, requestProperties: [], requestCash: 100 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposalRejected', params: { from: 'Alice', to: 'Bob' } });
+    expect(s1.players[1].money).toBe(50);
+  });
+
+  it('rejects an empty proposal with nothing on either side', () => {
+    const state = makeSubjects();
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+    expect(s1.eventLog).toContainEqual({ key: 'event.tradeProposalRejected', params: { from: 'Alice', to: 'Bob' } });
+  });
+
+  it('accepts a proposal with only cash on one side', () => {
+    const state = makeSubjects();
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 100 },
+    });
+    expect(s1.pendingTrades).toHaveLength(1);
+    expect(s1.pendingTrades[0]).toMatchObject({ requestCash: 100 });
+  });
+
   it('accept transfers property and cash in both directions and clears the inbox', () => {
     let state = proposeTradeForId(makeSubjects());
     state = gameReducer(state, { type: GameActionType.AcceptTrade, tradeId: 0 });

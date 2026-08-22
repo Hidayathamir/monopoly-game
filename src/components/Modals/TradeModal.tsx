@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GameState, TradeOffer } from '../../types/game'
+import { useCurrency } from '../../i18n/CurrencyContext'
 import Modal from './Modal'
 import Button from '../Button'
 
@@ -13,10 +14,14 @@ interface Props {
 
 export default function TradeModal({ state, onPropose, onClose, targetPlayerId }: Props) {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   const [offerProperties, setOfferProperties] = useState<number[]>([])
   const [offerCash, setOfferCash] = useState(0)
   const [requestProperties, setRequestProperties] = useState<number[]>([])
   const [requestCash, setRequestCash] = useState(0)
+
+  const currentPlayerMoney = state.players[state.currentPlayer]?.money ?? 0
+  const targetPlayerMoney = state.players[targetPlayerId]?.money ?? 0
 
   const currentProps = state.board.filter(
     (s) => s.owner === state.currentPlayer && !s.mortgaged && s.houses === 0
@@ -25,6 +30,16 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   const targetProps = state.board.filter(
     (s) => s.owner === targetPlayerId && !s.mortgaged && s.houses === 0
   )
+
+  function clampCash(value: number, max: number): number {
+    return Math.max(0, Math.min(value, max))
+  }
+
+  const isEmptyTrade =
+    offerCash <= 0 &&
+    offerProperties.length === 0 &&
+    requestCash <= 0 &&
+    requestProperties.length === 0
 
   function handlePropose() {
     const toId = targetPlayerId
@@ -49,8 +64,11 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
         <div className="flex flex-col gap-1.5">
           <h4 className="text-lg text-gold m-0">{t('trade.youOffer')}</h4>
           <label className="text-base flex items-center gap-1 text-text-dim">
-            {t('trade.money')}<input type="number" value={offerCash} onChange={(e) => setOfferCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
+            {t('trade.money')}<input type="number" value={offerCash} onChange={(e) => setOfferCash(clampCash(Number(e.target.value), currentPlayerMoney))} min={0} max={currentPlayerMoney} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
+          {currentPlayerMoney > 0 && (
+            <span className="text-xs text-text-dim">{t('trade.max', { amount: formatMoney(currentPlayerMoney) })}</span>
+          )}
           {currentProps.map((s) => (
             <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
               <input
@@ -70,8 +88,11 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
         <div className="flex flex-col gap-1.5">
           <h4 className="text-lg text-gold m-0">{t('trade.youRequest')}</h4>
           <label className="text-base flex items-center gap-1 text-text-dim">
-            {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(Number(e.target.value))} min={0} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
+            {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(clampCash(Number(e.target.value), targetPlayerMoney))} min={0} max={targetPlayerMoney} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
           </label>
+          {targetPlayerMoney > 0 && (
+            <span className="text-xs text-text-dim">{t('trade.max', { amount: formatMoney(targetPlayerMoney) })}</span>
+          )}
           {targetProps.map((s) => (
             <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
               <input
@@ -90,7 +111,7 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
         </div>
       </div>
       <Modal.Actions>
-        <Button variant="success" onClick={handlePropose}>{t('trade.propose')}</Button>
+        <Button variant="success" disabled={isEmptyTrade} onClick={handlePropose}>{t('trade.propose')}</Button>
         <Button variant="secondary" onClick={onClose}>{t('trade.cancel')}</Button>
       </Modal.Actions>
     </Modal>
