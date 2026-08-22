@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GamePhase, type GameApi, type TradeOffer } from '../types/game'
+import { type GameApi, type TradeOffer } from '../types/game'
 import GameBoard from './GameBoard'
 import Sidebar from './Sidebar'
 import TradeModal from './Modals/TradeModal'
@@ -17,7 +17,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
     : game.myPlayerId === state.currentPlayer
   useMyTurnSound(isMyTurn)
   const tradesEnabled = state.tradesEnabled
-  const canTrade = tradesEnabled && state.phase === GamePhase.Waiting && !state.pendingAction
+  const canTrade = tradesEnabled
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
   const [showTrades, setShowTrades] = useState(false)
