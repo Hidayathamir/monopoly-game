@@ -19,7 +19,10 @@ export const test = base.extend<object, WorkerFixtures>({
   serverUrlTrades: [
     // eslint-disable-next-line no-empty-pattern
     async ({}, use, workerInfo) => {
-      const server = await startServer(4100 + workerInfo.workerIndex, { TRADES_ENABLED: 'true' })
+      const server = await startServer(4100 + workerInfo.workerIndex, {
+        TRADES_ENABLED: 'true',
+        AFK_TIMEOUT_MS: '120000',
+      })
       await use(server.url)
       server.close()
     },

@@ -427,10 +427,11 @@ git commit -m "test: refactor trade spec room helpers"
 
 **Files:**
 - Modify: `e2e/trade.spec.ts`
+- Modify: `e2e/fixtures.ts`
 
 **Interfaces:**
 - Consumes: `tradeSeed`, `tradeBotSeed`, `tradeUtilitySeed`, `tradeReverseSeed`, `tradeThreeSeed` from `./fixtures/*`; helpers from Task 4; `CHARLIE_STRIPE` from Task 4.
-- Produces: 14 new `test(...)` blocks appended after the last existing test.
+- Produces: 14 new `test(...)` blocks appended after the last existing test. Also raises `AFK_TIMEOUT_MS` to `'120000'` on the `serverUrlTrades` fixture so the 30s AFK bot-control cannot fire mid-test under parallel load (observed flake: the neutral-player badge test and others destabilize when a seeded player's current-turn AFK timer elapses during a loaded suite).
 
 - [ ] **Step 1: Add the new fixture imports**
 
@@ -781,6 +782,9 @@ test('two sequential trades in one game both complete', async ({ browser, server
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
   await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // Close Bravo's inbox (footer Cancel) so the sidebar is reachable for trade 2 —
+  // TradeInboxModal stays open after Accept by design.
+  await pageB.getByRole('button', { name: 'Cancel' }).click()
 
   // Trade 2: Salvador for Jerusalem (Bravo still owns Jerusalem).
   await openTradeModal(pageA, 'Bravo')
@@ -837,20 +841,39 @@ test('a bot auto-accepts when it is on the receiving end of a bargain', async ({
 })
 ```
 
-- [ ] **Step 3: Run the new positive tests**
+- [ ] **Step 3: Raise the AFK timeout on the trades server fixture**
+
+In `e2e/fixtures.ts`, change the `serverUrlTrades` fixture to pass an extended AFK timeout:
+
+```ts
+  serverUrlTrades: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use, workerInfo) => {
+      const server = await startServer(4100 + workerInfo.workerIndex, {
+        TRADES_ENABLED: 'true',
+        AFK_TIMEOUT_MS: '120000',
+      })
+      await use(server.url)
+      server.close()
+    },
+    { scope: 'worker' },
+  ],
+```
+
+- [ ] **Step 4: Run the new positive tests**
 
 Run: `npm run build`
 Run: `npx playwright test e2e/trade.spec.ts`
-Expected: all tests PASS (23 total — 9 existing + 14 new). If a specific test flakes, run it alone: `npx playwright test e2e/trade.spec.ts --grep "cash-only trade"`.
+Expected: all tests PASS (23 total — 9 existing + 14 new). If a specific test fails, run it alone: `npx playwright test e2e/trade.spec.ts --grep "cash-only trade"`.
 
-- [ ] **Step 4: Lint**
+- [ ] **Step 5: Lint**
 
 Run: `npm run lint` → PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add e2e/trade.spec.ts
+git add e2e/trade.spec.ts e2e/fixtures.ts
 git commit -m "test: positive trade scenario e2e tests"
 ```
 
