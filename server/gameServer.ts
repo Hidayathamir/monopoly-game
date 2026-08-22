@@ -1,11 +1,11 @@
 import { gameReducer, createInitialState } from '../src/logic/gameReducer'
-import { GameActionType, GamePhase, PendingActionType, BotControlReason, type GameState, type GameAction, type PlayerAvatar } from '../src/types/game'
+import { GameActionType, GamePhase, PendingActionType, BotControlReason, AvatarKind, type GameState, type GameAction, type PlayerAvatar } from '../src/types/game'
 import { ServerMessageType } from '../src/types/net'
 import type { LobbyPlayer, ServerMessage } from '../src/types/net'
 import { decideBotAction } from '../src/logic/bot'
 import { BOT_NAMES } from '../src/data/bots'
-import { MAX_PLAYERS, PLAYER_COLORS } from '../src/data/players'
-import { DEFAULT_AVATAR, isValidAvatar } from '../src/data/avatars'
+import { MAX_PLAYERS, PLAYER_COLORS, isValidColor, normalizeColor } from '../src/data/players'
+import { DEFAULT_AVATAR, isValidAvatar, isSameAvatar, PRESET_AVATARS, type PresetAvatarId } from '../src/data/avatars'
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 
@@ -138,7 +138,7 @@ export class GameServer {
       connected: true,
       isBot: false,
       gracePending: false,
-      color: opts?.color !== undefined && PLAYER_COLORS.includes(opts.color) && this.isColorFree(opts.color) ? opts.color : this.nextFreeColor(),
+      color: opts?.color !== undefined && isValidColor(opts.color) && !this.isColorTaken(opts.color, index) ? opts.color : this.nextFreeColor(),
       avatar: opts?.avatar !== undefined && isValidAvatar(opts.avatar) ? opts.avatar : DEFAULT_AVATAR,
     }
     this.events.send(clientId, {
@@ -162,12 +162,11 @@ export class GameServer {
     if (index === -1) return
     const slot = this.slots[index]
     if (opts.color !== undefined) {
-      if (!PLAYER_COLORS.includes(opts.color)) {
+      if (!isValidColor(opts.color)) {
         this.events.send(clientId, { type: ServerMessageType.Error, message: 'Warna tidak valid' })
         return
       }
-      const takenBy = this.slots.findIndex((s, i) => i !== index && s.name !== null && s.color === opts.color)
-      if (takenBy !== -1) {
+      if (this.isColorTaken(opts.color, index)) {
         this.events.send(clientId, { type: ServerMessageType.Error, message: 'Warna sudah dipakai' })
         return
       }
@@ -175,6 +174,10 @@ export class GameServer {
     if (opts.avatar !== undefined) {
       if (!isValidAvatar(opts.avatar)) {
         this.events.send(clientId, { type: ServerMessageType.Error, message: 'Avatar tidak valid' })
+        return
+      }
+      if (this.isAvatarTaken(opts.avatar, index)) {
+        this.events.send(clientId, { type: ServerMessageType.Error, message: 'Avatar sudah dipakai' })
         return
       }
     }
@@ -199,7 +202,7 @@ export class GameServer {
     }
     const used = new Set(this.slots.map((s) => s.name).filter((n): n is string => n !== null))
     const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${index + 1}`
-    this.slots[index] = { clientId: null, name, connected: true, isBot: true, gracePending: false, color: this.nextFreeColor(), avatar: DEFAULT_AVATAR }
+    this.slots[index] = { clientId: null, name, connected: true, isBot: true, gracePending: false, color: this.nextFreeColor(), avatar: this.nextFreePresetAvatar() }
     this.broadcast()
   }
 
@@ -398,8 +401,21 @@ export class GameServer {
     return index !== -1 && index === this.state.currentPlayer
   }
 
-  private isColorFree(color: string): boolean {
-    return !this.slots.some((s) => s.name !== null && s.color === color)
+  private isColorTaken(color: string, exceptIndex: number): boolean {
+    const norm = normalizeColor(color);
+    return this.slots.some((s, i) => i !== exceptIndex && s.name !== null && s.color !== null && normalizeColor(s.color) === norm);
+  }
+
+  private isAvatarTaken(avatar: PlayerAvatar, exceptIndex: number): boolean {
+    return this.slots.some((s, i) => i !== exceptIndex && s.name !== null && s.avatar !== null && isSameAvatar(s.avatar, avatar));
+  }
+
+  private nextFreePresetAvatar(): PlayerAvatar {
+    const taken = new Set(
+      this.slots.filter((s) => s.name !== null && s.avatar !== null && s.avatar.kind === AvatarKind.Preset).map((s) => (s.avatar as { kind: typeof AvatarKind.Preset; id: PresetAvatarId }).id),
+    )
+    const free = (Object.values(PRESET_AVATARS) as PresetAvatarId[]).find((id) => !taken.has(id))
+    return free ? { kind: AvatarKind.Preset, id: free } : DEFAULT_AVATAR
   }
 
   private nextFreeColor(): string {

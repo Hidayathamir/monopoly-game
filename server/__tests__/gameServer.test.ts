@@ -747,14 +747,52 @@ describe('GameServer', () => {
     expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[0])
   })
 
-  it('rejects setIdentity with a non-palette color and leaves the slot color unchanged', () => {
-    const { server, sent } = setup()
-    server.join('c0', 'Alice')
-    server.join('c1', 'Bob')
-    const before = sent.length
+  it('accepts a valid custom hex color via setIdentity', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
+    server.setIdentity('c0', { color: '#123abc' })
+    expect(server.getPlayers()[0].color).toBe('#123abc')
+  })
+
+  it('rejects an invalid custom color via setIdentity', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
     server.setIdentity('c0', { color: 'not-a-color' })
-    expect(sent.slice(before).some((m) => m.type === 'error' && m.message === 'Warna tidak valid')).toBe(true)
     expect(server.getPlayers()[0].color).toBe(PLAYER_COLORS[0])
+  })
+
+  it('rejects setIdentity onto a color another player holds (custom or preset)', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { color: '#123abc' })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[1] })
+    server.setIdentity('c1', { color: '#123abc' })
+    expect(server.getPlayers()[1].color).toBe(PLAYER_COLORS[1])
+  })
+
+  it('rejects setIdentity with a duplicate preset avatar', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[1] })
+    server.setIdentity('c1', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } })
+    expect(server.getPlayers()[1].avatar).toEqual(DEFAULT_AVATAR)
+  })
+
+  it('rejects setIdentity with a duplicate custom avatar dataUrl', () => {
+    const { server } = setup()
+    const dataUrl = 'data:image/png;base64,AAAA'
+    server.join('c0', 'Alice', { avatar: { kind: AvatarKind.Custom, dataUrl } })
+    server.join('c1', 'Bob', { color: PLAYER_COLORS[1] })
+    server.setIdentity('c1', { avatar: { kind: AvatarKind.Custom, dataUrl } })
+    expect(server.getPlayers()[1].avatar).toEqual(DEFAULT_AVATAR)
+  })
+
+  it('assigns a bot the first free preset avatar, not always the default', () => {
+    const { server } = setup()
+    server.join('c0', 'Alice', { avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Cat } })
+    server.addBot('c0')
+    const bot = server.getPlayers()[1]
+    expect(bot.isBot).toBe(true)
+    expect(bot.avatar).not.toEqual({ kind: AvatarKind.Preset, id: PRESET_AVATARS.Cat })
   })
 
   it('validates everything before mutating: an invalid avatar blocks a valid color with no broadcast', () => {
@@ -775,14 +813,14 @@ describe('GameServer', () => {
     expect(sent.some((m) => m.type === 'error')).toBe(true)
   })
 
-  it('assigns bots the next free color and the default avatar', () => {
+  it('assigns bots the next free color and a free preset avatar', () => {
     const { server } = setup()
     server.join('c0', 'Alice', { color: PLAYER_COLORS[0] })
     server.addBot('c0')
     const players = server.getPlayers()
     expect(players[1].isBot).toBe(true)
     expect(players[1].color).toBe(PLAYER_COLORS[1])
-    expect(players[1].avatar).toEqual(DEFAULT_AVATAR)
+    expect(players[1].avatar).not.toEqual(DEFAULT_AVATAR)
   })
 
   it('passes colors and avatars into the StartGame action at start', () => {
