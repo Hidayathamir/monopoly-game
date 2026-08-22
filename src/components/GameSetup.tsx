@@ -102,25 +102,28 @@ export default function GameSetup({ onCreate, onJoin }: Props) {
             <ul className="flex flex-col gap-2" data-testid="room-list">
               {rooms.map((room) => (
                 <li key={room.code}>
-                  <button
-                    type="button"
-                    data-testid="room-row"
-                    onClick={() => {
-                      const trimmed = myName.trim()
-                      if (!trimmed) { setNameError(t('setup.nameRequired')); return }
-                      setNameError(null)
-                      onJoin(trimmed, room.code)
-                    }}
-                    className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base"
-                  >
-                    <span>{room.hostName ?? '—'}</span>
-                    <span className="text-muted text-sm">
-                      {t('setup.playerCount', { n: room.playerCount, max: 6 })}
-                    </span>
-                    <span className="text-muted text-sm">
-                      {room.phase === GamePhase.Setup ? t('setup.statusLobby') : t('setup.statusInGame')}
-                    </span>
-                  </button>
+<button
+                      type="button"
+                      data-testid="room-row"
+                      onClick={() => {
+                        const trimmed = myName.trim()
+                        if (!trimmed) { setNameError(t('setup.nameRequired')); return }
+                        setNameError(null)
+                        onJoin(trimmed, room.code)
+                      }}
+                      className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-border bg-input-bg text-text text-base cursor-pointer hover:-translate-y-px hover:opacity-90 transition-transform duration-150"
+                    >
+                      <span>{room.hostName ?? '—'}</span>
+                      <span className="text-muted text-sm">
+                        {t('setup.playerCount', { n: room.playerCount, max: 6 })}
+                      </span>
+                      <span className="text-muted text-sm">
+                        {room.phase === GamePhase.Setup ? t('setup.statusLobby') : t('setup.statusInGame')}
+                      </span>
+                      <span className="text-gold text-sm font-semibold whitespace-nowrap" aria-label={t('setup.joinRoom')}>
+                        {t('setup.joinRoom')} →
+                      </span>
+                    </button>
                 </li>
               ))}
             </ul>
