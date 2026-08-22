@@ -37,7 +37,7 @@ export default function App() {
         </>
       ) : (
         <>
-          <div className="flex justify-center items-center h-screen p-0 overflow-hidden">
+          <div className="flex justify-center items-center min-h-screen w-full p-0 overflow-x-hidden">
             <GameSetup onCreate={handleCreate} onJoin={handleJoin} />
           </div>
           <LanguageCurrencyBar />
