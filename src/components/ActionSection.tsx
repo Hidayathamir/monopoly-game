@@ -1,7 +1,8 @@
-import { CardType, GamePhase, PendingActionType, SpaceType, type GameState } from '../types/game'
+import { CardType, GamePhase, PendingActionType, type GameState } from '../types/game'
+import { canBuildOnCurrentSpace } from '../logic/build'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '../i18n/CurrencyContext'
-import { JAIL_FINE, getHouseCost, MAX_HOUSES } from '../data/board'
+import { JAIL_FINE, getHouseCost } from '../data/board'
 import Button from './Button'
 import HoldToConfirmButton from './HoldToConfirmButton'
 
@@ -94,13 +95,7 @@ export default function ActionSection({
   if (!canAct) return null
 
   const space = state.board[player.position]
-  const canBuild =
-    state.dice !== null &&
-    space?.type === SpaceType.Property &&
-    space.owner === state.currentPlayer &&
-    space.houses < MAX_HOUSES &&
-    !space.mortgaged &&
-    space.id !== state.justBoughtSpaceId
+  const canBuild = canBuildOnCurrentSpace(state)
 
   return (
     <div className="flex flex-col gap-1.5 w-full items-stretch">
