@@ -418,3 +418,46 @@ test('a bot auto-accepts when it is on the receiving end of a bargain', async ({
   await expect(page.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', DROID_STRIPE)
 })
 
+test('a player can create a trade offer directly from the Trades inbox', async ({ browser, serverUrlTrades }) => {
+  const pageA = await makePage(browser)
+  const pageB = await makePage(browser)
+  const code = await joinRoom(pageA, pageB, serverUrlTrades)
+
+  await seedGame(serverUrlTrades, code, tradeSeed)
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  // Alpha opens the Trades inbox and starts a new offer from there (no
+  // pre-selected counterparty, unlike the player-card popup path).
+  const inboxBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await inboxBtn.click()
+  await pageA.getByRole('button', { name: 'New Trade Offer' }).click()
+
+  // With no target chosen, a player picker is shown and Propose is disabled.
+  const combobox = pageA.getByRole('combobox')
+  await expect(combobox).toBeVisible()
+  await expect(pageA.getByRole('button', { name: 'Propose' })).toBeDisabled()
+
+  // Pick Bravo as the counterparty; the request column then appears.
+  await combobox.selectOption({ label: 'Bravo' })
+
+  // Alpha offers $200 and requests $100 — both sides cash, no properties.
+  const numberInputs = pageA.locator('input[type="number"]')
+  await numberInputs.nth(0).fill('200')
+  await numberInputs.nth(1).fill('100')
+  await pageA.getByRole('button', { name: 'Propose' }).click()
+
+  // The offer lands in Bravo's inbox.
+  const bravoInbox = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await expect(bravoInbox).toContainText('1', { timeout: 5000 })
+  await bravoInbox.click()
+  await pageB.getByRole('button', { name: 'Accept' }).click()
+  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+
+  // Cash: Alpha 1200−200+100=1100, Bravo 1200+200−100=1300.
+  await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$1.1K')
+  await expect(pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Bravo' })).toContainText('$1.3K')
+  // Ownership unchanged.
+  await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
+  await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
+})
+
