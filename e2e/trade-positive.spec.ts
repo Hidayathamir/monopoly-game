@@ -253,10 +253,10 @@ test('one proposer can hold two pending offers to two different targets', async 
 
   // Each target's inbox shows its own offer.
   await bravoBtn.click()
-  await expect(pageB.getByText(/You offer:.*Rio/)).toBeVisible({ timeout: 5000 })
-  await pageB.getByRole('button', { name: 'Cancel' }).click()
+  await expect(pageB.getByText(/You receive:.*Rio/)).toBeVisible({ timeout: 5000 })
+  await pageB.getByRole('button', { name: 'Close' }).click()
   await charlieBtn.click()
-  await expect(pageC.getByText(/You offer:.*Salvador/)).toBeVisible({ timeout: 5000 })
+  await expect(pageC.getByText(/You receive:.*Salvador/)).toBeVisible({ timeout: 5000 })
 })
 
 test('accepting one of two pending offers leaves the other pending', async ({ browser, serverUrlTrades }) => {
@@ -293,7 +293,7 @@ test('accepting one of two pending offers leaves the other pending', async ({ br
 
   // The remaining offer still works.
   await charlieBtn.click()
-  await expect(pageC.getByText(/You offer:.*Salvador/)).toBeVisible({ timeout: 5000 })
+  await expect(pageC.getByText(/You receive:.*Salvador/)).toBeVisible({ timeout: 5000 })
   await pageC.getByRole('button', { name: 'Accept' }).click()
   await expect(pageC.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
 
@@ -333,7 +333,7 @@ test('the offerer sees Cancel on an offer while the target sees Accept/Reject', 
   await expect(bravoOffer.getByRole('button', { name: 'Reject' })).toBeVisible()
   await expect(bravoOffer.getByRole('button', { name: 'Cancel' })).toHaveCount(0)
   // Close Bravo's inbox (footer close button) without affecting the trade.
-  await pageB.getByRole('button', { name: 'Cancel' }).last().click()
+  await pageB.getByRole('button', { name: 'Close' }).last().click()
 
   // Offerer cancels via the trade-card Cancel button (scoped to the offer, not the modal footer).
   await alphaOffer.getByRole('button', { name: 'Cancel' }).click()
@@ -360,9 +360,9 @@ test('two sequential trades in one game both complete', async ({ browser, server
   await pageB.getByRole('button', { name: 'Accept' }).click()
   await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
 
-  // Close Bravo's inbox (footer Cancel) so the sidebar is reachable for trade 2 —
+  // Close Bravo's inbox (footer Close) so the sidebar is reachable for trade 2 —
   // TradeInboxModal stays open after Accept by design.
-  await pageB.getByRole('button', { name: 'Cancel' }).click()
+  await pageB.getByRole('button', { name: 'Close' }).click()
 
   // Trade 2: Salvador for Jerusalem (Bravo still owns Jerusalem).
   await openTradeModal(pageA, 'Bravo')
