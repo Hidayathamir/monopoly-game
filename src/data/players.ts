@@ -4,7 +4,7 @@ export const PLAYER_COLORS = [
   '#2ECC71',
   '#F39C12',
   '#9B59B6',
-  '#E67E22',
+  '#1ABC9C',
 ]
 
 const HEX_COLOR_RE = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
