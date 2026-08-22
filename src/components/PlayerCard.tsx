@@ -36,6 +36,7 @@ interface PlayerCardProps {
   connected?: boolean
   canTrade?: boolean
   currentPlayerId?: number
+  myPlayerId?: number | null
   onProposeTrade?: (playerId: number) => void
   tradesEnabled?: boolean
 }
@@ -55,7 +56,7 @@ export function computePopupPosition(
   return { left, top }
 }
 
-export default function PlayerCard({ player, isCurrent, diff, board, connected = true, canTrade = true, currentPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrent, diff, board, connected = true, canTrade = true, currentPlayerId, myPlayerId, onProposeTrade, tradesEnabled = true }: PlayerCardProps) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
@@ -141,6 +142,7 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
             onLeave={handleLeave}
             canTrade={canTrade}
             currentPlayerId={currentPlayerId}
+            myPlayerId={myPlayerId}
             onProposeTrade={handleTrade}
             tradesEnabled={tradesEnabled}
           />,
@@ -151,7 +153,7 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
   )
 }
 
-function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, canTrade, currentPlayerId, onProposeTrade, tradesEnabled }: {
+function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, canTrade, currentPlayerId, myPlayerId, onProposeTrade, tradesEnabled }: {
   player: Player
   owned: Space[]
   color: string
@@ -161,6 +163,7 @@ function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, c
   onLeave: () => void
   canTrade: boolean
   currentPlayerId?: number
+  myPlayerId?: number | null
   onProposeTrade?: () => void
   tradesEnabled: boolean
 }) {
@@ -216,7 +219,7 @@ function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, c
       {owned.length === 0 && (
         <div className="text-sm text-muted italic">{t('card.noProperties')}</div>
       )}
-      {player.id !== currentPlayerId && tradesEnabled && (
+      {player.id !== (myPlayerId ?? currentPlayerId) && tradesEnabled && (
         <Button size="sm" disabled={!canTrade} onClick={onProposeTrade} className="w-full mt-2">
           {t('action.trade')}
         </Button>

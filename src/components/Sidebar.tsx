@@ -26,6 +26,7 @@ interface Props {
   onLeave?: () => void
   exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string }
   isMyTurn: boolean
+  myPlayerId?: number | null
   canTrade?: boolean
   tradesEnabled?: boolean
   connectedPlayerIds?: Set<number>
@@ -33,7 +34,7 @@ interface Props {
   onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   const play = useSound()
   return (
@@ -75,7 +76,7 @@ export default function Sidebar({ state, isMyTurn, onLeave, exitKeys, onProposeT
             )}
           </button>
         )}
-        <PlayerPanel state={state} onProposeTrade={onProposeTrade} canTrade={canTrade} connectedPlayerIds={connectedPlayerIds} tradesEnabled={tradesEnabled} />
+        <PlayerPanel state={state} myPlayerId={myPlayerId} onProposeTrade={onProposeTrade} canTrade={canTrade} connectedPlayerIds={connectedPlayerIds} tradesEnabled={tradesEnabled} />
         <EventLog log={state.eventLog} />
       </div>
     </div>

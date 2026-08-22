@@ -33,11 +33,12 @@ test('Alpha proposes a trade and Bravo accepts — properties and cash swap', as
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
   await expect(pageB.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-  // Off-turn trading is allowed: Bravo's Trade button is enabled even when it is not his turn.
-  await pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Bravo' }).hover()
-  const bravoTradeBtn = pageB.getByRole('button', { name: /^🤝 Trade$/ })
-  await expect(bravoTradeBtn).toBeVisible({ timeout: 5000 })
-  await expect(bravoTradeBtn).toBeEnabled()
+  // Off-turn trading is allowed: even when it is not Bravo's turn, he can start a
+  // trade with the current player. The Trade button on Alpha's (the counterparty's) card is enabled.
+  await pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' }).hover()
+  const alphaTradeBtn = pageB.getByRole('button', { name: /^🤝 Trade$/ })
+  await expect(alphaTradeBtn).toBeVisible({ timeout: 5000 })
+  await expect(alphaTradeBtn).toBeEnabled()
 
   // Alpha (current) proposes: offers Rio (3) + $100, requests Tel Aviv (6).
   await openTradeModal(pageA, 'Bravo')
@@ -319,4 +320,34 @@ test('off-turn player can propose a trade to another player', async ({ browser, 
   // Ownership swaps: Tel Aviv (6) -> Charlie, Haifa (8) -> Bravo.
   await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', CHARLIE_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-8"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
+})
+
+test('off-turn player can propose a trade to the current player (2-player)', async ({ browser, serverUrlTrades }) => {
+  const pageA = await makePage(browser)
+  const pageB = await makePage(browser)
+  const code = await joinRoom(pageA, pageB, serverUrlTrades)
+
+  await seedGame(serverUrlTrades, code, tradeSeed)
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+  // Alpha is the current player; in a 2-player game Bravo's only partner is Alpha.
+
+  // Bravo (off-turn) opens the trade modal targeting Alpha and proposes:
+  // offers Tel Aviv (6) + $0, requests Rio (3).
+  await openTradeModal(pageB, 'Alpha')
+  await pageB.getByLabel('Tel Aviv').check()
+  await pageB.getByLabel('Rio').check()
+  await pageB.getByRole('button', { name: 'Propose' }).click()
+
+  // Alpha (the recipient, currently on turn) sees viewer-relative labels.
+  const inboxBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await expect(inboxBtn).toContainText('1', { timeout: 5000 })
+  await inboxBtn.click()
+  await expect(pageA.getByText(/You receive: Tel Aviv/)).toBeVisible({ timeout: 5000 })
+  await expect(pageA.getByText(/You give: Rio/)).toBeVisible()
+  await pageA.getByRole('button', { name: 'Accept' }).click()
+
+  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // Ownership swaps: Rio -> Bravo, Tel Aviv -> Alpha.
+  await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
+  await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
 })

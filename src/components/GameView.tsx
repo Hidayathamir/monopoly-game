@@ -37,6 +37,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
       >
         <Sidebar
           state={state}
+          myPlayerId={game.myPlayerId}
           isMyTurn={isMyTurn}
           onRoll={game.roll}
           onEndTurn={game.endTurn}
