@@ -32,7 +32,7 @@ describe('TradeInboxModal', () => {
     const onCancel = vi.fn()
     // Bob (id 1) is the recipient of the trade above.
     renderWithProviders(
-      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onNewTrade={() => {}} canCreateTrade onClose={() => {}} />,
     )
     expect(screen.getByText(/You receive:/)).toBeTruthy()
     expect(screen.getByText(/You give:/)).toBeTruthy()
@@ -51,7 +51,7 @@ describe('TradeInboxModal', () => {
 
     // Recipient (Bob, id 1) can accept/reject.
     const { unmount } = renderWithProviders(
-      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onNewTrade={() => {}} canCreateTrade onClose={() => {}} />,
     )
     fireEvent.click(screen.getByRole('button', { name: /Accept/ }))
     expect(onAccept).toHaveBeenCalledWith(0)
@@ -61,7 +61,7 @@ describe('TradeInboxModal', () => {
 
     // Proposer (Alice, id 0) can cancel their own offer.
     renderWithProviders(
-      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={0} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={0} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onNewTrade={() => {}} canCreateTrade onClose={() => {}} />,
     )
     fireEvent.click(screen.getByRole('button', { name: /Cancel/ }))
     expect(onCancel).toHaveBeenCalledWith(0)
@@ -73,7 +73,25 @@ describe('TradeInboxModal', () => {
       playerCount: 2,
       names: ['Alice', 'Bob'],
     })
-    renderWithProviders(<TradeInboxModal state={state} myPlayerId={0} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onClose={() => {}} />)
+    renderWithProviders(<TradeInboxModal state={state} myPlayerId={0} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onNewTrade={() => {}} canCreateTrade onClose={() => {}} />)
     expect(screen.getByText('No pending trade offers')).toBeVisible()
+  })
+
+  it('renders a New Trade Offer button that calls onNewTrade', () => {
+    const onNewTrade = vi.fn()
+    renderWithProviders(
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onNewTrade={onNewTrade} canCreateTrade onClose={() => {}} />,
+    )
+    const btn = screen.getByRole('button', { name: /New Trade Offer/i })
+    expect(btn).toBeVisible()
+    fireEvent.click(btn)
+    expect(onNewTrade).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables the New Trade Offer button when canCreateTrade is false', () => {
+    renderWithProviders(
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onNewTrade={() => {}} canCreateTrade={false} onClose={() => {}} />,
+    )
+    expect(screen.getByRole('button', { name: /New Trade Offer/i })).toBeDisabled()
   })
 })

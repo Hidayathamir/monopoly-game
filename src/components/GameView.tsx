@@ -19,6 +19,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
   const tradesEnabled = state.tradesEnabled
   const canTrade = tradesEnabled && state.phase === GamePhase.Waiting && !state.pendingAction
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
+  const [showTradeModal, setShowTradeModal] = useState(false)
   const [showTrades, setShowTrades] = useState(false)
   const tradeCount = state.pendingTrades.filter((tr) =>
     game.myPlayerId === null || tr.fromId === game.myPlayerId || tr.toId === game.myPlayerId
@@ -41,7 +42,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           isMyTurn={isMyTurn}
           onRoll={game.roll}
           onEndTurn={game.endTurn}
-          onProposeTrade={(id: number) => setTradeTargetId(id)}
+          onProposeTrade={(id: number) => { setTradeTargetId(id); setShowTradeModal(true) }}
           canTrade={canTrade}
           tradesEnabled={tradesEnabled}
           connectedPlayerIds={connectedPlayerIds}
@@ -63,16 +64,16 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
       <BankruptcyModal state={state} isMyTurn={isMyTurn} onClose={game.skipAction} onBankruptcy={game.declareBankruptcy} />
       <GameOverModal state={state} onReset={game.resetGame} />
-      {tradeTargetId !== null && (
+      {showTradeModal && (
         <TradeModal
           state={state}
           targetPlayerId={tradeTargetId}
           myPlayerId={game.myPlayerId}
           onPropose={(offer: TradeOffer) => {
             game.proposeTrade(offer)
-            setTradeTargetId(null)
+            setShowTradeModal(false)
           }}
-          onClose={() => setTradeTargetId(null)}
+          onClose={() => setShowTradeModal(false)}
         />
       )}
       {showTrades && (
@@ -82,6 +83,8 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           onAccept={(id) => game.acceptTrade(id)}
           onReject={(id) => game.rejectTrade(id)}
           onCancel={(id) => game.cancelTrade(id)}
+          onNewTrade={() => { setShowTrades(false); setTradeTargetId(null); setShowTradeModal(true) }}
+          canCreateTrade={canTrade}
           onClose={() => setShowTrades(false)}
         />
       )}

@@ -9,7 +9,7 @@ interface Props {
   state: GameState
   onPropose: (offer: TradeOffer) => void
   onClose: () => void
-  targetPlayerId: number
+  targetPlayerId: number | null
   myPlayerId: number | null
 }
 
@@ -20,17 +20,22 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId, 
   const [offerCash, setOfferCash] = useState(0)
   const [requestProperties, setRequestProperties] = useState<number[]>([])
   const [requestCash, setRequestCash] = useState(0)
+  const [selectedTarget, setSelectedTarget] = useState<number | null>(targetPlayerId)
+
+  const effectiveTargetId = targetPlayerId !== null ? targetPlayerId : selectedTarget
+  const hasTarget = effectiveTargetId !== null && effectiveTargetId !== undefined
 
   // The proposer is the viewer, not necessarily the current player — trading is
   // allowed off-turn. Fall back to the current player for the local (single
   // human) game where myPlayerId is null.
   const proposerId = myPlayerId ?? state.currentPlayer
+  const counterparties = state.players.filter((p) => p.id !== proposerId && !p.bankrupt)
   const currentPlayerMoney = state.players[proposerId]?.money ?? 0
-  const targetPlayerMoney = state.players[targetPlayerId]?.money ?? 0
+  const targetPlayerMoney = hasTarget ? state.players[effectiveTargetId]?.money ?? 0 : 0
 
   const currentProps = state.board.filter((s) => s.owner === proposerId)
 
-  const targetProps = state.board.filter((s) => s.owner === targetPlayerId)
+  const targetProps = hasTarget ? state.board.filter((s) => s.owner === effectiveTargetId) : []
 
   function clampCash(value: number, max: number): number {
     return Math.max(0, Math.min(value, max))
@@ -43,7 +48,8 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId, 
     requestProperties.length === 0
 
   function handlePropose() {
-    const toId = targetPlayerId
+    if (!hasTarget) return
+    const toId = effectiveTargetId
     onPropose({
       fromId: proposerId,
       toId,
@@ -59,7 +65,20 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId, 
       <h3 className="text-2xl text-gold m-0">{t('trade.title')}</h3>
       <div className="flex flex-col gap-1">
         <label className="text-base text-text-dim">{t('trade.with')}</label>
-        <p className="text-base text-gold">{state.players[targetPlayerId]?.name}</p>
+        {targetPlayerId !== null ? (
+          <p className="text-base text-gold">{state.players[targetPlayerId]?.name}</p>
+        ) : (
+          <select
+            value={selectedTarget ?? ''}
+            onChange={(e) => setSelectedTarget(Number(e.target.value))}
+            className="w-full py-1 px-2 rounded border border-border bg-input-bg text-text text-base"
+          >
+            <option value="" disabled>{t('trade.selectPlayer')}</option>
+            {counterparties.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
@@ -86,33 +105,35 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId, 
             </label>
           ))}
         </div>
-        <div className="flex flex-col gap-1.5">
-          <h4 className="text-lg text-gold m-0">{t('trade.youRequest')}</h4>
-          <label className="text-base flex items-center gap-1 text-text-dim">
-            {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(clampCash(Number(e.target.value), targetPlayerMoney))} min={0} max={targetPlayerMoney} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
-          </label>
-          {targetPlayerMoney > 0 && (
-            <span className="text-xs text-text-dim">{t('trade.max', { amount: formatMoney(targetPlayerMoney) })}</span>
-          )}
-          {targetProps.map((s) => (
-            <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
-              <input
-                type="checkbox"
-                checked={requestProperties.includes(s.id)}
-                onChange={() =>
-                  setRequestProperties((prev) =>
-                    prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id]
-                  )
-                }
-                className="mr-1"
-              />
-              {t('board.space.' + s.id)}
+        {hasTarget && (
+          <div className="flex flex-col gap-1.5">
+            <h4 className="text-lg text-gold m-0">{t('trade.youRequest')}</h4>
+            <label className="text-base flex items-center gap-1 text-text-dim">
+              {t('trade.money')}<input type="number" value={requestCash} onChange={(e) => setRequestCash(clampCash(Number(e.target.value), targetPlayerMoney))} min={0} max={targetPlayerMoney} className="w-20 py-1 px-2 rounded border border-border bg-input-bg text-text text-base" />
             </label>
-          ))}
-        </div>
+            {targetPlayerMoney > 0 && (
+              <span className="text-xs text-text-dim">{t('trade.max', { amount: formatMoney(targetPlayerMoney) })}</span>
+            )}
+            {targetProps.map((s) => (
+              <label key={s.id} className="text-base flex items-center gap-1 text-text-dim">
+                <input
+                  type="checkbox"
+                  checked={requestProperties.includes(s.id)}
+                  onChange={() =>
+                    setRequestProperties((prev) =>
+                      prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id]
+                    )
+                  }
+                  className="mr-1"
+                />
+                {t('board.space.' + s.id)}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
       <Modal.Actions>
-        <Button variant="success" disabled={isEmptyTrade} onClick={handlePropose}>{t('trade.propose')}</Button>
+        <Button variant="success" disabled={isEmptyTrade || !hasTarget} onClick={handlePropose}>{t('trade.propose')}</Button>
         <Button variant="secondary" onClick={onClose}>{t('trade.cancel')}</Button>
       </Modal.Actions>
     </Modal>

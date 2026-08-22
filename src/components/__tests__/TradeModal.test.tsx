@@ -119,4 +119,29 @@ describe('TradeModal', () => {
     screen.getByRole('button', { name: /Propose/i }).click()
     expect(onPropose).toHaveBeenCalledWith(expect.objectContaining({ fromId: 1, offerProperties: [3] }))
   })
+
+  it('shows a target selector and no request section when targetPlayerId is null', () => {
+    const onPropose = vi.fn()
+    renderWithProviders(
+      <TradeModal state={makeStateWithRecipientProperties()} targetPlayerId={null} myPlayerId={0} onPropose={onPropose} onClose={() => {}} />,
+    )
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    expect(screen.getByText('Select player')).toBeInTheDocument()
+    expect(screen.queryByText('You request:')).toBeNull()
+    expect(screen.getByRole('button', { name: /Propose/i })).toBeDisabled()
+  })
+
+  it('reveals the request section and enables Propose after picking a counterparty', () => {
+    const onPropose = vi.fn()
+    renderWithProviders(
+      <TradeModal state={makeStateWithRecipientProperties()} targetPlayerId={null} myPlayerId={0} onPropose={onPropose} onClose={() => {}} />,
+    )
+    const propose = screen.getByRole('button', { name: /Propose/i })
+    expect(propose).toBeDisabled()
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '1' } })
+    expect(screen.getByText('You request:')).toBeVisible()
+    fireEvent.click(screen.getByRole('checkbox', { name: /Salvador/ }))
+    expect(propose).toBeEnabled()
+    expect(onPropose).not.toHaveBeenCalled()
+  })
 })

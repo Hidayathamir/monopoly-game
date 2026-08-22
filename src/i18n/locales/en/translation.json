@@ -281,6 +281,7 @@
   "trade.cancel": "Cancel",
   "trade.close": "Close",
   "trade.inbox": "Trades",
+  "trade.newOffer": "New Trade Offer",
   "trade.noOffers": "No pending trade offers",
   "trade.accept": "Accept",
   "trade.reject": "Reject",

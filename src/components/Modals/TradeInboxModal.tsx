@@ -10,10 +10,12 @@ interface Props {
   onAccept: (tradeId: number) => void
   onReject: (tradeId: number) => void
   onCancel: (tradeId: number) => void
+  onNewTrade: () => void
+  canCreateTrade: boolean
   onClose: () => void
 }
 
-export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject, onCancel, onClose }: Props) {
+export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject, onCancel, onNewTrade, canCreateTrade, onClose }: Props) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
 
@@ -79,6 +81,7 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
         })}
       </div>
       <Modal.Actions>
+        <Button variant="primary" onClick={onNewTrade} disabled={!canCreateTrade}>{t('trade.newOffer')}</Button>
         <Button variant="secondary" onClick={onClose}>{t('trade.close')}</Button>
       </Modal.Actions>
     </Modal>
