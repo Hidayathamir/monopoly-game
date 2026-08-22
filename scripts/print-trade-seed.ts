@@ -7,6 +7,9 @@ const RIO = 3; // id 3: price 60
 const TLV_AIRPORT = 5; // id 5: railroad, price 200
 const TEL_AVIV = 6; // id 6: price 100
 const JERUSALEM = 9; // id 9: price 120
+const HAIFA = 8; // id 8: price 100
+const VENICE = 11; // id 11: price 140
+const POWER_COMPANY = 12; // id 12: utility, price 150
 
 const tradeState = createSeededState({
   players: [
@@ -61,6 +64,128 @@ const cashState = createSeededState({
   tradesEnabled: true,
 });
 
+const utilityState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+    [TLV_AIRPORT]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1 },
+    [POWER_COMPANY]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const reverseState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+    [TLV_AIRPORT]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1 },
+    [JERUSALEM]: { owner: 1 },
+  },
+  currentPlayer: 1,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const threeState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 1200 },
+    { id: 2, name: 'Charlie', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1 },
+    [JERUSALEM]: { owner: 1 },
+    [HAIFA]: { owner: 2 },
+    [VENICE]: { owner: 2 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1, 2],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const offerCapState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 50 },
+    { id: 1, name: 'Bravo', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1 },
+    [JERUSALEM]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const mortgageState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0, mortgaged: true },
+    [TEL_AVIV]: { owner: 1, mortgaged: true },
+    [JERUSALEM]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const houseState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 1200 },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0, houses: 1 },
+    [TEL_AVIV]: { owner: 1, houses: 1 },
+    [JERUSALEM]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const bankruptState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Bravo', money: 0, bankrupt: true },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 0 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
 const header = (comment: string) =>
   "import type { GameState } from '../../src/types/game'\n" +
   '\n' +
@@ -82,4 +207,39 @@ writeFileSync(
   header('Alpha (current, $1200) owns Salvador/Rio/TLV Airport; Bravo ($50) owns Tel Aviv/Jerusalem.') +
     `export const tradeCashSeed: GameState = ${JSON.stringify(cashState, null, 2)}\n`,
 );
-console.log('wrote e2e/fixtures/trade-seed.ts, e2e/fixtures/trade-bot-seed.ts and e2e/fixtures/trade-cash-seed.ts');
+writeFileSync(
+  'e2e/fixtures/trade-utility-seed.ts',
+  header('Alpha (current, $1200) owns Salvador/Rio/TLV Airport; Bravo ($1200) owns Tel Aviv/Power Company.') +
+    `export const tradeUtilitySeed: GameState = ${JSON.stringify(utilityState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-reverse-seed.ts',
+  header('Bravo (current, $1200) owns Tel Aviv/Jerusalem; Alpha ($1200) owns Salvador/Rio/TLV Airport.') +
+    `export const tradeReverseSeed: GameState = ${JSON.stringify(reverseState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-three-seed.ts',
+  header('Alpha (current) owns Salvador/Rio; Bravo owns Tel Aviv/Jerusalem; Charlie owns Haifa/Venice; all $1200.') +
+    `export const tradeThreeSeed: GameState = ${JSON.stringify(threeState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-offer-cap-seed.ts',
+  header('Alpha (current, $50) owns Salvador/Rio; Bravo ($1200) owns Tel Aviv/Jerusalem.') +
+    `export const tradeOfferCapSeed: GameState = ${JSON.stringify(offerCapState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-mortgage-seed.ts',
+  header('Alpha owns Salvador + mortgaged Rio; Bravo owns mortgaged Tel Aviv + Jerusalem; all $1200.') +
+    `export const tradeMortgageSeed: GameState = ${JSON.stringify(mortgageState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-house-seed.ts',
+  header('Alpha owns Salvador + developed Rio (1 house); Bravo owns developed Tel Aviv (1 house) + Jerusalem; all $1200.') +
+    `export const tradeHouseSeed: GameState = ${JSON.stringify(houseState, null, 2)}\n`,
+);
+writeFileSync(
+  'e2e/fixtures/trade-bankrupt-seed.ts',
+  header('Alpha (current, $1200) owns Salvador/Rio; Bravo is bankrupt ($0).') +
+    `export const tradeBankruptSeed: GameState = ${JSON.stringify(bankruptState, null, 2)}\n`,
+);
+console.log('wrote 10 trade seed fixtures to e2e/fixtures/');
