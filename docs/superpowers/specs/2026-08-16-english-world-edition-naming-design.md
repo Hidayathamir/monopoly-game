@@ -26,8 +26,8 @@ Current position → new English name:
 | 4 | Earnings Tax | 24 | Shanghai |
 | 5 | TLV Airport | 25 | CDG Airport |
 | 6 | Tel Aviv | 26 | Lyon |
-| 7 | Surprise | 27 | Water Company |
-| 8 | Haifa | 28 | Toulouse |
+| 7 | Surprise | 27 | Toulouse |
+| 8 | Haifa | 28 | Water Company |
 | 9 | Jerusalem | 29 | Paris |
 | 10 | In Prison | 30 | Go to Prison |
 | 11 | Venice | 31 | Liverpool |
