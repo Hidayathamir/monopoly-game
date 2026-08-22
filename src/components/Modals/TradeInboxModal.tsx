@@ -33,16 +33,35 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
           const requestProps = tr.requestProperties.map((id) => t('board.space.' + id)).join(', ')
           const canAccept = myPlayerId === null || tr.toId === myPlayerId
           const canCancel = myPlayerId === null || tr.fromId === myPlayerId
+
+          // Derive the viewer's perspective.
+          const viewerIsRecipient = myPlayerId !== null && tr.toId === myPlayerId
+          const viewerIsProposer = myPlayerId !== null && tr.fromId === myPlayerId
+          const giveProps = viewerIsRecipient ? requestProps : offerProps
+          const giveCash = viewerIsRecipient ? tr.requestCash : tr.offerCash
+          const receiveProps = viewerIsRecipient ? offerProps : requestProps
+          const receiveCash = viewerIsRecipient ? tr.offerCash : tr.requestCash
+
+          let giveLabel: string
+          let receiveLabel: string
+          if (viewerIsRecipient || viewerIsProposer) {
+            giveLabel = t('trade.youGive')
+            receiveLabel = t('trade.youReceive')
+          } else {
+            giveLabel = t('trade.gives', { name: from })
+            receiveLabel = t('trade.wants', { name: from })
+          }
+
           return (
             <div key={tr.id} data-testid="trade-offer" className="bg-bg-darker rounded p-2">
               <p className="text-sm text-text-dim">
                 <strong>{from}</strong> → <strong>{to}</strong>
               </p>
               <p className="text-sm text-text-dim">
-                {t('trade.youOffer')} {offerProps || '—'} + {formatMoney(tr.offerCash)}
+                {receiveLabel} {receiveProps || '—'} + {formatMoney(receiveCash)}
               </p>
               <p className="text-sm text-text-dim">
-                {t('trade.youRequest')} {requestProps || '—'} + {formatMoney(tr.requestCash)}
+                {giveLabel} {giveProps || '—'} + {formatMoney(giveCash)}
               </p>
               <div className="flex gap-1 mt-1">
                 {canAccept && (
@@ -60,7 +79,7 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
         })}
       </div>
       <Modal.Actions>
-        <Button variant="secondary" onClick={onClose}>{t('trade.cancel')}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('trade.close')}</Button>
       </Modal.Actions>
     </Modal>
   )

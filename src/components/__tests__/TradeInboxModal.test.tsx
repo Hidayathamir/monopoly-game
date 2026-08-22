@@ -16,8 +16,8 @@ function makeStateWithTrades(): GameState {
   state = {
     ...state,
     pendingTrades: [
-      { id: 0, fromId: 0, toId: 1, offerProperties: [], offerCash: 50, requestProperties: [], requestCash: 0 },
-      { id: 1, fromId: 2, toId: 0, offerProperties: [], offerCash: 0, requestProperties: [], requestCash: 100 },
+      // Alice (id 0) offers Bob (id 1): gives Rio(3)+$0, wants $100.
+      { id: 0, fromId: 0, toId: 1, offerProperties: [3], offerCash: 0, requestProperties: [], requestCash: 100 },
     ],
   }
   return state
@@ -26,18 +26,44 @@ function makeStateWithTrades(): GameState {
 afterEach(cleanup)
 
 describe('TradeInboxModal', () => {
-  it('shows incoming offers with accept/reject and outgoing offers with cancel for a specific player', () => {
+  it('shows the recipient perspective (You receive / You give)', () => {
     const onAccept = vi.fn()
     const onReject = vi.fn()
     const onCancel = vi.fn()
+    // Bob (id 1) is the recipient of the trade above.
+    renderWithProviders(
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
+    )
+    expect(screen.getByText(/You receive:/)).toBeTruthy()
+    expect(screen.getByText(/You give:/)).toBeTruthy()
+    // The recipient receives Rio and gives $100.
+    expect(screen.getByText(/You receive:.*Rio/)).toBeTruthy()
+    expect(screen.getByText(/You give:.*100/)).toBeTruthy()
+    // The proposer-frame labels must NOT appear.
+    expect(screen.queryByText(/You offer:/)).toBeNull()
+    expect(screen.queryByText(/You request:/)).toBeNull()
+  })
+
+  it('shows accept/reject for the recipient and cancel for the proposer', () => {
+    const onAccept = vi.fn()
+    const onReject = vi.fn()
+    const onCancel = vi.fn()
+
+    // Recipient (Bob, id 1) can accept/reject.
+    const { unmount } = renderWithProviders(
+      <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Accept/ }))
+    expect(onAccept).toHaveBeenCalledWith(0)
+    fireEvent.click(screen.getByRole('button', { name: /Reject/ }))
+    expect(onReject).toHaveBeenCalledWith(0)
+    unmount()
+
+    // Proposer (Alice, id 0) can cancel their own offer.
     renderWithProviders(
       <TradeInboxModal state={makeStateWithTrades()} myPlayerId={0} onAccept={onAccept} onReject={onReject} onCancel={onCancel} onClose={() => {}} />,
     )
-    // Trade 0 (from Alice to Bob) is not for us; trade 1 (from Charlie to Alice) is incoming; trade 0 is outgoing.
-    expect(screen.getByText('Charlie')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Accept/ }))
-    expect(onAccept).toHaveBeenCalledWith(1)
-    fireEvent.click(screen.getAllByRole('button', { name: /Cancel/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: /Cancel/ }))
     expect(onCancel).toHaveBeenCalledWith(0)
   })
 
