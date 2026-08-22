@@ -1,5 +1,7 @@
 import { AvatarKind, type PlayerAvatar } from '../types/game';
 
+export { AvatarKind } from '../types/game';
+
 export const PRESET_AVATARS = {
   Cat: 'cat',
   Dog: 'dog',
@@ -54,4 +56,15 @@ export function isValidAvatar(value: unknown): value is PlayerAvatar {
 export function avatarEmoji(avatar: PlayerAvatar): string | null {
   if (avatar.kind !== AvatarKind.Preset) return null;
   return Object.hasOwn(PRESET_EMOJI, avatar.id) ? (PRESET_EMOJI[avatar.id] ?? null) : null;
+}
+
+export function isSameAvatar(a: PlayerAvatar, b: PlayerAvatar): boolean {
+  if (a.kind !== b.kind) return false;
+  if (a.kind === AvatarKind.Preset && b.kind === AvatarKind.Preset) {
+    return a.id === b.id;
+  }
+  if (a.kind === AvatarKind.Custom && b.kind === AvatarKind.Custom) {
+    return a.dataUrl === b.dataUrl;
+  }
+  return false;
 }
