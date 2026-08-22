@@ -1,55 +1,66 @@
-# AGENTS.md
+# Monopoly Game — Agent Instructions
 
-Monopoly web game: React 19 + Vite 8 + TypeScript + Tailwind v4 client, plus a Node WebSocket server for multiplayer. Indonesian and English i18n (default English; currency USD).
+## Project
+Multiplayer Monopoly: React SPA (Vite) + Node WebSocket server. No Express/Fastify — custom `node:http` server.
 
-## Commands
+## Key commands (exact — do not guess flags)
 
-- `npm run dev` — Vite dev server (client only, no multiplayer server)
-- `npm run server` — `tsx server/main.ts`, serves `dist/` + WebSocket at `ws://<host>/ws` on port `3001` (env `PORT`, `DIST_DIR`)
-- `TRADES_ENABLED=false npm run server` — disables the trade feature (env `TRADES_ENABLED`, default **enabled**; anything other than the literal `false` enables trades for every room on the server)
-- `E2E_SEED_ENABLED=true npm run server` — enables the dev/test seed feature (env `E2E_SEED_ENABLED`, default disabled; anything other than the literal `true` disables it). When on, the server exposes `GET /config` (`{seedEnabled: true}`) and `POST /seed` (`{code, state}`), and the lobby shows a Load Scenario panel for pasting a full game-state JSON. Seeds replace the room's state wholesale (any phase) and broadcast to all clients.
-- `AFK_TIMEOUT_MS` (integer ms, default `30000`) — how long a connected human can stall before the server marks them AFK (`event.playerAfk`) and the bot plays their turn. Also `ROOM_EMPTY_GRACE_MS` (integer ms, default `30000`) — the reconnect window after the last human leaves/disconnects before the room is stopped and removed.
-- `VITE_ID_IDR_ENABLED=true npm run dev`/`npm run build` — enables the Indonesian language and IDR currency options (env `VITE_ID_IDR_ENABLED`, default disabled; anything other than the literal `true` leaves only English/USD available)
-- `npm run build` — `tsc -b && vite build` (typechecks all 3 TS projects, then builds `dist/`)
-- `npm run typecheck` — `tsc -b`
-- `npm run lint` — eslint (passes cleanly)
-- `npm run test:unit` — vitest; `npm run test:e2e` — Playwright; `npm run test` — both
-- `npm run start` — build then serve; `npm run live` — build + server + cloudflared tunnel (remote multiplayer)
+| Command | What |
+|---|---|
+| `npm run server` | Game server via `tsx server/main.ts` (port 3001) |
+| `npm run build` | `tsc -b` + `vite build` (produces `dist/`) |
+| `npm run start` | build then server (full prod stack on 3001) |
+| `npm test` | vitest run **then** playwright test |
+| `npm run test:unit` | vitest run only |
+| `npm run test:e2e` | playwright test only |
+| `npm run lint` | eslint . |
+| `npm run typecheck` | `tsc -b` (project references) |
+| `npm run preview` | vite preview (static dist/ only) |
+| `npm run tunnel` | cloudflared tunnel for live testing |
+
+## Running tests
+- **Unit tests**: `npm run test:unit` (vitest, excludes `e2e/`)
+- **Single unit test file**: `npx vitest run src/logic/__tests__/gameReducer.test.ts`
+- **E2E tests**: requires `npm run build` first (serves `dist/`); tests spawn per-worker servers on ports 4000+/4100+
+- **Full test suite**: `npm test` (runs vitest first, then playwright)
 
 ## Architecture
+- **Client entry**: `src/main.tsx` — React + i18n + CurrencyProvider
+- **Server entry**: `server/main.ts` — HTTP + WebSocket, env-configurable
+- **Game logic**: `src/logic/gameReducer.ts` — pure reducer (GameState, GameAction)
+- **Network protocol**: typed discriminated unions in `src/types/net.ts` (ClientMessage / ServerMessage)
+- **Room manager**: `server/roomManager.ts` — 5-char alphanumeric room codes, auto-teardown
+- **Bot AI**: `src/logic/bot.ts`
+- **Seed (E2E state injection)**: `POST /seed` — validates structure + room, only when `E2E_SEED_ENABLED=true`
 
-- **Shared game logic**: `src/logic/gameReducer.ts` (the reducer + `createInitialState`) is the single source of truth for rules. It runs on the server, authoritatively, for multiplayer (`server/gameServer.ts`). New rules/actions go in `src/logic` + `src/types/game.ts` and must work in both contexts.
-- **Multiplayer**: Node server (`server/`) uses `tsx` and the `ws` lib. `RoomManager` issues 5-char join codes; `GameServer` owns state per room (max 6 players) and broadcasts full `GameState` snapshots over JSON. Server rejects actions out of turn. Board/card data lives in `src/data/*.json`; shared types in `src/types/*`.
-- **Server/client contract**: `src/types/net.ts` defines `ClientMessage`/`ServerMessage`. Server sends full state snapshots; the client's `src/net/client.ts` (`GameClient`) wraps the WebSocket and `src/hooks/useNetworkGame.ts` applies snapshots directly.
-- **Bots**: `src/logic/bot.ts` (`decideBotAction`) drives bot seats on the server; `src/data/bots.ts` supplies `BOT_NAMES`. Bot turns auto-play through the server reducer.
-- **Two tsconfig projects beyond the app/node split**: `tsconfig.server.json` compiles `server/` plus `src/{types,logic,data,utils}` (no DOM); `tsconfig.app.json` covers `src/`. `npm run build`/`typecheck` build all via project references.
+## TypeScript constraints
+- `verbatimModuleSyntax` → use `import type` for type-only imports
+- `erasableSyntaxOnly` → **no enums, no namespaces, no `const enum`**. Use `as const` objects + type aliases (see `src/types/game.ts`)
 
-## Tests
+## Env vars (server)
+| Var | Default | Note |
+|---|---|---|
+| `PORT` | 3001 | |
+| `DIST_DIR` | `dist` | Static files to serve |
+| `TRADES_ENABLED` | `true` | Set `'false'` to disable trades |
+| `E2E_SEED_ENABLED` | `false` | Enables `POST /seed` for deterministic E2E |
+| `AFK_TIMEOUT_MS` | 30000 | |
+| `ROOM_EMPTY_GRACE_MS` | 30000 | |
 
-- **Vitest**: config lives inside `vite.config.ts` (setup `src/test/setup.ts`, excludes `e2e/**`). Unit tests colocated in `__tests__/` dirs next to source.
-- `src/test/setup.ts` installs an in-memory `localStorage` if absent and pins language/currency to `en`/`USD`. Components using i18n/currency must be rendered with `renderWithProviders` from `src/test/test-utils.tsx`.
-- **Playwright** (`e2e/`): config auto-starts Vite dev on port 4173. **Server-backed specs use the shared worker-scoped `serverUrl` fixture (`e2e/fixtures.ts`), which spawns `tsx server/main.ts` on port `4000 + workerIndex` serving `dist/` — run `npm run build` first or those specs fail** (`dist/` is gitignored). Trade e2e specs use the sibling `serverUrlTrades` fixture (port `4100 + workerIndex`), which additionally launches the server with `TRADES_ENABLED=true`.
-- e2e tests targeting English UI set `localStorage` (`monopoly-language` = `en`) via `addInitScript`; the default language is English. UI test hooks: `data-testid`s (`sidebar`, `room-code`, `player-card`, `waiting-for`, ...), `aria-label`s, and visible button text.
-- Multiplayer e2e uses the real server + two browser contexts sharing nothing; don't skip the `dist/` requirement.
+## Env vars (vite/client)
+- `VITE_ID_IDR_ENABLED` — set `'true'` to enable Indonesian locale + IDR currency
 
-## Conventions
+## UI stack
+- Tailwind CSS v4 (`@import "tailwindcss"` in `index.css`, no config file, `@tailwindcss/vite` plugin)
+- i18next + react-i18next (en/id locales, localStorage persistence)
+- Sound via Web Audio API (`src/audio/`)
+- WebSocket client in `src/net/client.ts`
 
-- **No TS enums** — `erasableSyntaxOnly: true` across projects; use `const` objects + derived union types (see `src/types/game.ts`). Also `verbatimModuleSyntax: true` → type-only imports must use `import type`. `noUnusedLocals`/`noUnusedParameters` are on.
-- **Enum-like string constants**: Any fixed set of string values (wire message
-  types, phases, action types, statuses, etc.) must be declared as a `const`
-  object with a derived union type (see `src/types/game.ts` and
-  `src/types/net.ts`). Do not use raw string literals in production code where
-  a constant exists; do not introduce TypeScript `enum` (repo enforces
-  `erasableSyntaxOnly`). Wire values are part of the client/server contract and
-  must never change when refactoring.
-- **Semicolons are mixed**: `src/logic/*`, `src/types/game.ts`, and most of `src/data/*` (`board.ts`, `cards.ts`, `bots.ts`) use them; `src/data/currency.ts`, `src/data/players.ts`, and most components/hooks/net/server files omit them. Match the file you're editing; eslint does not enforce.
-- **i18n**: every UI string must exist in both `src/i18n/locales/en/translation.json` and `id/translation.json` (flat keys, `keySeparator: false`). Server-side error strings are hardcoded Indonesian and rendered raw by the client — don't add new hardcoded UI strings; route user-facing text through i18n keys or `LogEntry` keys (see `src/i18n/log.ts`).
-- **Multiplayer session persistence**: the client stores the active room session under `monopoly-mp-session` (`src/net/session.ts`) so a refresh auto-rejoins the same room.
-- **Design workflow**: specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/` (dated). Before implementing a feature, check for the latest related spec/plan there.
+## Design specs
+`docs/superpowers/` and `.superpowers/sdd/` contain design specs for features (date-prefixed directories).
 
-## Gotchas
-
-- `npm run server`/`live` serve the **built** `dist/` — the client dev server and the multiplayer server are separate processes; multiplayer won't work through Vite alone.
-- `gameReducer`'s `shuffle` uses `Math.random`; `GameServer` accepts an injectable `rng` — tests should inject a deterministic one.
-- Board has 40 spaces; rules constants (`GO_SALARY`, rent tables, mortgage/sell rates) are in `src/data/board.ts`, not in the reducer.
-- Seeding is a dev/test-only capability: `POST /seed` returns 403 unless the server was launched with `E2E_SEED_ENABLED=true`. The Playwright e2e env sets it automatically (`e2e/helpers/server.ts`). To author a scenario, build one with `createSeededState` (`src/logic/seed.ts`) or generate it via `npm run print-seed`; the checked-in e2e scenario is `e2e/fixtures/bankruptcy-seed.ts` (generated, not hand-edited).
+## E2E test quirks
+- `e2e/fixtures.ts` provides per-worker `serverUrl` (trades disabled) and `serverUrlTrades` (trades enabled, AFK=120s)
+- Seed fixtures in `e2e/fixtures/*-seed.ts` are imported by spec files
+- E2E helpers: `e2e/helpers/` (gameplay.ts, server.ts, seed.ts, trade.ts)
+- Tests set localStorage via `context.addInitScript` (language + currency)

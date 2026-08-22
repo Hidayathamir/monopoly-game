@@ -10,7 +10,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
   },
   webServer: {
-    command: 'npm run dev -- --port 4173',
+    command: 'npx vite --port 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 10000,
