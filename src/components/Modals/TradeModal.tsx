@@ -10,9 +10,10 @@ interface Props {
   onPropose: (offer: TradeOffer) => void
   onClose: () => void
   targetPlayerId: number
+  myPlayerId: number | null
 }
 
-export default function TradeModal({ state, onPropose, onClose, targetPlayerId }: Props) {
+export default function TradeModal({ state, onPropose, onClose, targetPlayerId, myPlayerId }: Props) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [offerProperties, setOfferProperties] = useState<number[]>([])
@@ -20,10 +21,14 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   const [requestProperties, setRequestProperties] = useState<number[]>([])
   const [requestCash, setRequestCash] = useState(0)
 
-  const currentPlayerMoney = state.players[state.currentPlayer]?.money ?? 0
+  // The proposer is the viewer, not necessarily the current player — trading is
+  // allowed off-turn. Fall back to the current player for the local (single
+  // human) game where myPlayerId is null.
+  const proposerId = myPlayerId ?? state.currentPlayer
+  const currentPlayerMoney = state.players[proposerId]?.money ?? 0
   const targetPlayerMoney = state.players[targetPlayerId]?.money ?? 0
 
-  const currentProps = state.board.filter((s) => s.owner === state.currentPlayer)
+  const currentProps = state.board.filter((s) => s.owner === proposerId)
 
   const targetProps = state.board.filter((s) => s.owner === targetPlayerId)
 
@@ -40,7 +45,7 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId }
   function handlePropose() {
     const toId = targetPlayerId
     onPropose({
-      fromId: state.currentPlayer,
+      fromId: proposerId,
       toId,
       offerProperties,
       offerCash,

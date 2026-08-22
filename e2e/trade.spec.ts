@@ -1,7 +1,8 @@
 import { test, expect } from './fixtures'
 import { seedGame } from './helpers/seed'
-import { ALPHA_STRIPE, BRAVO_STRIPE, DROID_STRIPE, makePage, joinRoom, openTradeModal } from './helpers/trade'
+import { ALPHA_STRIPE, BRAVO_STRIPE, CHARLIE_STRIPE, DROID_STRIPE, makePage, joinRoom, joinThree, openTradeModal } from './helpers/trade'
 import { tradeSeed } from './fixtures/trade-seed'
+import { tradeThreeSeed } from './fixtures/trade-three-seed'
 import { tradeBotSeed } from './fixtures/trade-bot-seed'
 import { tradeCashSeed } from './fixtures/trade-cash-seed'
 
@@ -289,31 +290,33 @@ test('stale offer auto-rejects when the offered property changed hands after pro
   await expect(pageA.locator('[data-testid="board-cell-1"] div.absolute')).toHaveCount(0)
 })
 
-test('off-turn player can propose a trade and the on-turn player accepts', async ({ browser, serverUrlTrades }) => {
+test('off-turn player can propose a trade to another player', async ({ browser, serverUrlTrades }) => {
   const pageA = await makePage(browser)
   const pageB = await makePage(browser)
-  const code = await joinRoom(pageA, pageB, serverUrlTrades)
+  const pageC = await makePage(browser)
+  const code = await joinThree(pageA, pageB, pageC, serverUrlTrades)
 
-  await seedGame(serverUrlTrades, code, tradeSeed)
+  await seedGame(serverUrlTrades, code, tradeThreeSeed)
   await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
-  // Alpha is the current player (per tradeSeed); Bravo is therefore off-turn.
+  // Alpha is the current player; Bravo and Charlie are off-turn.
 
-  // Bravo (off-turn) opens the trade modal and proposes: offers Tel Aviv (6) + $0, requests Rio (3).
-  await openTradeModal(pageB, 'Alpha')
+  // Bravo (off-turn) opens the trade modal targeting Charlie and proposes:
+  // offers Tel Aviv (6) + $0, requests Haifa (8).
+  await openTradeModal(pageB, 'Charlie')
   await pageB.getByLabel('Tel Aviv').check()
-  await pageB.getByLabel('Rio').check()
+  await pageB.getByLabel('Haifa').check()
   await pageB.getByRole('button', { name: 'Propose' }).click()
 
-  // Alpha (the recipient, currently on turn) sees viewer-relative labels.
-  const inboxBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  // Charlie (the off-turn recipient) sees viewer-relative labels.
+  const inboxBtn = pageC.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
-  await expect(pageA.getByText(/You receive: Tel Aviv/)).toBeVisible({ timeout: 5000 })
-  await expect(pageA.getByText(/You give: Rio/)).toBeVisible()
-  await pageA.getByRole('button', { name: 'Accept' }).click()
+  await expect(pageC.getByText(/You receive: Tel Aviv/)).toBeVisible({ timeout: 5000 })
+  await expect(pageC.getByText(/You give: Haifa/)).toBeVisible()
+  await pageC.getByRole('button', { name: 'Accept' }).click()
 
-  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
-  // Ownership swaps: Rio -> Bravo, Tel Aviv -> Alpha.
-  await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
-  await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
+  await expect(pageC.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // Ownership swaps: Tel Aviv (6) -> Charlie, Haifa (8) -> Bravo.
+  await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', CHARLIE_STRIPE)
+  await expect(pageA.locator('[data-testid="board-cell-8"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
 })

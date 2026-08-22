@@ -66,6 +66,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
         <TradeModal
           state={state}
           targetPlayerId={tradeTargetId}
+          myPlayerId={game.myPlayerId}
           onPropose={(offer: TradeOffer) => {
             game.proposeTrade(offer)
             setTradeTargetId(null)
