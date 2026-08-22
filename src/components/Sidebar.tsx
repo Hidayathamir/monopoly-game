@@ -12,7 +12,6 @@ import { SoundId } from '../audio/soundEngine'
 interface Props {
   state: GameState
   onRoll: (target?: number) => void
-  onEndTurn: () => void
   onProposeTrade: (playerId: number) => void
   onDrawCard: () => void
   onBuyProperty: () => void

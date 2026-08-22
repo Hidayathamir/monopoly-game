@@ -31,7 +31,6 @@ function makeRolledState(): GameState {
 function makeProps() {
   return {
     onRoll: noop,
-    onEndTurn: noop,
     onProposeTrade: noop,
     canTrade: true,
     tradesEnabled: true,
@@ -59,11 +58,11 @@ describe('Sidebar', () => {
   it('places action buttons above the player list and event log', () => {
     renderWithProviders(<Sidebar state={makeRolledState()} isMyTurn onLeave={noop} {...makeProps()} />)
     const turnLabel = screen.getByText('Turn')
-    const endTurn = screen.getByRole('button', { name: 'End Turn' })
+    const hoverHint = screen.getByText('Hover a property on the board to sell/mortgage')
     const playersLabel = screen.getByText('Players')
     const eventLog = screen.getByTestId('event-log')
-    expect(domIndex(turnLabel)).toBeLessThan(domIndex(endTurn))
-    expect(domIndex(endTurn)).toBeLessThan(domIndex(playersLabel))
+    expect(domIndex(turnLabel)).toBeLessThan(domIndex(hoverHint))
+    expect(domIndex(hoverHint)).toBeLessThan(domIndex(playersLabel))
     expect(domIndex(playersLabel)).toBeLessThan(domIndex(eventLog))
   })
 

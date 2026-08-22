@@ -9,7 +9,7 @@ import { GameActionType, PendingActionType, type GameState } from '../../types/g
 
 const noop = () => {}
 const actions = {
-  onEndTurn: noop, onDrawCard: noop, onBuyProperty: noop,
+  onDrawCard: noop, onBuyProperty: noop,
   onDeclineBuy: noop, onPayRent: noop, onDeclareBankruptcy: noop,
   onPayJailFine: noop, onUseGetOutOfJailFree: noop,
 }
@@ -74,11 +74,12 @@ describe('ActionSection', () => {
     expect(screen.getByRole('button', { name: /Pay/ })).toBeVisible()
   })
 
-  it('labels the advance button Roll Again after rolling doubles', () => {
+  it('does not render an end-of-turn button after rolling', () => {
     let s = makeState()
     s = { ...s, dice: [3, 3], doublesCount: 1 }
     renderWithProviders(<ActionSection state={s} {...actions} />)
-    expect(screen.getByRole('button', { name: /Roll Again/ })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /Roll Again/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /End Turn/ })).not.toBeInTheDocument()
   })
 
   describe('bankruptcy hold-to-confirm', () => {

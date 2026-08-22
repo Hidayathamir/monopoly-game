@@ -8,7 +8,6 @@ import HoldToConfirmButton from './HoldToConfirmButton'
 
 interface Props {
   state: GameState
-  onEndTurn: () => void
   onDrawCard: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
@@ -21,7 +20,7 @@ interface Props {
 }
 
 export default function ActionSection({
-  state, onEndTurn, onDrawCard, onBuyProperty,
+  state, onDrawCard, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
   onBuild, isMyTurn = true,
 }: Props) {
@@ -127,18 +126,6 @@ export default function ActionSection({
           <p className="text-base text-muted text-center mt-1">
             {t('action.orRollDoubles', { n: 3 - player.jailTurns })}
           </p>
-        </>
-      ) : hasRolled ? (
-        <>
-          {player.money >= 0 ? (
-            <>
-              <Button variant="secondary" onClick={onEndTurn}>{t(state.doublesCount > 0 ? 'action.rollAgain' : 'action.endTurn')}</Button>
-            </>
-          ) : (
-            <p className="text-base text-muted text-center mt-1" style={{ color: '#e74c3c' }}>
-              {t('action.negativeBalance')}
-            </p>
-          )}
         </>
       ) : null}
       {(hasRolled && !player.inJail) || player.money < 0 ? (
