@@ -16,7 +16,6 @@ interface HostButtons {
   draw: Locator
   ok: Locator
   pay: Locator
-  end: Locator
 }
 
 export async function playHostTurns(page: Page, maxLoops: number, opts: PlayHostTurnsOptions = {}): Promise<void> {
@@ -28,21 +27,11 @@ export async function playHostTurns(page: Page, maxLoops: number, opts: PlayHost
     draw: page.locator('button:has-text("Draw")').first(),
     ok: page.locator('button:has-text("OK")').first(),
     pay: page.locator('button:has-text("Pay")').first(),
-    end: page.locator('button:has-text("End"), button:has-text("Roll Again")').first(),
   }
 
   const visible = (locator: Locator): Promise<boolean> => locator.isVisible().catch(() => false)
   const settleHidden = (locator: Locator): Promise<void> =>
     expect(locator).toBeHidden({ timeout: SETTLE_TIMEOUT }).catch(() => {})
-
-  const settleEnd = (): Promise<void> =>
-    expect
-      .poll(
-        async () => (await visible(buttons.end)) === false || (await visible(buttons.roll)) === true,
-        { timeout: SETTLE_TIMEOUT },
-      )
-      .toBe(true)
-      .catch(() => {})
 
   async function playOneAction(): Promise<boolean> {
     if (await visible(buttons.roll)) {
@@ -76,11 +65,6 @@ export async function playHostTurns(page: Page, maxLoops: number, opts: PlayHost
     if (await visible(buttons.pay)) {
       await buttons.pay.click({ timeout: ACTION_TIMEOUT })
       await settleHidden(buttons.pay)
-      return true
-    }
-    if (await visible(buttons.end)) {
-      await buttons.end.click({ timeout: ACTION_TIMEOUT })
-      await settleEnd()
       return true
     }
     return false

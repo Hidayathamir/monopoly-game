@@ -150,8 +150,8 @@ export function validateStateStructure(state: GameState): ValidationResult {
       return { kind: ValidationKind.Error, message: `player ${player.id} (${player.name}) has an invalid avatar` };
     }
   }
-  if (state.phase === GamePhase.Waiting && (state.pendingAction !== null || state.dice !== null)) {
-    return { kind: ValidationKind.Error, message: 'Waiting state must have pendingAction === null and dice === null' };
+  if (state.phase === GamePhase.Waiting && state.pendingAction !== null) {
+    return { kind: ValidationKind.Error, message: 'Waiting state must have pendingAction === null' };
   }
   if (state.phase === GamePhase.Resolving && state.pendingAction === null) {
     return { kind: ValidationKind.Error, message: 'Resolving state must have a pendingAction' };

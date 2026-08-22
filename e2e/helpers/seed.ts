@@ -27,6 +27,7 @@ export interface SeedWaitingOptions {
   players: SeedWaitingPlayerSpec[]
   currentPlayer: number
   turnOrder?: number[]
+  dice?: [number, number]
 }
 
 export function buildWaitingState(opts: SeedWaitingOptions): GameState {
@@ -58,7 +59,7 @@ export function buildWaitingState(opts: SeedWaitingOptions): GameState {
     chanceDeck: INITIAL_CHANCE_DECK,
     communityDeck: INITIAL_COMMUNITY_DECK,
     freeParkingPot: 0,
-    dice: null,
+    dice: opts.dice ?? null,
     doublesCount: 0,
     lastMoveSteps: null,
     eventLog: [],
