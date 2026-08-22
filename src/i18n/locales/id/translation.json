@@ -139,6 +139,7 @@
   "lobby.addBot": "Tambah Bot",
   "lobby.avatar": "Avatar",
   "lobby.colorTaken": "Dipakai",
+  "lobby.customColor": "Warna kustom",
   "lobby.connecting": "Menghubungkan…",
   "lobby.disconnected": "Terputus dari server",
   "lobby.disconnectedSuffix": " (terputus)",

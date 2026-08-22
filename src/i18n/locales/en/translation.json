@@ -139,6 +139,7 @@
   "lobby.addBot": "Add Bot",
   "lobby.avatar": "Avatar",
   "lobby.colorTaken": "In use",
+  "lobby.customColor": "Custom color",
   "lobby.connecting": "Connecting…",
   "lobby.disconnected": "Disconnected from server",
   "lobby.disconnectedSuffix": " (disconnected)",

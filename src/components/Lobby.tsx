@@ -139,23 +139,41 @@ export default function Lobby({ game }: Props) {
                 )
               })}
             </div>
+            <label className="flex items-center gap-2 justify-center text-xs text-muted">
+              {t('lobby.customColor')}
+              <input
+                type="color"
+                data-testid="color-custom"
+                value={mySlot?.color ?? PLAYER_COLORS[playerId ?? 0]}
+                onChange={(e) => pickColor(e.target.value)}
+                className="w-8 h-8 rounded cursor-pointer bg-transparent border border-border"
+              />
+            </label>
             <div className="text-xs text-muted text-center">{t('lobby.avatar')}</div>
             <div data-testid="avatar-picker" className="flex gap-1.5 flex-wrap justify-center">
-              {(Object.values(PRESET_AVATARS) as PresetAvatarId[]).map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  data-testid="avatar-option"
-                  aria-label={`${t('lobby.avatar')} ${id}`}
-                  onClick={() => pickPreset(id)}
-                  className={[
-                    'w-8 h-8 rounded-lg text-lg flex items-center justify-center border',
-                    mySlot?.avatar.kind === AvatarKind.Preset && mySlot.avatar.id === id ? 'ring-2 ring-gold border-white' : 'border-border',
-                  ].join(' ')}
-                >
-                  {PRESET_EMOJI[id]}
-                </button>
-              ))}
+              {(Object.values(PRESET_AVATARS) as PresetAvatarId[]).map((id) => {
+                const takenAvatar = (avatarId: PresetAvatarId) =>
+                  lobby.some((p) => p.id !== playerId && p.name !== null && p.avatar?.kind === AvatarKind.Preset && p.avatar.id === avatarId)
+                const taken = takenAvatar(id)
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    data-testid="avatar-option"
+                    aria-label={`${t('lobby.avatar')} ${id}`}
+                    aria-disabled={taken}
+                    disabled={taken}
+                    onClick={() => pickPreset(id)}
+                    className={[
+                      'w-8 h-8 rounded-lg text-lg flex items-center justify-center border',
+                      mySlot?.avatar.kind === AvatarKind.Preset && mySlot.avatar.id === id ? 'ring-2 ring-gold border-white' : 'border-border',
+                      taken ? 'opacity-30 cursor-not-allowed' : '',
+                    ].join(' ')}
+                  >
+                    {PRESET_EMOJI[id]}
+                  </button>
+                )
+              })}
             </div>
             <div className="flex gap-3 items-center justify-center">
               <label data-testid="avatar-upload" className="cursor-pointer text-sm">
