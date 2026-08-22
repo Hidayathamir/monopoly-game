@@ -68,4 +68,40 @@ describe('TradeModal', () => {
     screen.getByRole('button', { name: /Propose/i }).click()
     expect(onPropose).toHaveBeenCalledWith(expect.objectContaining({ requestProperties: [3] }))
   })
+
+  it('clamps offered cash to the proposer\'s available cash', () => {
+    const s = makeState()
+    const state = { ...s, players: s.players.map((p, i) => (i === 0 ? { ...p, money: 50 } : p)) }
+    renderWithProviders(<TradeModal state={state} targetPlayerId={1} onPropose={() => {}} onClose={() => {}} />)
+    const offer = screen.getAllByRole('spinbutton')[0]
+    fireEvent.change(offer, { target: { value: '100' } })
+    expect(offer).toHaveValue(50)
+  })
+
+  it('clamps negative cash entries to 0', () => {
+    renderWithProviders(<TradeModal state={makeState()} targetPlayerId={1} onPropose={() => {}} onClose={() => {}} />)
+    const offer = screen.getAllByRole('spinbutton')[0]
+    fireEvent.change(offer, { target: { value: '-100' } })
+    expect(offer).toHaveValue(0)
+  })
+
+  it('excludes mortgaged and developed properties from both columns', () => {
+    const s = makeState()
+    const state = {
+      ...s,
+      board: s.board.map((b) =>
+        b.id === 1 ? { ...b, owner: 0 }
+          : b.id === 3 ? { ...b, owner: 0, mortgaged: true }
+          : b.id === 6 ? { ...b, owner: 1, houses: 1 }
+          : b.id === 9 ? { ...b, owner: 1 }
+          : b,
+      ),
+      players: s.players.map((p, i) => (i === 0 ? { ...p, properties: [1, 3] } : { ...p, properties: [6, 9] })),
+    }
+    renderWithProviders(<TradeModal state={state} targetPlayerId={1} onPropose={() => {}} onClose={() => {}} />)
+    expect(screen.getByRole('checkbox', { name: /Salvador/ })).toBeTruthy()
+    expect(screen.queryByRole('checkbox', { name: /Rio/ })).toBeNull()
+    expect(screen.getByRole('checkbox', { name: /Jerusalem/ })).toBeTruthy()
+    expect(screen.queryByRole('checkbox', { name: /Tel Aviv/ })).toBeNull()
+  })
 })
