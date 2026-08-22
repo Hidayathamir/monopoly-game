@@ -8,6 +8,7 @@ import { MAX_PLAYERS, PLAYER_COLORS, isValidColor, normalizeColor } from '../src
 import { DEFAULT_AVATAR, isValidAvatar, isSameAvatar, PRESET_AVATARS, type PresetAvatarId } from '../src/data/avatars'
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
+import { canBuildOnCurrentSpace } from '../src/logic/build'
 
 export type ClientId = string
 
@@ -30,6 +31,7 @@ interface Slot {
 const BOT_STEP_MS = 700
 const BOT_GRACE_MS = 3_000
 const AFK_TIMEOUT_MS = 30_000
+const AUTO_END_TURN_MS = 300
 
 export class GameServer {
   private state: GameState
@@ -262,6 +264,7 @@ export class GameServer {
     this.state = { ...state, tradesEnabled: this.state.tradesEnabled }
     this.broadcast()
     this.driveBots()
+    this.scheduleAutoSteps()
   }
 
   leave(clientId: ClientId): void {
@@ -461,7 +464,24 @@ export class GameServer {
           this.dispatch({ type: GameActionType.DrawCard })
         }
       }, 300)
+    } else if (this.canAutoAdvanceTurn()) {
+      setTimeout(() => {
+        if (this.canAutoAdvanceTurn()) {
+          this.dispatch({ type: GameActionType.EndTurn })
+        }
+      }, AUTO_END_TURN_MS)
     }
+  }
+
+  private canAutoAdvanceTurn(): boolean {
+    const s = this.state
+    if (s.phase !== GamePhase.Waiting || s.pendingAction) return false
+    const player = s.players[s.currentPlayer]
+    const slot = this.slots[s.currentPlayer]
+    if (!player || !slot) return false
+    if (slot.isBot || !slot.connected || player.botControlled === true) return false
+    if (player.inJail || s.dice === null || player.money < 0) return false
+    return !canBuildOnCurrentSpace(s)
   }
 
   private driveBots(): void {

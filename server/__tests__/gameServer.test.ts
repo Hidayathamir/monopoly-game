@@ -205,7 +205,7 @@ describe('GameServer', () => {
     expect(server.getState().dice).toBeNull()
   })
 
-  it('does not auto-advance after doubles until an explicit END_TURN', () => {
+  it('auto-advances after doubles to the roll-again state', () => {
     vi.useFakeTimers()
     const rng = () => 0.5 // dice [4,4], doubles
     const { server } = setup({ rng })
@@ -221,10 +221,62 @@ describe('GameServer', () => {
     vi.advanceTimersByTime(500 + 8 * 150) // RESOLVE_SPACE (space 8 unowned → mustCircleBoard → Waiting)
     expect(server.getState().phase).toBe(GamePhase.Waiting)
 
-    vi.advanceTimersByTime(500) // previously auto END_TURN
-    expect(server.getState().dice).toEqual([4, 4])
-    expect(server.getState().currentPlayer).toBe(0)
-    expect(server.getState().eventLog.some((e) => e.key === 'event.doublesAgain')).toBe(false)
+    vi.advanceTimersByTime(500) // AUTO_END_TURN
+    expect(server.getState().dice).toBeNull()
+    expect(server.getState().currentPlayer).toBe(0) // doubles → same player rolls again
+    expect(server.getState().doublesCount).toBe(1)
+    vi.useRealTimers()
+  })
+
+  it('auto-advances a human turn to the next player after rolling onto a normal space', () => {
+    vi.useFakeTimers()
+    let n = 0
+    const rng = () => [0.6, 0.7][n++] ?? 0.5 // dice [4,5] = 9, no doubles
+    const { server } = setup({ rng })
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.roll('c0')
+    vi.advanceTimersByTime(500) // DICE_ANIMATED
+    expect(server.getState().dice).toEqual([4, 5])
+
+    vi.advanceTimersByTime(500 + 9 * 150) // RESOLVE_SPACE (space 9 unowned → Waiting)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    vi.advanceTimersByTime(500) // AUTO_END_TURN
+    expect(server.getState().currentPlayer).toBe(1)
+    expect(server.getState().dice).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('does not auto-advance a human turn when standing on a buildable property', () => {
+    vi.useFakeTimers()
+    const { server } = setup()
+    server.join('c0', 'Alice')
+    server.join('c1', 'Bob')
+    server.start('c0')
+
+    server.roll('c0')
+    vi.advanceTimersByTime(500)
+    vi.advanceTimersByTime(500 + 8 * 150)
+    expect(server.getState().phase).toBe(GamePhase.Waiting)
+
+    // Make the current property buildable: player 0 owns space 8
+    const state = server.getState()
+    state.board[8].owner = 0
+    state.board[8].houses = 0
+    state.board[8].mortgaged = false
+    state.justBoughtSpaceId = null
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((server as any).canAutoAdvanceTurn()).toBe(false)
+
+    // Remove ownership → should allow auto-advance
+    state.board[8].owner = null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((server as any).canAutoAdvanceTurn()).toBe(true)
+
     vi.useRealTimers()
   })
 
