@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest'
 import { cleanup, screen, fireEvent } from '@testing-library/react'
 import { afterEach, describe, it, expect, vi } from 'vitest'
 import Lobby from '../Lobby'
@@ -128,5 +129,30 @@ describe('Lobby identity panel', () => {
       ],
     })} />)
     expect(screen.getAllByTestId('color-swatch')[1].getAttribute('aria-disabled')).toBe('true')
+  })
+
+  it('sends setIdentity with a custom hex color from the color input', () => {
+    const setIdentity = vi.fn()
+    renderWithProviders(<Lobby game={makeGame({
+      setIdentity,
+      lobby: [
+        { id: 0, name: 'Alice', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: DEFAULT_AVATAR },
+      ],
+    })} />)
+    const input = screen.getByTestId('color-custom') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '#123abc' } })
+    expect(setIdentity).toHaveBeenCalledWith({ color: '#123abc' })
+  })
+
+  it('disables a preset avatar already taken by another player', () => {
+    renderWithProviders(<Lobby game={makeGame({
+      playerId: 1,
+      lobby: [
+        { id: 0, name: 'Alice', connected: true, isBot: false, color: PLAYER_COLORS[0], avatar: { kind: AvatarKind.Preset, id: PRESET_AVATARS.Dog } },
+        { id: 1, name: 'Bob', connected: true, isBot: false, color: PLAYER_COLORS[1], avatar: DEFAULT_AVATAR },
+      ],
+    })} />)
+    const dogBtn = screen.getByLabelText(`${'Avatar'} ${PRESET_AVATARS.Dog}`)
+    expect(dogBtn).toBeDisabled()
   })
 })
