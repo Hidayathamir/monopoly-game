@@ -9,7 +9,13 @@
     { "id": 7, "effect": { "action": "getOutOfJailFree" } },
     { "id": 8, "effect": { "action": "streetRepairs", "perHouse": 25, "perHotel": 100 } },
     { "id": 9, "effect": { "action": "collectFromPlayers", "amount": 10 } },
-    { "id": 10, "effect": { "action": "goToSpace", "spaceId": -3 } }
+    { "id": 10, "effect": { "action": "goToSpace", "spaceId": -3 } },
+    { "id": 11, "effect": { "action": "pay", "amount": 15 } },
+    { "id": 12, "effect": { "action": "collect", "amount": 150 } },
+    { "id": 13, "effect": { "action": "goToSpace", "spaceId": 5 } },
+    { "id": 14, "effect": { "action": "goToSpace", "spaceId": 12 } },
+    { "id": 15, "effect": { "action": "collect", "amount": 100 } },
+    { "id": 16, "effect": { "action": "payToPlayers", "amount": 50 } }
   ],
   "community": [
     { "id": 101, "effect": { "action": "collect", "amount": 200 } },
@@ -21,6 +27,12 @@
     { "id": 107, "effect": { "action": "collect", "amount": 100 } },
     { "id": 108, "effect": { "action": "collect", "amount": 50 } },
     { "id": 109, "effect": { "action": "pay", "amount": 50 } },
-    { "id": 110, "effect": { "action": "pay", "amount": 25 } }
+    { "id": 110, "effect": { "action": "pay", "amount": 25 } },
+    { "id": 111, "effect": { "action": "goToSpace", "spaceId": 0 } },
+    { "id": 112, "effect": { "action": "collect", "amount": 50 } },
+    { "id": 113, "effect": { "action": "collectFromPlayers", "amount": 50 } },
+    { "id": 114, "effect": { "action": "collect", "amount": 20 } },
+    { "id": 115, "effect": { "action": "collect", "amount": 25 } },
+    { "id": 116, "effect": { "action": "streetRepairs", "perHouse": 40, "perHotel": 115 } }
   ]
 }

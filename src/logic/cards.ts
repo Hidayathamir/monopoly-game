@@ -61,6 +61,28 @@ export function resolveCardEffect(state: GameState, card: Card): CardResolution 
         log: [actorEntry(LogEventKey.CardCollectPlayers, player, { [LogParamKey.CardId]: card.id, [LogParamKey.Amount]: actualReceived, [LogParamKey.PerPlayer]: amount, playerCount: payingPlayers })],
       };
     }
+    case CardActionType.PayToPlayers: {
+      const payAmount = effect.amount;
+      let remainingMoney = newState.players[state.currentPlayer].money;
+      let totalPaid = 0;
+      let paidPlayers = 0;
+      const newPlayers = newState.players.map((p, i) => {
+        if (i === state.currentPlayer) return p;
+        const pay = Math.min(payAmount, remainingMoney);
+        if (pay > 0) paidPlayers += 1;
+        totalPaid += pay;
+        remainingMoney -= pay;
+        return { ...p, money: p.money + pay };
+      });
+      newPlayers[state.currentPlayer] = {
+        ...newPlayers[state.currentPlayer],
+        money: remainingMoney,
+      };
+      return {
+        state: { ...newState, players: newPlayers },
+        log: [actorEntry(LogEventKey.CardPayPlayers, player, { [LogParamKey.CardId]: card.id, [LogParamKey.Amount]: totalPaid, [LogParamKey.PerPlayer]: payAmount, playerCount: paidPlayers })],
+      };
+    }
     case CardActionType.StreetRepairs: {
       let totalRepairs = 0;
       let houseCount = 0;

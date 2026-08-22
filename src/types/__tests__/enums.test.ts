@@ -8,7 +8,7 @@ import { Currency } from '../../data/currency';
 test('wire values are locked for all enum-like consts', () => {
   expect(Object.values(SpaceType)).toEqual(['property', 'railroad', 'utility', 'chance', 'community', 'tax', 'go', 'jail', 'goToJail', 'freeParking']);
   expect(Object.values(CardType)).toEqual(['chance', 'community']);
-  expect(Object.values(CardActionType)).toEqual(['collect', 'pay', 'goToJail', 'getOutOfJailFree', 'goToSpace', 'collectFromPlayers', 'streetRepairs']);
+  expect(Object.values(CardActionType)).toEqual(['collect', 'pay', 'goToJail', 'getOutOfJailFree', 'goToSpace', 'collectFromPlayers', 'payToPlayers', 'streetRepairs']);
   expect(Object.values(TaxType)).toEqual(['income', 'luxury']);
   expect(Object.values(GamePhase)).toEqual(['setup', 'waiting', 'rolling', 'moving', 'resolving', 'buying', 'building', 'gameOver']);
   expect(Object.values(PendingActionType)).toEqual(['buyProperty', 'payRent', 'drawCard', 'cardEffect', 'bankruptcy']);
@@ -32,7 +32,7 @@ test('wire values are locked for all enum-like consts', () => {
     'event.mortgaged', 'event.unmortgaged', 'event.soldToBank', 'event.tradeProposed',
     'event.tradeAccepted', 'event.tradeRejected', 'event.tradeProposalRejected', 'event.tradeCancelled', 'event.paidJailFine',
     'event.usedJailCard', 'event.doublesAgain', 'event.cardCollect', 'event.cardPay',
-    'event.cardToJail', 'event.gotJailCard', 'event.cardCollectPlayers', 'event.cardStreetRepairs',
+    'event.cardToJail', 'event.gotJailCard', 'event.cardCollectPlayers', 'event.cardPayPlayers', 'event.cardStreetRepairs',
     'event.movedForward', 'event.movedBack', 'event.bankruptcy', 'event.bankruptcyWin',
     'event.bankruptcyTransfer', 'event.playerOffline', 'event.playerAfk', 'event.playerBack', 'event.reconnectWait',
   ]);

@@ -33,6 +33,7 @@ export const CardActionType = {
   GetOutOfJailFree: 'getOutOfJailFree',
   GoToSpace: 'goToSpace',
   CollectFromPlayers: 'collectFromPlayers',
+  PayToPlayers: 'payToPlayers',
   StreetRepairs: 'streetRepairs',
 } as const;
 export type CardActionType = (typeof CardActionType)[keyof typeof CardActionType];
@@ -138,6 +139,7 @@ export const LogEventKey = {
   CardToJail: 'event.cardToJail',
   GotJailCard: 'event.gotJailCard',
   CardCollectPlayers: 'event.cardCollectPlayers',
+  CardPayPlayers: 'event.cardPayPlayers',
   CardStreetRepairs: 'event.cardStreetRepairs',
   MovedForward: 'event.movedForward',
   MovedBack: 'event.movedBack',
@@ -215,6 +217,7 @@ export type CardEffect =
   | { action: typeof CardActionType.GetOutOfJailFree }
   | { action: typeof CardActionType.GoToSpace; spaceId: number }
   | { action: typeof CardActionType.CollectFromPlayers; amount: number }
+  | { action: typeof CardActionType.PayToPlayers; amount: number }
   | { action: typeof CardActionType.StreetRepairs; perHouse: number; perHotel: number };
 
 export type GameState = {

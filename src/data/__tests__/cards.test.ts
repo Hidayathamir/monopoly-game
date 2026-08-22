@@ -3,9 +3,9 @@ import { CHANCE_CARDS, COMMUNITY_CARDS } from '../cards';
 import { CardActionType, CardType } from '../../types/game';
 
 describe('cards data', () => {
-  it('exports 10 chance and 10 community cards', () => {
-    expect(CHANCE_CARDS).toHaveLength(10);
-    expect(COMMUNITY_CARDS).toHaveLength(10);
+  it('exports 16 chance and 16 community cards', () => {
+    expect(CHANCE_CARDS).toHaveLength(16);
+    expect(COMMUNITY_CARDS).toHaveLength(16);
   });
 
   it('exposes collect/pay amounts in base units', () => {
