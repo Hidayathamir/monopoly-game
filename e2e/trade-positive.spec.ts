@@ -323,7 +323,6 @@ test('the offerer sees Cancel on an offer while the target sees Accept/Reject', 
   await expect(alphaOffer.getByRole('button', { name: 'Cancel' })).toBeVisible({ timeout: 5000 })
   await expect(alphaOffer.getByRole('button', { name: 'Accept' })).toHaveCount(0)
   await expect(alphaOffer.getByRole('button', { name: 'Reject' })).toHaveCount(0)
-  await pageA.getByRole('button', { name: 'Cancel' }).last().click()
 
   // Target's inbox: Accept + Reject, no Cancel on the offer card.
   const bravoBtn = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
@@ -333,6 +332,13 @@ test('the offerer sees Cancel on an offer while the target sees Accept/Reject', 
   await expect(bravoOffer.getByRole('button', { name: 'Accept' })).toBeVisible({ timeout: 5000 })
   await expect(bravoOffer.getByRole('button', { name: 'Reject' })).toBeVisible()
   await expect(bravoOffer.getByRole('button', { name: 'Cancel' })).toHaveCount(0)
+  // Close Bravo's inbox (footer close button) without affecting the trade.
+  await pageB.getByRole('button', { name: 'Cancel' }).last().click()
+
+  // Offerer cancels via the trade-card Cancel button (scoped to the offer, not the modal footer).
+  await alphaOffer.getByRole('button', { name: 'Cancel' }).click()
+  await expect(alphaBtn).not.toContainText('1', { timeout: 5000 })
+  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
 })
 
 test('two sequential trades in one game both complete', async ({ browser, serverUrlTrades }) => {

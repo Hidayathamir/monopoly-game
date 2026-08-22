@@ -205,7 +205,7 @@ test('trading with yourself is impossible — no Trade button on your own card',
   await expect(tradeBtn).toBeEnabled()
 })
 
-test('cancelling an already-accepted trade is a no-op', async ({ browser, serverUrlTrades }) => {
+test('after acceptance the offerer\'s inbox is empty', async ({ browser, serverUrlTrades }) => {
   const pageA = await makePage(browser)
   const pageB = await makePage(browser)
   const code = await joinRoom(pageA, pageB, serverUrlTrades)

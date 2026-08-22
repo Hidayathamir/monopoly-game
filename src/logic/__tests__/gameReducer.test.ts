@@ -1163,6 +1163,16 @@ describe('trade negotiation', () => {
     expect(s1.pendingTrades).toHaveLength(0);
   });
 
+  it('rejects a proposal from a bankrupt proposer', () => {
+    const base = makeSubjects();
+    const state = { ...base, players: base.players.map((p, i) => (i === 0 ? { ...p, bankrupt: true } : p)) };
+    const s1 = gameReducer(state, {
+      type: GameActionType.ProposeTrade,
+      offer: { fromId: 0, toId: 1, offerProperties: [1], offerCash: 0, requestProperties: [], requestCash: 0 },
+    });
+    expect(s1.pendingTrades).toHaveLength(0);
+  });
+
   it('rejects a proposal that offers more cash than the proposer has', () => {
     const state = setMoney(makeSubjects(), 0, 100);
     const s1 = gameReducer(state, {

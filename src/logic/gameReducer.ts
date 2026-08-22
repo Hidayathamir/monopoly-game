@@ -529,7 +529,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const offer = action.offer;
       const from = state.players[offer.fromId];
       const to = state.players[offer.toId];
-      if (!from || !to || offer.fromId === offer.toId || to.bankrupt) return state;
+      if (!from || !to || offer.fromId === offer.toId || from.bankrupt || to.bankrupt) return state;
       const trade: PendingTrade = { ...offer, id: state.nextTradeId };
       if (!isTradeValid(state, trade)) {
         return {
