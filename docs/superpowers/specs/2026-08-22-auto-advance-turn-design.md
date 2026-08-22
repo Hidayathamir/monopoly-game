@@ -75,6 +75,10 @@ Notes:
   Again" vs "End Turn"), so no reducer change is needed.
 - Bots and bot-controlled players are driven by `decideBotAction` /
   `driveBots` and must be excluded here.
+- **`seedState` must also call `this.scheduleAutoSteps()`** (after
+  `driveBots()`). Currently it only calls `broadcast()` and `driveBots()`,
+  so seeding a mid-turn state (`dice !== null`) would never arm the
+  auto-advance timer, causing a false "turn does not advance" state.
 
 ### 3. Remove the "Roll Again" / "End Turn" button (`src/components/ActionSection.tsx`)
 
@@ -124,7 +128,13 @@ them in place to keep this change focused.
 - **Component (`src/components/__tests__/ActionSection.test.tsx`):** update the
   test that asserted the "Roll Again" button label (`ActionSection.test.tsx:77`)
   to instead assert the button is absent. Remove now-unused `onEndTurn` props.
-- Run `npm run typecheck`, `npm run lint`, `npm run test:unit`.
+- **E2e helpers (`e2e/helpers/gameplay.ts`):** remove the dead `end` locator
+  and `settleEnd` function — the button they reference no longer exists.
+- **E2e spec (`e2e/auto-advance.spec.ts`, new):** seed-driven Playwright spec
+  covering the feature end-to-end — seed a mid-turn human state (dice already
+  rolled, no buildable property), assert the turn auto-advances without any
+  click and the "End Turn" / "Roll Again" button does not appear.
+- Run `npm run typecheck`, `npm run lint`, `npm run test:unit`, `npm run build && npx playwright test`.
 
 ## Out of scope
 
