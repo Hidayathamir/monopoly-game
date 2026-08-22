@@ -29,7 +29,7 @@ test('offer cash is capped at the proposer\'s available cash', async ({ browser,
   const inboxBtn = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
-  await expect(pageB.getByText(/You offer:.*\$50/)).toBeVisible({ timeout: 5000 })
+  await expect(pageB.getByText(/You receive:.*\$50/)).toBeVisible({ timeout: 5000 })
   await pageB.getByRole('button', { name: 'Accept' }).click()
   await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
 
