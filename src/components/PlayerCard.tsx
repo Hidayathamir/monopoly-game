@@ -60,9 +60,16 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
   const [popupRect, setPopupRect] = useState<DOMRect | null>(null)
+  const [pinnedRect, setPinnedRect] = useState<DOMRect | null>(null)
+  const [isTouch] = useState(() => {
+    const mq = window.matchMedia
+    return mq ? mq('(hover: none)').matches : false
+  })
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const cardRef = useRef<HTMLDivElement>(null)
   const popupRef = useRef<HTMLDivElement>(null)
+
+  const activeRect = popupRect ?? pinnedRect
 
   const owned = player.properties
     .map((id) => board[id])
@@ -73,27 +80,38 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
     setPopupRect(e.currentTarget.getBoundingClientRect())
   }
 
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (!isTouch) return
+    setPinnedRect(e.currentTarget.getBoundingClientRect())
+  }
+
   function handleLeave() {
+    if (pinnedRect != null) return
     timerRef.current = setTimeout(() => setPopupRect(null), 200)
+  }
+
+  function closePopup() {
+    setPinnedRect(null)
+    setPopupRect(null)
   }
 
   function handleTrade() {
     clearTimeout(timerRef.current)
-    setPopupRect(null)
+    closePopup()
     onProposeTrade?.(player.id)
   }
 
   useEffect(() => {
-    if (!popupRect) return
+    if (!activeRect) return
     function onPointerDown(e: PointerEvent) {
       const target = e.target as Node
       if (cardRef.current?.contains(target)) return
       if (popupRef.current?.contains(target)) return
-      setPopupRect(null)
+      closePopup()
     }
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [popupRect])
+  }, [activeRect])
 
   return (
     <>
@@ -106,8 +124,9 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
           player.bankrupt || !connected ? 'opacity-50' : '',
         ].join(' ')}
         style={{ borderLeft: `3px solid ${player.color}` }}
-        onMouseEnter={handleEnter}
+onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
+        onClick={handleClick}
       >
         <div className="flex items-center gap-1.5 text-base">
           <span className="w-3 h-3 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: player.color }} />
@@ -130,13 +149,13 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
         </div>
       </div>
 
-      {popupRect &&
+      {activeRect &&
         createPortal(
           <PlayerPopup
             player={player}
             owned={owned}
             color={player.color}
-            rect={popupRect}
+            rect={activeRect}
             popupRef={popupRef}
             onEnter={() => clearTimeout(timerRef.current)}
             onLeave={handleLeave}
@@ -145,6 +164,8 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
             myPlayerId={myPlayerId}
             onProposeTrade={handleTrade}
             tradesEnabled={tradesEnabled}
+            pinned={pinnedRect != null}
+            onClose={closePopup}
           />,
           document.body,
         )
@@ -153,7 +174,7 @@ export default function PlayerCard({ player, isCurrent, diff, board, connected =
   )
 }
 
-function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, canTrade, currentPlayerId, myPlayerId, onProposeTrade, tradesEnabled }: {
+function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, canTrade, currentPlayerId, myPlayerId, onProposeTrade, tradesEnabled, pinned, onClose }: {
   player: Player
   owned: Space[]
   color: string
@@ -166,6 +187,8 @@ function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, c
   myPlayerId?: number | null
   onProposeTrade?: () => void
   tradesEnabled: boolean
+  pinned: boolean
+  onClose: () => void
 }) {
   const { t } = useTranslation()
   const { formatMoney } = useCurrency()
@@ -188,6 +211,16 @@ function PlayerPopup({ player, owned, color, rect, popupRef, onEnter, onLeave, c
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >
+      {pinned && (
+        <button
+          type="button"
+          aria-label={t('tooltip.close')}
+          onClick={onClose}
+          className="absolute -top-2 -right-2 z-[1000] w-6 h-6 rounded-full bg-bg-dark border border-border-light text-text-dim text-xs font-bold leading-none flex items-center justify-center shadow-md cursor-pointer"
+        >
+          ✕
+        </button>
+      )}
       <div className="text-base text-gold mb-1 border-l-[3px] pl-1.5" style={{ borderLeftColor: color }}>
         <strong>{player.name}</strong>
       </div>
