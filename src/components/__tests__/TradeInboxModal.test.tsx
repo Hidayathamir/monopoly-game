@@ -82,7 +82,7 @@ describe('TradeInboxModal', () => {
     renderWithProviders(
       <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onNewTrade={onNewTrade} canCreateTrade onClose={() => {}} />,
     )
-    const btn = screen.getByRole('button', { name: /New Trade Offer/i })
+    const btn = screen.getByRole('button', { name: /Create/i })
     expect(btn).toBeVisible()
     fireEvent.click(btn)
     expect(onNewTrade).toHaveBeenCalledTimes(1)
@@ -92,6 +92,6 @@ describe('TradeInboxModal', () => {
     renderWithProviders(
       <TradeInboxModal state={makeStateWithTrades()} myPlayerId={1} onAccept={() => {}} onReject={() => {}} onCancel={() => {}} onNewTrade={() => {}} canCreateTrade={false} onClose={() => {}} />,
     )
-    expect(screen.getByRole('button', { name: /New Trade Offer/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Create/i })).toBeDisabled()
   })
 })

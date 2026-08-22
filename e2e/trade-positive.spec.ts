@@ -430,7 +430,7 @@ test('a player can create a trade offer directly from the Trades inbox', async (
   // pre-selected counterparty, unlike the player-card popup path).
   const inboxBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
   await inboxBtn.click()
-  await pageA.getByRole('button', { name: 'New Trade Offer' }).click()
+  await pageA.getByRole('button', { name: 'Create' }).click()
 
   // With no target chosen, a player picker is shown and Propose is disabled.
   const combobox = pageA.getByRole('combobox')
@@ -459,5 +459,33 @@ test('a player can create a trade offer directly from the Trades inbox', async (
   // Ownership unchanged.
   await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
+})
+
+test('the trade arrow reflects the viewer\'s perspective', async ({ browser, serverUrlTrades }) => {
+  const pageA = await makePage(browser)
+  const pageB = await makePage(browser)
+  const code = await joinRoom(pageA, pageB, serverUrlTrades)
+
+  await seedGame(serverUrlTrades, code, tradeSeed)
+  await expect(pageA.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
+
+  // Alpha proposes Rio for Tel Aviv.
+  await openTradeModal(pageA, 'Bravo')
+  await pageA.getByLabel('Rio').check()
+  await pageA.getByLabel('Tel Aviv').check()
+  await pageA.getByRole('button', { name: 'Propose' }).click()
+
+  // Alpha (proposer) reads the arrow as "You → Bravo".
+  const alphaBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await expect(alphaBtn).toContainText('1', { timeout: 5000 })
+  await alphaBtn.click()
+  await expect(pageA.locator('[data-testid="trade-offer"]').getByText('You → Bravo', { exact: true })).toBeVisible({ timeout: 5000 })
+  await pageA.getByRole('button', { name: 'Close' }).last().click()
+
+  // Bravo (recipient) reads the same offer as "Alpha → You".
+  const bravoBtn = pageB.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
+  await expect(bravoBtn).toContainText('1', { timeout: 5000 })
+  await bravoBtn.click()
+  await expect(pageB.locator('[data-testid="trade-offer"]').getByText('Alpha → You', { exact: true })).toBeVisible({ timeout: 5000 })
 })
 

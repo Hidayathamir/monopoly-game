@@ -29,8 +29,12 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
       {relevant.length === 0 && <p className="text-base text-muted">{t('trade.noOffers')}</p>}
       <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
         {relevant.map((tr) => {
-          const from = state.players[tr.fromId]?.name ?? '?'
-          const to = state.players[tr.toId]?.name ?? '?'
+          const fromName = state.players[tr.fromId]?.name ?? '?'
+          const toName = state.players[tr.toId]?.name ?? '?'
+          // Show the arrow from the viewer's perspective: the viewer's own
+          // name is replaced with "You" so each player reads their own side.
+          const fromLabel = myPlayerId !== null && tr.fromId === myPlayerId ? t('trade.you') : fromName
+          const toLabel = myPlayerId !== null && tr.toId === myPlayerId ? t('trade.you') : toName
           const offerProps = tr.offerProperties.map((id) => t('board.space.' + id)).join(', ')
           const requestProps = tr.requestProperties.map((id) => t('board.space.' + id)).join(', ')
           const canAccept = myPlayerId === null || tr.toId === myPlayerId
@@ -50,14 +54,14 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
             giveLabel = t('trade.youGive')
             receiveLabel = t('trade.youReceive')
           } else {
-            giveLabel = t('trade.gives', { name: from })
-            receiveLabel = t('trade.wants', { name: from })
+            giveLabel = t('trade.gives', { name: fromName })
+            receiveLabel = t('trade.wants', { name: fromName })
           }
 
           return (
             <div key={tr.id} data-testid="trade-offer" className="bg-bg-darker rounded p-2">
               <p className="text-sm text-text-dim">
-                <strong>{from}</strong> → <strong>{to}</strong>
+                <strong>{fromLabel}</strong> → <strong>{toLabel}</strong>
               </p>
               <p className="text-sm text-text-dim">
                 {receiveLabel} {receiveProps || '—'} + {formatMoney(receiveCash)}
@@ -80,10 +84,10 @@ export default function TradeInboxModal({ state, myPlayerId, onAccept, onReject,
           )
         })}
       </div>
-      <Modal.Actions>
+      <div className="flex flex-col gap-2 mt-2">
         <Button variant="primary" onClick={onNewTrade} disabled={!canCreateTrade}>{t('trade.newOffer')}</Button>
         <Button variant="secondary" onClick={onClose}>{t('trade.close')}</Button>
-      </Modal.Actions>
+      </div>
     </Modal>
   )
 }
