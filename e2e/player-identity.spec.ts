@@ -150,3 +150,43 @@ test('an avatar already taken by another player cannot be selected', async ({ br
   const dogB = pageB.locator(`[data-testid="avatar-option"][aria-label*="${PRESET_AVATARS.Dog}"]`)
   await expect(dogB).toBeDisabled()
 })
+
+test('a joining player with a persisted avatar cannot share another player\'s avatar', async ({ browser, serverUrl }) => {
+  const contextA = await newIdentityContext(browser)
+  const pageA = await contextA.newPage()
+  await pageA.goto(serverUrl)
+  await pageA.fill('input[placeholder="Name"]', 'Host')
+  await pageA.click('button:has-text("Continue")')
+
+  const codeLocator = pageA.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  const code = (await codeLocator.innerText()).trim()
+
+  const dog = pageA.locator(`[data-testid="avatar-option"][aria-label*="${PRESET_AVATARS.Dog}"]`)
+  await dog.click()
+  await expect(dog).toHaveClass(/ring-gold/, { timeout: 5000 })
+
+  // Second player has a PERSISTED identity that also uses Dog (e.g. from a prior session).
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+    localStorage.setItem('monopoly-player-identity', JSON.stringify({
+      color: '#3498db',
+      avatar: { kind: 'preset', id: 'dog' },
+    }))
+  })
+  const pageB = await contextB.newPage()
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Tamu')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Tamu')).toBeVisible({ timeout: 5000 })
+
+  // The host keeps Dog; the joining player must be reassigned a different avatar.
+  const hostRow = pageA.locator('div.flex.items-center.gap-2').filter({ hasText: 'Host' })
+  await expect(hostRow.locator('span').nth(2)).toHaveText(PRESET_EMOJI[PRESET_AVATARS.Dog], { timeout: 5000 })
+  const tamuRow = pageA.locator('div.flex.items-center.gap-2').filter({ hasText: 'Tamu' })
+  await expect(tamuRow.locator('span').nth(2)).not.toHaveText(PRESET_EMOJI[PRESET_AVATARS.Dog])
+})
