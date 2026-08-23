@@ -1,0 +1,93 @@
+import { test, expect } from './fixtures'
+import { seedGame, buildWaitingState } from './helpers/seed'
+
+async function createRoom(
+  page: import('@playwright/test').Page,
+  serverUrl: string,
+  name: string,
+): Promise<string> {
+  await page.goto(serverUrl)
+  await page.fill('input[placeholder="Name"]', name)
+  await page.click('button:has-text("Continue")')
+  const codeLocator = page.locator('[data-testid="room-code"]')
+  await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+  return (await codeLocator.innerText()).trim()
+}
+
+test('toggle bot on — bot plays the turn', async ({ browser, serverUrl }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await contextB.newPage()
+
+  const code = await createRoom(pageA, serverUrl, 'Alpha')
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Bravo')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+  const state = buildWaitingState({
+    players: [
+      { id: 0, name: 'Alpha', money: 1500 },
+      { id: 1, name: 'Bravo', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
+  await seedGame(serverUrl, code, state)
+
+  const toggleBtn = pageA.locator('[data-testid="bot-toggle"]')
+  await expect(toggleBtn).toBeVisible({ timeout: 5000 })
+  await toggleBtn.click()
+
+  await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo', { timeout: 10000 })
+})
+
+test('toggle bot off — resume manual control', async ({ browser, serverUrl }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await contextB.newPage()
+
+  const code = await createRoom(pageA, serverUrl, 'Alpha')
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Bravo')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+  const state = buildWaitingState({
+    players: [
+      { id: 0, name: 'Alpha', money: 1500 },
+      { id: 1, name: 'Bravo', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
+  await seedGame(serverUrl, code, state)
+
+  const toggleBtn = pageA.locator('[data-testid="bot-toggle"]')
+  await expect(toggleBtn).toBeVisible({ timeout: 5000 })
+  await toggleBtn.click()
+  await pageA.waitForTimeout(500)
+  await toggleBtn.click()
+
+  await expect(pageA.locator('[data-testid="dice-roller"] button').first()).toBeVisible({ timeout: 5000 })
+})
