@@ -26,6 +26,16 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
     game.manualBotToggle()
     setManualBotEnabled((prev) => !prev)
   }, [game])
+  const sendActionWithAutoReset = useCallback(
+    (action: () => void) => {
+      if (manualBotEnabled) {
+        game.manualBotToggle()
+        setManualBotEnabled(false)
+      }
+      action()
+    },
+    [game, manualBotEnabled],
+  )
   const tradeCount = state.pendingTrades.filter((tr) =>
     game.myPlayerId === null || tr.fromId === game.myPlayerId || tr.toId === game.myPlayerId
   ).length
@@ -46,20 +56,20 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           state={state}
           myPlayerId={game.myPlayerId}
           isMyTurn={isMyTurn}
-          onRoll={game.roll}
-          onEndTurn={game.endTurn}
+          onRoll={(target?: number) => sendActionWithAutoReset(() => game.roll(target))}
+          onEndTurn={() => sendActionWithAutoReset(() => game.endTurn())}
           onProposeTrade={(id: number) => { setTradeTargetId(id); setShowTradeModal(true) }}
           canTrade={canTrade}
           tradesEnabled={tradesEnabled}
           connectedPlayerIds={connectedPlayerIds}
-          onBuyProperty={game.buyProperty}
-          onDeclineBuy={game.declineBuy}
-          onPayRent={game.payRent}
-          onDeclareBankruptcy={game.declareBankruptcy}
-          onSkipAction={game.skipAction}
-          onPayJailFine={game.payJailFine}
-          onUseGetOutOfJailFree={game.useGetOutOfJailFree}
-          onBuild={game.buildHouse}
+          onBuyProperty={() => sendActionWithAutoReset(() => game.buyProperty())}
+          onDeclineBuy={() => sendActionWithAutoReset(() => game.declineBuy())}
+          onPayRent={() => sendActionWithAutoReset(() => game.payRent())}
+          onDeclareBankruptcy={() => sendActionWithAutoReset(() => game.declareBankruptcy())}
+          onSkipAction={() => sendActionWithAutoReset(() => game.skipAction())}
+          onPayJailFine={() => sendActionWithAutoReset(() => game.payJailFine())}
+          onUseGetOutOfJailFree={() => sendActionWithAutoReset(() => game.useGetOutOfJailFree())}
+          onBuild={(spaceId: number) => sendActionWithAutoReset(() => game.buildHouse(spaceId))}
           onLeave={onLeave}
           exitKeys={exitKeys}
           tradeCount={tradeCount}
@@ -77,6 +87,10 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           targetPlayerId={tradeTargetId}
           myPlayerId={game.myPlayerId}
           onPropose={(offer: TradeOffer) => {
+            if (manualBotEnabled) {
+              game.manualBotToggle()
+              setManualBotEnabled(false)
+            }
             game.proposeTrade(offer)
             setShowTradeModal(false)
           }}
