@@ -80,4 +80,46 @@ test.describe('Board token highlight and dice hints', () => {
     await expect(droidToken).toHaveClass(/z-10/)
     await expect(droidToken).toHaveClass(/w-\[22px\]/)
   })
+
+  test('hints and token highlight follow the current player, not the viewer', async ({ browser, serverUrl }) => {
+    const context = await browser.newContext()
+    await context.addInitScript(() => {
+      localStorage.setItem('monopoly-language', 'en')
+      localStorage.setItem('monopoly-currency', 'USD')
+    })
+    const page = await context.newPage()
+
+    await page.goto(serverUrl)
+    await page.fill('input[placeholder="Name"]', 'Host')
+    await page.click('button:has-text("Continue")')
+    const codeLocator = page.locator('[data-testid="room-code"]')
+    await expect(codeLocator).not.toHaveText('—', { timeout: 5000 })
+    const code = (await codeLocator.innerText()).trim()
+
+    await page.click('button:has-text("Add Bot")')
+    await expect(page.locator('text=Droid')).toBeVisible()
+
+    // Seed with currentPlayer: 1 (Droid) — Host is the viewer, Droid is the current player
+    await seedWaitingGame(serverUrl, code, {
+      players: [
+        { id: 0, name: 'Host', money: 1500 },
+        { id: 1, name: 'Droid', money: 1500, isBot: true },
+      ],
+      currentPlayer: 1,
+    })
+
+    // Dice hints should be visible even though it's NOT the viewer's turn
+    await expect(page.locator('[data-testid="dice-hints"]')).toBeVisible({ timeout: 5000 })
+    const hints = page.locator('[data-testid^="dice-hint-"]')
+    await expect(hints).toHaveCount(11)
+
+    // Droid token (current player) should be larger, Host token (viewer) should be smaller
+    const droidToken = page.locator('.absolute.rounded-full[title="Droid"]')
+    await expect(droidToken).toHaveClass(/z-20/)
+    await expect(droidToken).toHaveClass(/w-\[28px\]/)
+
+    const hostToken = page.locator('.absolute.rounded-full[title="Host"]')
+    await expect(hostToken).toHaveClass(/z-10/)
+    await expect(hostToken).toHaveClass(/w-\[22px\]/)
+  })
 })
