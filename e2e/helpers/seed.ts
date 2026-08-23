@@ -55,7 +55,7 @@ export function buildWaitingState(opts: SeedWaitingOptions): GameState {
     players,
     turnOrder: opts.turnOrder ?? players.map((p) => p.id),
     currentPlayer: opts.currentPlayer,
-    board: INITIAL_BOARD,
+    board: INITIAL_BOARD.map((s) => ({ ...s })),
     chanceDeck: INITIAL_CHANCE_DECK,
     communityDeck: INITIAL_COMMUNITY_DECK,
     freeParkingPot: 0,
