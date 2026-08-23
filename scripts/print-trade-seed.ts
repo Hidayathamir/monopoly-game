@@ -186,6 +186,66 @@ const bankruptState = createSeededState({
   tradesEnabled: true,
 });
 
+const acceptMonopolyState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Droid', money: 1200, isBot: true },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [RIO]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const rejectDevelopedState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Droid', money: 1200, isBot: true },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+    [TLV_AIRPORT]: { owner: 0 },
+    [TEL_AVIV]: { owner: 1, houses: 2 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const rejectBrokeState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Droid', money: 100, isBot: true },
+  ],
+  board: {
+    [SALVADOR]: { owner: 0 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
+const acceptCashSurplusState = createSeededState({
+  players: [
+    { id: 0, name: 'Alpha', money: 1200 },
+    { id: 1, name: 'Droid', money: 1200, isBot: true },
+  ],
+  board: {
+    [TEL_AVIV]: { owner: 0 },
+    [SALVADOR]: { owner: 1 },
+  },
+  currentPlayer: 0,
+  turnOrder: [0, 1],
+  phase: GamePhase.Waiting,
+  tradesEnabled: true,
+});
+
 const header = (comment: string) =>
   "import type { GameState } from '../../src/types/game'\n" +
   '\n' +
@@ -242,4 +302,12 @@ writeFileSync(
   header('Alpha (current, $1200) owns Salvador/Rio; Bravo is bankrupt ($0).') +
     `export const tradeBankruptSeed: GameState = ${JSON.stringify(bankruptState, null, 2)}\n`,
 );
-console.log('wrote 10 trade seed fixtures to e2e/fixtures/');
+writeFileSync(
+  'e2e/fixtures/trade-bot-accept-seed.ts',
+  header('Seeds for bot trade-acceptance tests: Droid accepts/rejects based on set completion, development, and cash reserve.') +
+    `export const tradeAcceptMonopolySeed: GameState = ${JSON.stringify(acceptMonopolyState, null, 2)}\n\n` +
+    `export const tradeRejectDevelopedSeed: GameState = ${JSON.stringify(rejectDevelopedState, null, 2)}\n\n` +
+    `export const tradeRejectBrokeSeed: GameState = ${JSON.stringify(rejectBrokeState, null, 2)}\n\n` +
+    `export const tradeAcceptCashSurplusSeed: GameState = ${JSON.stringify(acceptCashSurplusState, null, 2)}\n`,
+);
+console.log('wrote 11 trade seed fixtures to e2e/fixtures/');
