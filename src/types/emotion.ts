@@ -22,7 +22,7 @@ export const EMOTICON_GLYPHS: Record<Emoticon, string> = {
   [Emoticon.Proud]: '😎',
 }
 
-export const EMOTICON_COOLDOWN_MS = 5_000
+export const EMOTICON_COOLDOWN_MS = 3_000
 export const EMOTICON_LIFETIME_MS = 3_000
 export const EXPENSIVE_RENT_THRESHOLD = Math.floor(STARTING_MONEY * 0.2)
 

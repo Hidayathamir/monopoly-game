@@ -40,7 +40,7 @@ describe('GameServer emoticons', () => {
     expect(emoticonMessages(sent)).toEqual([{ type: ServerMessageType.Emoticon, playerId: 0, emoticon: Emoticon.Happy }])
   })
 
-  it('enforces the 5s cooldown per player', () => {
+  it('enforces the 3s cooldown per player', () => {
     vi.useFakeTimers()
     vi.setSystemTime(10_000)
     const { server, sent } = setup()
@@ -49,11 +49,11 @@ describe('GameServer emoticons', () => {
     server.start('c0')
 
     server.emitEmoticon('c0', Emoticon.Happy)
-    vi.setSystemTime(14_999) // +4999ms
+    vi.setSystemTime(12_999) // +2999ms
     server.emitEmoticon('c0', Emoticon.Angry)
     expect(emoticonMessages(sent)).toHaveLength(1)
 
-    vi.setSystemTime(15_000) // +5000ms
+    vi.setSystemTime(13_000) // +3000ms
     server.emitEmoticon('c0', Emoticon.Angry)
     expect(emoticonMessages(sent)).toHaveLength(2)
     vi.useRealTimers()
@@ -116,13 +116,13 @@ describe('GameServer emoticons', () => {
     // Second bankruptcy inside the cooldown window must be suppressed.
     vi.advanceTimersByTime(100) // t=5800
     server.seedState(bankruptcySeed)
-    vi.advanceTimersByTime(700) // bot declares bankruptcy at t=6500, still < 5000 after the first emit at t=5700
+    vi.advanceTimersByTime(700) // bot declares bankruptcy at t=6500, still < 3000 after the first emit at t=5700
     expect(emoticonMessages(sent)).toHaveLength(1)
 
     // After the cooldown elapses, a new event emits again.
     vi.advanceTimersByTime(5_000) // t=11500
     server.seedState(bankruptcySeed)
-    vi.advanceTimersByTime(700) // bot declares bankruptcy at t=12200 (5700 + 6500 >= 5000)
+    vi.advanceTimersByTime(700) // bot declares bankruptcy at t=12200 (6500 >= 3000 after the first emit at t=5700)
     expect(emoticonMessages(sent)).toHaveLength(2)
     vi.useRealTimers()
   })

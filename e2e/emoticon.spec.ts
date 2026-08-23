@@ -50,7 +50,7 @@ test('an emitted emoticon floats above the sender token and is visible to the ot
   await expect(pageA.locator('[data-testid="emoticon-0-happy"]')).toBeVisible({ timeout: 2000 })
 })
 
-test('emoticon buttons apply a 5s cooldown after emitting', async ({ browser, serverUrl }) => {
+test('emoticon buttons apply a 3s cooldown after emitting', async ({ browser, serverUrl }) => {
   const { pageA, code } = await twoPlayerLobby(browser, serverUrl)
 
   await seedWaitingGame(serverUrl, code, {
