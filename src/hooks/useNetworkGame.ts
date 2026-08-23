@@ -21,6 +21,7 @@ export type NetworkGameApi = GameApi & {
   start: () => void
   addBot: () => void
   removeBot: (playerId: number) => void
+  manualBotToggle: () => void
 }
 
 export function useNetworkGame(onLeft: () => void): NetworkGameApi {
@@ -98,6 +99,7 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const start = useCallback(() => send({ type: ClientMessageType.Start }), [send])
   const addBot = useCallback(() => send({ type: ClientMessageType.AddBot }), [send])
   const removeBot = useCallback((playerId: number) => send({ type: ClientMessageType.RemoveBot, playerId }), [send])
+  const manualBotToggle = useCallback(() => send({ type: ClientMessageType.ManualBotToggle }), [send])
 
   const roll = useCallback(
     (target?: number) => sendAction({ type: GameActionType.RollDice, ...(target != null ? { target } : {}) }),
@@ -140,6 +142,7 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     start,
     addBot,
     removeBot,
+    manualBotToggle,
     roll,
     buyProperty,
     declineBuy,

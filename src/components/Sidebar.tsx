@@ -24,6 +24,8 @@ interface Props {
   onBuild: (spaceId: number) => void
   onLeave?: () => void
   exitKeys?: { labelKey?: string; titleKey?: string; messageKey?: string; confirmKey?: string }
+  manualBotEnabled?: boolean
+  onToggleBot?: () => void
   isMyTurn: boolean
   myPlayerId?: number | null
   canTrade?: boolean
@@ -33,7 +35,7 @@ interface Props {
   onOpenTrades: () => void
 }
 
-export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys, manualBotEnabled, onToggleBot, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
   const { t } = useTranslation()
   const play = useSound()
   return (
@@ -45,7 +47,22 @@ export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys
         <div className="relative">
           <TurnHeader state={state} />
           {onLeave && (
-            <div className="absolute top-0 right-0">
+            <div className="absolute top-0 right-0 flex items-center gap-1">
+              {onToggleBot && (
+                <button
+                  type="button"
+                  onClick={onToggleBot}
+                  title={manualBotEnabled ? t('bot.toggleOn') : t('bot.toggleOff')}
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                    manualBotEnabled
+                      ? 'bg-gold/20 text-gold border border-gold/40'
+                      : 'text-muted hover:text-text border border-transparent hover:border-border'
+                  }`}
+                  data-testid="bot-toggle"
+                >
+                  🤖
+                </button>
+              )}
               <RoomExit onLeave={onLeave} variant="icon" {...exitKeys} />
             </div>
           )}

@@ -315,4 +315,5 @@ export type GameApi = {
   payJailFine: () => void;
   useGetOutOfJailFree: () => void;
   resetGame: () => void;
+  manualBotToggle: () => void;
 };

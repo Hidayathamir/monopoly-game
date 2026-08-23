@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { type GameApi, type TradeOffer } from '../types/game'
 import GameBoard from './GameBoard'
 import Sidebar from './Sidebar'
@@ -21,6 +21,21 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
   const [showTrades, setShowTrades] = useState(false)
+  const [manualBotEnabled, setManualBotEnabled] = useState(false)
+  const handleToggleBot = useCallback(() => {
+    game.manualBotToggle()
+    setManualBotEnabled((prev) => !prev)
+  }, [game])
+  const sendActionWithAutoReset = useCallback(
+    (action: () => void) => {
+      if (manualBotEnabled) {
+        game.manualBotToggle()
+        setManualBotEnabled(false)
+      }
+      action()
+    },
+    [game, manualBotEnabled],
+  )
   const tradeCount = state.pendingTrades.filter((tr) =>
     game.myPlayerId === null || tr.fromId === game.myPlayerId || tr.toId === game.myPlayerId
   ).length
@@ -31,33 +46,36 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
       <GameBoard
         state={state}
         isMyTurn={isMyTurn}
-        onSell={game.sellHouse}
-        onMortgage={game.mortgage}
-        onUnmortgage={game.unmortgage}
-        onSellProperty={game.sellProperty}
+        myPlayerId={game.myPlayerId}
+        onSell={(spaceId: number) => sendActionWithAutoReset(() => game.sellHouse(spaceId))}
+        onMortgage={(spaceId: number) => sendActionWithAutoReset(() => game.mortgage(spaceId))}
+        onUnmortgage={(spaceId: number) => sendActionWithAutoReset(() => game.unmortgage(spaceId))}
+        onSellProperty={(spaceId: number) => sendActionWithAutoReset(() => game.sellProperty(spaceId))}
       >
         <Sidebar
           state={state}
           myPlayerId={game.myPlayerId}
           isMyTurn={isMyTurn}
-          onRoll={game.roll}
-          onEndTurn={game.endTurn}
+          onRoll={(target?: number) => sendActionWithAutoReset(() => game.roll(target))}
+          onEndTurn={() => sendActionWithAutoReset(() => game.endTurn())}
           onProposeTrade={(id: number) => { setTradeTargetId(id); setShowTradeModal(true) }}
           canTrade={canTrade}
           tradesEnabled={tradesEnabled}
           connectedPlayerIds={connectedPlayerIds}
-          onBuyProperty={game.buyProperty}
-          onDeclineBuy={game.declineBuy}
-          onPayRent={game.payRent}
-          onDeclareBankruptcy={game.declareBankruptcy}
-          onSkipAction={game.skipAction}
-          onPayJailFine={game.payJailFine}
-          onUseGetOutOfJailFree={game.useGetOutOfJailFree}
-          onBuild={game.buildHouse}
+          onBuyProperty={() => sendActionWithAutoReset(() => game.buyProperty())}
+          onDeclineBuy={() => sendActionWithAutoReset(() => game.declineBuy())}
+          onPayRent={() => sendActionWithAutoReset(() => game.payRent())}
+          onDeclareBankruptcy={() => sendActionWithAutoReset(() => game.declareBankruptcy())}
+          onSkipAction={() => sendActionWithAutoReset(() => game.skipAction())}
+          onPayJailFine={() => sendActionWithAutoReset(() => game.payJailFine())}
+          onUseGetOutOfJailFree={() => sendActionWithAutoReset(() => game.useGetOutOfJailFree())}
+          onBuild={(spaceId: number) => sendActionWithAutoReset(() => game.buildHouse(spaceId))}
           onLeave={onLeave}
           exitKeys={exitKeys}
           tradeCount={tradeCount}
           onOpenTrades={() => setShowTrades(true)}
+          manualBotEnabled={manualBotEnabled}
+          onToggleBot={handleToggleBot}
         />
       </GameBoard>
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
@@ -69,6 +87,10 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           targetPlayerId={tradeTargetId}
           myPlayerId={game.myPlayerId}
           onPropose={(offer: TradeOffer) => {
+            if (manualBotEnabled) {
+              game.manualBotToggle()
+              setManualBotEnabled(false)
+            }
             game.proposeTrade(offer)
             setShowTradeModal(false)
           }}
@@ -79,9 +101,9 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
         <TradeInboxModal
           state={state}
           myPlayerId={game.myPlayerId}
-          onAccept={(id) => game.acceptTrade(id)}
-          onReject={(id) => game.rejectTrade(id)}
-          onCancel={(id) => game.cancelTrade(id)}
+          onAccept={(id: number) => { sendActionWithAutoReset(() => game.acceptTrade(id)); setShowTrades(false) }}
+          onReject={(id: number) => { sendActionWithAutoReset(() => game.rejectTrade(id)); setShowTrades(false) }}
+          onCancel={(id: number) => { sendActionWithAutoReset(() => game.cancelTrade(id)); setShowTrades(false) }}
           onNewTrade={() => { setShowTrades(false); setTradeTargetId(null); setShowTradeModal(true) }}
           canCreateTrade={canTrade}
           onClose={() => setShowTrades(false)}

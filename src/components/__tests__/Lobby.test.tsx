@@ -27,6 +27,7 @@ function makeGame(overrides: Partial<NetworkGameApi> = {}): NetworkGameApi {
     start: vi.fn(),
     addBot: vi.fn(),
     removeBot: vi.fn(),
+    manualBotToggle: vi.fn(),
     roll: vi.fn(),
     buyProperty: vi.fn(),
     declineBuy: vi.fn(),

@@ -1,5 +1,5 @@
 import type { ClientMessage, ServerMessage } from '../types/net'
-import { HttpPath } from '../types/net'
+import { HttpPath, ClientMessageType } from '../types/net'
 
 export interface ClientHandlers {
   onMessage: (message: ServerMessage) => void
@@ -50,6 +50,10 @@ export class GameClient {
 
   close(): void {
     this.ws?.close()
+  }
+
+  manualBotToggle(): void {
+    this.send({ type: ClientMessageType.ManualBotToggle })
   }
 
   private flush(): void {

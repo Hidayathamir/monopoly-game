@@ -318,5 +318,8 @@
   "seed.invalidJson": "Invalid state",
   "seed.applied": "State applied",
   "seed.applyError": "Apply failed",
-  "seed.hidden": ""
+  "seed.hidden": "",
+
+  "bot.toggleOn": "Bot is playing — click to resume manual control",
+  "bot.toggleOff": "Let bot play your turn"
 }

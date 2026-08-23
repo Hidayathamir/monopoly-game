@@ -318,5 +318,8 @@
   "seed.invalidJson": "Status tidak valid",
   "seed.applied": "Status diterapkan",
   "seed.applyError": "Gagal menerapkan",
-  "seed.hidden": ""
+  "seed.hidden": "",
+
+  "bot.toggleOn": "Bot sedang bermain — klik untuk kembali kontrol manual",
+  "bot.toggleOff": "Biarkan bot bermain giliranmu"
 }
