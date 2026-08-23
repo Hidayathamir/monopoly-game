@@ -20,6 +20,7 @@ export const ClientMessageType = {
   RemoveBot: 'removeBot',
   Action: 'action',
   SetIdentity: 'setIdentity',
+  ManualBotToggle: 'manualBotToggle',
 } as const
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType]
 
@@ -44,6 +45,7 @@ export type ClientMessage =
   | { type: typeof ClientMessageType.Create; name: string; color?: string; avatar?: PlayerAvatar }
   | { type: typeof ClientMessageType.Join; code: string; name: string; color?: string; avatar?: PlayerAvatar }
   | { type: typeof ClientMessageType.SetIdentity; color?: string; avatar?: PlayerAvatar }
+  | { type: typeof ClientMessageType.ManualBotToggle }
   | { type: typeof ClientMessageType.Start }
   | { type: typeof ClientMessageType.Leave }
   | { type: typeof ClientMessageType.AddBot }
