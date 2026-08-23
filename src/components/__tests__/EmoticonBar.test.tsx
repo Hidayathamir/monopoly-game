@@ -33,7 +33,7 @@ describe('EmoticonBar', () => {
     expect(screen.getByTestId('emoticon-button-happy')).toBeDisabled()
   })
 
-  it('applies a 3s cooldown after a click', () => {
+  it('applies a 1s cooldown after a click', () => {
     vi.useFakeTimers()
     const onEmit = vi.fn()
     renderWithProviders(<EmoticonBar onEmit={onEmit} />)
@@ -43,7 +43,7 @@ describe('EmoticonBar', () => {
     fireEvent.click(screen.getByTestId('emoticon-button-angry'))
     expect(onEmit).toHaveBeenCalledTimes(1)
 
-    act(() => { vi.advanceTimersByTime(2999) })
+    act(() => { vi.advanceTimersByTime(999) })
     expect(screen.getByTestId('emoticon-button-angry')).toBeDisabled()
 
     act(() => { vi.advanceTimersByTime(1) })

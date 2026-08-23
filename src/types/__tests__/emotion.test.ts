@@ -16,8 +16,8 @@ describe('emotion constants', () => {
     expect(EMOTICON_GLYPHS[Emoticon.Proud]).toBe('😎')
   })
 
-  it('uses a 3s cooldown, 3s lifetime, and a $300 expensive-rent threshold', () => {
-    expect(EMOTICON_COOLDOWN_MS).toBe(3000)
+  it('uses a 1s cooldown, 3s lifetime, and a $300 expensive-rent threshold', () => {
+    expect(EMOTICON_COOLDOWN_MS).toBe(1000)
     expect(EMOTICON_LIFETIME_MS).toBe(3000)
     expect(EXPENSIVE_RENT_THRESHOLD).toBe(300)
   })
