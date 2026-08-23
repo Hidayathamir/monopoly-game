@@ -52,6 +52,64 @@ test('auto-advances a human turn with no action available, without any click', a
   await expect(pageA.getByRole('button', { name: /End Turn|Roll Again/ })).toHaveCount(0)
 })
 
+test('human can build multiple houses in one turn before ending', async ({ browser, serverUrl }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await contextB.newPage()
+
+  const code = await createRoom(pageA, serverUrl, 'Alpha')
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Bravo')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+  const state = buildWaitingState({
+    players: [
+      { id: 0, name: 'Alpha', money: 1500 },
+      { id: 1, name: 'Bravo', money: 1500 },
+    ],
+    currentPlayer: 0,
+    dice: [1, 2],
+  })
+  state.players[0].position = 1
+  state.players[0].properties = [1]
+  state.board[1].owner = 0
+  state.board[1].houses = 0
+  await seedGame(serverUrl, code, state)
+
+  const buildBtn = pageA.getByRole('button', { name: /Build/ })
+  await expect(buildBtn).toBeVisible({ timeout: 5000 })
+
+  // Build 3 houses — button should stay after each click
+  await buildBtn.click()
+  await expect(buildBtn).toBeVisible({ timeout: 5000 })
+  await buildBtn.click()
+  await expect(buildBtn).toBeVisible({ timeout: 5000 })
+  await buildBtn.click()
+
+  // Verify 3 houses in event log
+  await pageA.getByRole('button', { name: /Full history/ }).click()
+  const builtEntries = pageA.locator('[data-testid="event-entry"]').filter({ hasText: /built a house on Salvador/ })
+  await expect(builtEntries).toHaveCount(3, { timeout: 5000 })
+
+  // End turn
+  const endTurnBtn = pageA.getByRole('button', { name: /End Turn/ })
+  await expect(endTurnBtn).toBeVisible({ timeout: 5000 })
+  await endTurnBtn.click()
+  await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo', { timeout: 5000 })
+})
+
 test('auto-advances after a human builds a house on their property', async ({ browser, serverUrl }) => {
   const context = await browser.newContext()
   await context.addInitScript(() => {
