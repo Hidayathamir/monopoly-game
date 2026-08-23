@@ -28,16 +28,13 @@ const MAX_TOTAL = 12
 
 interface Props {
   state: GameState
-  myPlayerId?: number | null
 }
 
-export default function DiceHints({ state, myPlayerId = null }: Props) {
-  const isMyTurn = state.currentPlayer === myPlayerId
+export default function DiceHints({ state }: Props) {
   const player = state.players[state.currentPlayer]
   if (!player) return null
 
   const isAiming =
-    isMyTurn &&
     state.phase === GamePhase.Waiting &&
     !state.pendingAction &&
     state.dice === null

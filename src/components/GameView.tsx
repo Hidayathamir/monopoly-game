@@ -31,7 +31,6 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
       <GameBoard
         state={state}
         isMyTurn={isMyTurn}
-        myPlayerId={game.myPlayerId}
         onSell={game.sellHouse}
         onMortgage={game.mortgage}
         onUnmortgage={game.unmortgage}

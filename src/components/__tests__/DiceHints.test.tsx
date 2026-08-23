@@ -37,14 +37,14 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 describe('DiceHints', () => {
   it('renders 11 hint badges during aiming phase', () => {
     const state = makeState()
-    render(<DiceHints state={state} myPlayerId={0} />)
+    render(<DiceHints state={state} />)
     const hints = screen.getAllByTestId(/^dice-hint-\d+$/)
     expect(hints).toHaveLength(11)
   })
 
   it('shows values 2 through 12', () => {
     const state = makeState()
-    render(<DiceHints state={state} myPlayerId={0} />)
+    render(<DiceHints state={state} />)
     for (let v = 2; v <= 12; v++) {
       expect(screen.getByTestId(`dice-hint-${v}`)).toHaveTextContent(String(v))
     }
@@ -52,19 +52,13 @@ describe('DiceHints', () => {
 
   it('does not render when dice already rolled', () => {
     const state = makeState({ dice: [3, 4] })
-    render(<DiceHints state={state} myPlayerId={0} />)
-    expect(screen.queryByTestId('dice-hints')).not.toBeInTheDocument()
-  })
-
-  it('does not render when not my turn', () => {
-    const state = makeState()
-    render(<DiceHints state={state} myPlayerId={1} />)
+    render(<DiceHints state={state} />)
     expect(screen.queryByTestId('dice-hints')).not.toBeInTheDocument()
   })
 
   it('does not render when pendingAction exists', () => {
     const state = makeState({ pendingAction: { type: 'buyProperty' as const, spaceId: 1 } })
-    render(<DiceHints state={state} myPlayerId={0} />)
+    render(<DiceHints state={state} />)
     expect(screen.queryByTestId('dice-hints')).not.toBeInTheDocument()
   })
 
@@ -75,7 +69,7 @@ describe('DiceHints', () => {
       y: Math.round((row - 0.5) * RATIO * 100) / 100,
     })
     const state = makeState()
-    render(<DiceHints state={state} myPlayerId={0} />)
+    render(<DiceHints state={state} />)
     // value 2 → cell 2 → POSITIONS[2] = c(9,11)
     const hint2 = screen.getByTestId('dice-hint-2')
     const pos2 = expectedPos(9, 11)
@@ -99,7 +93,7 @@ describe('DiceHints', () => {
         makeState().players[1],
       ],
     })
-    render(<DiceHints state={state} myPlayerId={0} />)
+    render(<DiceHints state={state} />)
     const hint5 = screen.getByTestId('dice-hint-5')
     // POSITIONS[3] = c(8, 11)
     const pos3 = expectedPos(8, 11)

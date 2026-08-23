@@ -68,8 +68,9 @@ test.describe('Board token highlight and dice hints', () => {
       currentPlayer: 0,
     })
 
-    // The host token (player 0, current player) should have the larger size class (z-20, 28px)
-    // The droid token (player 1) should have the smaller size class (z-10, 22px)
+    // The current player's token should have the larger size class (z-20, 28px)
+    // The other player's token should have the smaller size class (z-10, 22px)
+    // Seed sets currentPlayer: 0 (Host), so Host gets the larger token
     // Use :scope > to match only direct child divs (the board tokens), not nested Avatars
     const hostToken = page.locator('.absolute.rounded-full[title="Host"]')
     await expect(hostToken).toHaveClass(/z-20/)
