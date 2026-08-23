@@ -11,7 +11,6 @@ export function canBuildOnCurrentSpace(state: GameState): boolean {
     space.owner === state.currentPlayer &&
     space.houses < MAX_HOUSES &&
     !space.mortgaged &&
-    space.id !== state.justBoughtSpaceId &&
-    !state.builtThisStop
+    space.id !== state.justBoughtSpaceId
   );
 }

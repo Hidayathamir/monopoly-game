@@ -481,7 +481,6 @@ export class GameServer {
     if (!player || !slot) return false
     if (slot.isBot || !slot.connected || player.botControlled === true) return false
     if (player.inJail || s.dice === null || player.money < 0) return false
-    if (s.builtThisStop) return true
     return !canBuildOnCurrentSpace(s)
   }
 
