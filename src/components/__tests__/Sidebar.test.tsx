@@ -31,6 +31,7 @@ function makeRolledState(): GameState {
 function makeProps() {
   return {
     onRoll: noop,
+    onEndTurn: noop,
     onProposeTrade: noop,
     canTrade: true,
     tradesEnabled: true,

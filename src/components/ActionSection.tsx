@@ -8,6 +8,7 @@ import HoldToConfirmButton from './HoldToConfirmButton'
 
 interface Props {
   state: GameState
+  onEndTurn: () => void
   onBuyProperty: () => void
   onDeclineBuy: () => void
   onPayRent: () => void
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function ActionSection({
-  state, onBuyProperty,
+  state, onEndTurn, onBuyProperty,
   onDeclineBuy, onPayRent, onDeclareBankruptcy, onPayJailFine, onUseGetOutOfJailFree,
   onBuild, isMyTurn = true,
 }: Props) {
@@ -98,6 +99,11 @@ export default function ActionSection({
         >
           {t('action.build', { amount: formatMoney(getHouseCost(space, space.houses)) })}
           {player.money < getHouseCost(space, space.houses) ? t('action.notEnoughSuffix') : ''}
+        </Button>
+      )}
+      {hasRolled && !player.inJail && (
+        <Button variant="secondary" size="sm" onClick={onEndTurn}>
+          {t(state.doublesCount > 0 ? 'action.rollAgain' : 'action.endTurn')}
         </Button>
       )}
       {player.inJail ? (

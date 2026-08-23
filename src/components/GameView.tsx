@@ -41,6 +41,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           myPlayerId={game.myPlayerId}
           isMyTurn={isMyTurn}
           onRoll={game.roll}
+          onEndTurn={game.endTurn}
           onProposeTrade={(id: number) => { setTradeTargetId(id); setShowTradeModal(true) }}
           canTrade={canTrade}
           tradesEnabled={tradesEnabled}

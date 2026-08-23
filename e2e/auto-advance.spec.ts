@@ -93,9 +93,13 @@ test('auto-advances after a human builds a house on their property', async ({ br
   await expect(buildBtn).toBeVisible({ timeout: 5000 })
   await buildBtn.click()
 
-  // Turn should auto-advance to Bravo — no End Turn button for Alpha
+  // End Turn button should appear (server won't auto-advance while buildable)
+  const endTurnBtn = pageA.getByRole('button', { name: /End Turn/ })
+  await expect(endTurnBtn).toBeVisible({ timeout: 5000 })
+  await endTurnBtn.click()
+
+  // Turn should auto-advance to Bravo
   await expect(pageA.locator('[data-testid="waiting-for"]')).toContainText('Bravo', { timeout: 5000 })
-  await expect(pageA.getByRole('button', { name: /End Turn|Roll Again/ })).toHaveCount(0)
 })
 
 test('auto-draws a card without showing a Draw Card button', async ({ browser, serverUrl }) => {
