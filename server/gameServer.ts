@@ -406,7 +406,7 @@ export class GameServer {
     if (index === -1) return
     if (!this.state.players[index]) return
     const now = Date.now()
-    const last = this.lastEmotionAt.get(index) ?? 0
+    const last = this.lastEmotionAt.get(index) ?? -EMOTICON_COOLDOWN_MS
     if (now - last < EMOTICON_COOLDOWN_MS) return
     this.lastEmotionAt.set(index, now)
     this.events.broadcastEmoticon({ playerId: index, emoticon })
@@ -478,7 +478,7 @@ export class GameServer {
   private emitBotEmotions(prev: GameState): void {
     const now = Date.now()
     for (const em of detectBotEmotions(prev, this.state)) {
-      const last = this.lastEmotionAt.get(em.playerId) ?? 0
+      const last = this.lastEmotionAt.get(em.playerId) ?? -EMOTICON_COOLDOWN_MS
       if (now - last < EMOTICON_COOLDOWN_MS) continue
       this.lastEmotionAt.set(em.playerId, now)
       this.events.broadcastEmoticon({ playerId: em.playerId, emoticon: em.emoticon })

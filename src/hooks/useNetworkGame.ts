@@ -65,6 +65,9 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
         } else if (message.type === ServerMessageType.Emoticon) {
           const id = emotionIdRef.current++
           const timer = setTimeout(() => {
+            clearTimeout(timer)
+            const idx = emotionTimersRef.current.indexOf(timer)
+            if (idx !== -1) emotionTimersRef.current.splice(idx, 1)
             setActiveEmotions((prev) => prev.filter((e) => e.id !== id))
           }, EMOTICON_LIFETIME_MS)
           emotionTimersRef.current.push(timer)

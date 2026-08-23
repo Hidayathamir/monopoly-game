@@ -6,7 +6,10 @@ import EmoticonBar from '../EmoticonBar'
 import { renderWithProviders } from '../../test/test-utils'
 import { Emoticon } from '../../types/emotion'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 describe('EmoticonBar', () => {
   it('renders one button per emoticon with the right glyph', () => {
@@ -45,6 +48,5 @@ describe('EmoticonBar', () => {
 
     act(() => { vi.advanceTimersByTime(1) })
     expect(screen.getByTestId('emoticon-button-angry')).toBeEnabled()
-    vi.useRealTimers()
   })
 })

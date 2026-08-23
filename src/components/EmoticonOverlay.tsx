@@ -1,4 +1,4 @@
-import { EMOTICON_GLYPHS, type ActiveEmotion } from '../types/emotion'
+import { EMOTICON_GLYPHS, EMOTICON_LIFETIME_MS, type ActiveEmotion } from '../types/emotion'
 import type { GameState } from '../types/game'
 import { PLAYER_OFFSETS } from '../data/players'
 import { POSITIONS } from './PlayerTokens'
@@ -20,10 +20,11 @@ export default function EmoticonOverlay({ state, emotions }: Props) {
           <div
             key={em.id}
             data-testid={`emoticon-${player.id}-${em.emoticon}`}
-            className="absolute z-30 text-2xl animate-[emoticon-pop_3s_ease-out_forwards]"
+            className="absolute z-30 text-2xl"
             style={{
               left: `calc(${pos.x}% + ${offset.dx}px)`,
               top: `calc(${pos.y}% + ${offset.dy}px)`,
+              animation: `emoticon-pop ${EMOTICON_LIFETIME_MS}ms ease-out forwards`,
             }}
           >
             {EMOTICON_GLYPHS[em.emoticon]}

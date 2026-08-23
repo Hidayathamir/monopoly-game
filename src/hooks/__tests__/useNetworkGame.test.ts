@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, cleanup } from '@testing-library/react'
 import { useNetworkGame } from '../useNetworkGame'
 import { Emoticon } from '../../types/emotion'
@@ -25,6 +25,10 @@ describe('useNetworkGame', () => {
     sendMock.mockClear()
     onMessageHandler = null
     cleanup()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('leave sends a Leave message and triggers onLeft locally', () => {
@@ -63,7 +67,6 @@ describe('useNetworkGame', () => {
 
     act(() => vi.advanceTimersByTime(3000))
     expect(result.current.activeEmotions).toEqual([])
-    vi.useRealTimers()
   })
 
   it('keeps separate bubbles per emoticon message', () => {
