@@ -154,17 +154,17 @@ test('a trade completes when the request equals the target\'s entire cash', asyn
   await expect(pageA.locator('[data-testid="board-cell-1"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
 })
 
-test('a bot auto-accepts at the exact fair-value boundary', async ({ browser, serverUrlTrades }) => {
+test('a bot auto-accepts a trade with a 20% surplus', async ({ browser, serverUrlTrades }) => {
   const page = await makePage(browser)
   const code = await createRoom(page, serverUrlTrades, 'Alpha')
   await addBot(page)
   await seedGame(serverUrlTrades, code, tradeBotSeed)
   await expect(page.locator('[data-testid="sidebar"]')).toBeVisible({ timeout: 5000 })
 
-  // Offer Salvador (60) + $40 = exactly the value of the requested Tel Aviv (100).
+  // Offer Salvador (60) + $60 = 120, a 20% surplus over the requested Tel Aviv (100).
   await openTradeModal(page, 'Droid')
   await page.getByLabel('Salvador').check()
-  await page.locator('input[type="number"]').nth(0).fill('40')
+  await page.locator('input[type="number"]').nth(0).fill('60')
   await page.getByLabel('Tel Aviv').check()
   await page.getByRole('button', { name: 'Propose' }).click()
 

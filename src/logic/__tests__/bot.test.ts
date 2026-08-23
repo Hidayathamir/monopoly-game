@@ -388,9 +388,9 @@ describe('shouldAcceptTrade', () => {
     };
   }
 
-  it('accepts when the bot receives more than it gives', () => {
+  it('accepts when the bot receives a clear surplus over what it gives', () => {
     const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
-    expect(shouldAcceptTrade(state, offer({ offerCash: 61, requestProperties: [1] }))).toBe(true);
+    expect(shouldAcceptTrade(state, offer({ offerCash: 100, requestProperties: [1] }))).toBe(true);
   });
 
   it('rejects when the bot gives more than it receives', () => {
@@ -398,8 +398,103 @@ describe('shouldAcceptTrade', () => {
     expect(shouldAcceptTrade(state, offer({ offerCash: 40, requestProperties: [1] }))).toBe(false);
   });
 
-  it('accepts an equal swap', () => {
+  it('rejects a break-even swap', () => {
     const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
-    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [3] }))).toBe(true);
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [3] }))).toBe(false);
+  });
+
+  it('values a developed property higher than a bare one', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[1] = { ...state.board[1], owner: 0, houses: 3 };
+    state.board[6] = { ...state.board[6], owner: 1 };
+    // Salvador (60 + 3 houses = 210) for bare Tel Aviv (100): clear win.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [6] }))).toBe(true);
+    // Same trade with Salvador bare (60): not worth Tel Aviv.
+    state.board[1] = { ...state.board[1], owner: 0, houses: 0 };
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [6] }))).toBe(false);
+  });
+
+  it('accepts a trade that completes a color set even when the raw values match', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[1] = { ...state.board[1], owner: 0 };
+    state.board[3] = { ...state.board[3], owner: 1 };
+    // Bot owns Rio; Salvador (60) completes its brown set → +50% monopoly bonus tips 90 > 66.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestCash: 60 }))).toBe(true);
+  });
+
+  it('rejects an equal-value swap when no color set is completed', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[8] = { ...state.board[8], owner: 0 };
+    state.board[6] = { ...state.board[6], owner: 1 };
+    // Haifa (100) for Tel Aviv (100): partial light-blue set, not complete → 100 is not > 110.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [8], requestProperties: [6] }))).toBe(false);
+  });
+
+  it('doubles the value of a property whose color set the trade would break', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[11] = { ...state.board[11], owner: 1 };
+    state.board[13] = { ...state.board[13], owner: 1 };
+    state.board[14] = { ...state.board[14], owner: 1 };
+    state.board[16] = { ...state.board[16], owner: 0 };
+    // Venice (140, monopoly-breaking → 280) for a 180 orange property: 180 < 308.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [16], requestProperties: [11] }))).toBe(false);
+  });
+
+  it('accepts the same trade when no monopoly is at stake', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[11] = { ...state.board[11], owner: 1 };
+    state.board[16] = { ...state.board[16], owner: 0 };
+    // Venice (140) for a 180 orange property; bot owns only Venice → 180 > 154.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [16], requestProperties: [11] }))).toBe(true);
+  });
+
+  it('blocks a trade that would drain cash below the reserve unless it is a steal', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[6] = { ...state.board[6], owner: 0 };
+    state.board[1] = { ...state.board[1], owner: 1 };
+    state.players[1] = { ...state.players[1], money: 50 };
+    // Tel Aviv (100) for Salvador (60): 100 < 60*2 → refused below reserve.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [6], requestProperties: [1] }))).toBe(false);
+    // Same trade with healthy cash: 100 > 66 → accepted.
+    state.players[1] = { ...state.players[1], money: 1000 };
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [6], requestProperties: [1] }))).toBe(true);
+  });
+
+  it('requires a ~10% surplus over the given value', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[6] = { ...state.board[6], owner: 0 };
+    state.board[8] = { ...state.board[8], owner: 1 };
+    // Tel Aviv (100) for Haifa (100): break-even refused.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [6], requestProperties: [8] }))).toBe(false);
+    // +11 cash (111 > 110) accepted.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [6], requestProperties: [8], offerCash: 11 }))).toBe(true);
+  });
+
+  it('accepts a steal even when cash drops below the reserve', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[11] = { ...state.board[11], owner: 0, houses: 2 };
+    state.board[6] = { ...state.board[6], owner: 1 };
+    state.players[1] = { ...state.players[1], money: 50 };
+    // Venice (140 + 2*50*1.6 = 300) for Tel Aviv (100): 300 > 100*2 even below reserve.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [11], requestProperties: [6] }))).toBe(true);
+  });
+
+  it('values railroads at their price', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[5] = { ...state.board[5], owner: 0 };
+    state.board[6] = { ...state.board[6], owner: 1 };
+    // TLV Airport (200) for Tel Aviv (100): 200 > 110.
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [5], requestProperties: [6] }))).toBe(true);
+  });
+
+  it('applies the 2.5x multiplier to hotels (4 and 5 houses)', () => {
+    const state = gameReducer(createInitialState(), { type: GameActionType.StartGame, playerCount: 2, names: ['A', 'B'] });
+    state.board[6] = { ...state.board[6], owner: 1 };
+    state.board[1] = { ...state.board[1], owner: 0, houses: 4 };
+    // Salvador (60 + 4*25*2.5 = 310) for Tel Aviv (100).
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [6] }))).toBe(true);
+    state.board[1] = { ...state.board[1], owner: 0, houses: 5 };
+    // Salvador (60 + 5*25*2.5 = 372.5) for Tel Aviv (100).
+    expect(shouldAcceptTrade(state, offer({ offerProperties: [1], requestProperties: [6] }))).toBe(true);
   });
 });
