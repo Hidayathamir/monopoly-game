@@ -68,10 +68,15 @@ test.describe('Board token highlight and dice hints', () => {
       currentPlayer: 0,
     })
 
-    // The host token (player 0) should have the larger size class (28px)
-    // Check that at least one token element has the z-20 class (my token indicator)
+    // The host token (player 0, current player) should have the larger size class (z-20, 28px)
+    // The droid token (player 1) should have the smaller size class (z-10, 22px)
     // Use :scope > to match only direct child divs (the board tokens), not nested Avatars
-    const tokens = page.locator('.absolute.rounded-full[title="Host"], .absolute.rounded-full[title="Droid"]')
-    await expect(tokens).toHaveCount(2)
+    const hostToken = page.locator('.absolute.rounded-full[title="Host"]')
+    await expect(hostToken).toHaveClass(/z-20/)
+    await expect(hostToken).toHaveClass(/w-\[28px\]/)
+
+    const droidToken = page.locator('.absolute.rounded-full[title="Droid"]')
+    await expect(droidToken).toHaveClass(/z-10/)
+    await expect(droidToken).toHaveClass(/w-\[22px\]/)
   })
 })
