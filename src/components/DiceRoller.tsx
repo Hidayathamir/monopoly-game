@@ -113,7 +113,7 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-3" data-testid="dice-roller">
-      <div className="flex gap-4 justify-center min-h-[120px] items-center">
+      <div className="flex gap-4 justify-center h-[120px] items-center">
         {canAim ? (
           <Speedometer value={aimValue} label={t('dice.gauge')} />
         ) : (
@@ -123,12 +123,14 @@ export default function DiceRoller({ state, onRoll, isMyTurn = true }: Props) {
           </>
         )}
       </div>
-      {canAim && (
-        <Button variant="primary" size="lg" onPointerDown={handlePointerDown} onClick={handleClick} sound={null}>
-          {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
-        </Button>
-      )}
-      {canAim && <p className="text-sm text-muted text-center">{t('dice.stopHint')}</p>}
+      <div className="min-h-[80px] flex flex-col items-center justify-center gap-3">
+        {canAim && (
+          <Button variant="primary" size="lg" onPointerDown={handlePointerDown} onClick={handleClick} sound={null}>
+            {player.inJail ? t('dice.rollJail') : state.doublesCount > 0 ? t('action.rollAgain') : t('dice.roll')}
+          </Button>
+        )}
+        {canAim && <p className="text-sm text-muted text-center">{t('dice.stopHint')}</p>}
+      </div>
       {player.inJail && state.phase === GamePhase.Waiting && !state.pendingAction && state.dice !== null && (
         <p className="text-base text-muted text-center">
           {t('dice.doubles', { result: state.dice[0] === state.dice[1] ? t('common.yes') : t('action.no'), n: 3 - player.jailTurns })}
