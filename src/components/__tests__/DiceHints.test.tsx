@@ -10,8 +10,8 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     phase: GamePhase.Waiting,
     players: [
-      { id: 0, name: 'P1', money: 1500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: '#E74C3C', avatar: { kind: 'preset' as const, id: 'default' } },
-      { id: 1, name: 'P2', money: 1500, position: 10, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: '#3498DB', avatar: { kind: 'preset' as const, id: 'default' } },
+      { id: 0, name: 'P1', money: 1500, position: 0, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: '#E74C3C', avatar: { kind: 'preset' as const, id: 'cat' as const } },
+      { id: 1, name: 'P2', money: 1500, position: 10, properties: [], passedGo: true, inJail: false, jailTurns: 0, bankrupt: false, getOutOfJailFreeCards: 0, isBot: false, botControlled: false, afk: false, color: '#3498DB', avatar: { kind: 'preset' as const, id: 'dog' as const } },
     ],
     turnOrder: [0, 1],
     currentPlayer: 0,
