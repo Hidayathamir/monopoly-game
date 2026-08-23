@@ -56,14 +56,16 @@ export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys
                   type="button"
                   onClick={onToggleBot}
                   title={manualBotEnabled ? t('bot.toggleOn') : t('bot.toggleOff')}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                  aria-pressed={manualBotEnabled}
+                  className={`flex items-center rounded-lg border transition-all ${
                     manualBotEnabled
-                      ? 'bg-gold/20 text-gold border border-gold/40'
-                      : 'text-muted hover:text-text border border-transparent hover:border-border'
+                      ? 'bg-gold text-bg-darker border-gold font-black h-7 px-1.5 gap-1 shadow-[0_0_16px_rgba(240,192,64,0.8)] animate-bot-alert'
+                      : 'w-7 h-7 justify-center text-muted hover:text-text border-transparent hover:border-border'
                   }`}
                   data-testid="bot-toggle"
                 >
-                  🤖
+                  <span className={manualBotEnabled ? 'text-xl' : 'text-base'}>🤖</span>
+                  {manualBotEnabled && <span className="text-xs font-black tracking-wider">BOT</span>}
                 </button>
               )}
               <RoomExit onLeave={onLeave} variant="icon" {...exitKeys} />

@@ -138,7 +138,11 @@ onMouseEnter={handleEnter}
           )}
           {player.bankrupt && <span className="text-xs font-bold text-red-danger">{t('card.bankrupt')}</span>}
           {!connected && <span className="text-xs font-bold text-muted">{t('card.disconnected')}</span>}
-          {player.botControlled && <span className="text-xs font-bold text-gold">🤖 {t('card.botControl')}</span>}
+          {player.botControlled && (
+            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-black text-bg-darker bg-gold rounded-full px-1.5 py-px animate-bot-alert shrink-0">
+              🤖 {t('card.botControl')}
+            </span>
+          )}
         </div>
         <div className={[
           'text-sm font-semibold flex items-center relative',

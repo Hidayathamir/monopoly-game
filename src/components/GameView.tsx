@@ -21,16 +21,16 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
   const [showTrades, setShowTrades] = useState(false)
-  const [manualBotEnabled, setManualBotEnabled] = useState(false)
+  const manualBotEnabled =
+    game.myPlayerId !== null && state.players[game.myPlayerId]?.botControlled === true
+
   const handleToggleBot = useCallback(() => {
     game.manualBotToggle()
-    setManualBotEnabled((prev) => !prev)
   }, [game])
   const sendActionWithAutoReset = useCallback(
     (action: () => void) => {
       if (manualBotEnabled) {
         game.manualBotToggle()
-        setManualBotEnabled(false)
       }
       action()
     },
@@ -90,7 +90,6 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           onPropose={(offer: TradeOffer) => {
             if (manualBotEnabled) {
               game.manualBotToggle()
-              setManualBotEnabled(false)
             }
             game.proposeTrade(offer)
             setShowTradeModal(false)

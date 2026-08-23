@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures'
 import { seedGame, buildWaitingState } from './helpers/seed'
+import { startServer } from './helpers/server'
 
 async function createRoom(
   page: import('@playwright/test').Page,
@@ -172,4 +173,48 @@ test('shows bot status in TurnHeader when toggle is on', async ({ browser, serve
 
   // Toggle button should have active state (gold background)
   await expect(toggleBtn).toHaveClass(/bg-gold/)
+})
+
+test('lights up the bot icon when the player goes AFK and the bot takes over', async ({ browser }, testInfo) => {
+  const server = await startServer(4200 + testInfo.workerIndex, { AFK_TIMEOUT_MS: '2000' })
+  try {
+    const context = await browser.newContext()
+    await context.addInitScript(() => {
+      localStorage.setItem('monopoly-language', 'en')
+      localStorage.setItem('monopoly-currency', 'USD')
+    })
+    const contextB = await browser.newContext()
+    await contextB.addInitScript(() => {
+      localStorage.setItem('monopoly-language', 'en')
+      localStorage.setItem('monopoly-currency', 'USD')
+    })
+    const pageA = await context.newPage()
+    const pageB = await contextB.newPage()
+
+    const code = await createRoom(pageA, server.url, 'Alpha')
+    await pageB.goto(server.url)
+    await pageB.fill('input[placeholder="Name"]', 'Bravo')
+    await pageB.click('button:has-text("Join Room")')
+    await pageB.fill('input[placeholder="Code"]', code)
+    await pageB.click('button:has-text("Continue")')
+    await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+    const state = buildWaitingState({
+      players: [
+        { id: 0, name: 'Alpha', money: 1500 },
+        { id: 1, name: 'Bravo', money: 1500 },
+      ],
+      currentPlayer: 0,
+    })
+    await seedGame(server.url, code, state)
+
+    const toggleBtn = pageA.locator('[data-testid="bot-toggle"]')
+    await expect(toggleBtn).toBeVisible({ timeout: 5000 })
+    // Before the AFK timeout the player is still manually controlled.
+    await expect(toggleBtn).not.toHaveAttribute('aria-pressed', 'true')
+    // After the AFK timeout the bot takes over — the icon must reflect it.
+    await expect(toggleBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 10000 })
+  } finally {
+    server.close()
+  }
 })
