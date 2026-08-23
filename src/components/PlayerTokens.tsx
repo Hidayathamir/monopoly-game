@@ -19,7 +19,8 @@ function c(col: number, row: number) {
   }
 }
 
-const POSITIONS: Record<number, { x: number; y: number }> = {
+// eslint-disable-next-line react-refresh/only-export-components
+export const POSITIONS: Record<number, { x: number; y: number }> = {
   0: c(11, 11), 1: c(10, 11), 2: c(9, 11), 3: c(8, 11),
   4: c(7, 11), 5: c(6, 11), 6: c(5, 11), 7: c(4, 11),
   8: c(3, 11), 9: c(2, 11), 10: c(1, 11), 11: c(1, 10),

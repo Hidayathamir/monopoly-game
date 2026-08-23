@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react'
 import type { GameState } from '../types/game'
+import type { ActiveEmotion } from '../types/emotion'
 import BoardGrid from './BoardGrid'
 import PlayerTokens from './PlayerTokens'
+import EmoticonOverlay from './EmoticonOverlay'
 import DiceHints from './DiceHints'
 
 interface Props {
   state: GameState
   isMyTurn: boolean
+  emotions: ActiveEmotion[]
   children?: ReactNode
   onSell: (spaceId: number) => void
   onMortgage: (spaceId: number) => void
@@ -14,7 +17,7 @@ interface Props {
   onSellProperty: (spaceId: number) => void
 }
 
-export default function GameBoard({ state, isMyTurn, children, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
+export default function GameBoard({ state, isMyTurn, emotions, children, onSell, onMortgage, onUnmortgage, onSellProperty }: Props) {
   return (
     <div
       className="flex items-center justify-center w-screen h-screen select-none"
@@ -30,6 +33,7 @@ export default function GameBoard({ state, isMyTurn, children, onSell, onMortgag
           onSellProperty={onSellProperty}
         />
         <PlayerTokens state={state} />
+        <EmoticonOverlay state={state} emotions={emotions} />
         <DiceHints state={state} />
         {children}
       </div>

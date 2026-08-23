@@ -46,7 +46,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
       <GameBoard
         state={state}
         isMyTurn={isMyTurn}
-        myPlayerId={game.myPlayerId}
+        emotions={game.activeEmotions}
         onSell={(spaceId: number) => sendActionWithAutoReset(() => game.sellHouse(spaceId))}
         onMortgage={(spaceId: number) => sendActionWithAutoReset(() => game.mortgage(spaceId))}
         onUnmortgage={(spaceId: number) => sendActionWithAutoReset(() => game.unmortgage(spaceId))}
