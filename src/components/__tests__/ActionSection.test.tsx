@@ -74,9 +74,23 @@ describe('ActionSection', () => {
     expect(screen.getByRole('button', { name: /Pay/ })).toBeVisible()
   })
 
-  it('renders an end-of-turn button after rolling', () => {
+  it('does not render end-of-turn button when not on a buildable property', () => {
     let s = makeState()
     s = { ...s, dice: [3, 3], doublesCount: 1 }
+    renderWithProviders(<ActionSection state={s} {...actions} />)
+    expect(screen.queryByRole('button', { name: /Roll Again/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /End Turn/ })).toBeNull()
+  })
+
+  it('renders end-of-turn button when on a buildable property', () => {
+    let s = makeState()
+    s = {
+      ...s,
+      players: s.players.map((p, i) => i === 0 ? { ...p, position: 8, properties: [8], passedGo: true } : p),
+      board: s.board.map((b) => b.id === 8 ? { ...b, owner: 0 } : b),
+      dice: [3, 3],
+      doublesCount: 1,
+    }
     renderWithProviders(<ActionSection state={s} {...actions} />)
     expect(screen.getByRole('button', { name: /Roll Again/ })).toBeVisible()
   })

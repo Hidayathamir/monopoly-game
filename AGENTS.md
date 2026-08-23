@@ -64,3 +64,9 @@ Multiplayer Monopoly: React SPA (Vite) + Node WebSocket server. No Express/Fasti
 - Seed fixtures in `e2e/fixtures/*-seed.ts` are imported by spec files
 - E2E helpers: `e2e/helpers/` (gameplay.ts, server.ts, seed.ts, trade.ts)
 - Tests set localStorage via `context.addInitScript` (language + currency)
+
+## Game flow (player perspective — read before writing E2E or game logic)
+- **Building**: No color set required. You can build on ANY property you own (not mortgaged, not just bought). Multiple builds per landing allowed.
+- **Turn advancement**: Server auto-advances after 300ms when nothing left to do. End Turn button only appears when standing on a buildable property (player might want to build first).
+- **Auto-advance conditions** (`src/logic/build.ts` `canBuildOnCurrentSpace`): turn auto-advances when phase=Waiting, no pending action, dice rolled, not in jail, money >= 0, and cannot build on current space.
+- **Bot control**: Bots auto-play when `isBot=true` or `botControlled=true` (AFK/disconnected). Driven by `src/logic/bot.ts`.

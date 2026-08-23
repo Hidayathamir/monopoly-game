@@ -101,7 +101,7 @@ export default function ActionSection({
           {player.money < getHouseCost(space, space.houses) ? t('action.notEnoughSuffix') : ''}
         </Button>
       )}
-      {hasRolled && !player.inJail && (
+      {hasRolled && !player.inJail && canBuild && (
         <Button variant="secondary" size="sm" onClick={onEndTurn}>
           {t(state.doublesCount > 0 ? 'action.rollAgain' : 'action.endTurn')}
         </Button>
