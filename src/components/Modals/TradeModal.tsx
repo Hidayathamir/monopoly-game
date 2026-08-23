@@ -80,7 +80,7 @@ export default function TradeModal({ state, onPropose, onClose, targetPlayerId, 
           </select>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 max-h-[55vh] overflow-y-auto pr-1">
         <div className="flex flex-col gap-1.5">
           <h4 className="text-lg text-gold m-0">{t('trade.youOffer')}</h4>
           <label className="text-base flex items-center gap-1 text-text-dim">

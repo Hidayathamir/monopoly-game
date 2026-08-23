@@ -131,6 +131,29 @@ describe('TradeModal', () => {
     expect(screen.getByRole('button', { name: /Propose/i })).toBeDisabled()
   })
 
+  it('keeps the property list scrollable so Propose stays visible with many properties', () => {
+    const s = makeState()
+    // Give every property on the board to the two players so both columns are long.
+    const ownedIds = s.board.filter((b) => b.id > 0).map((b) => b.id)
+    const offerIds = ownedIds.filter((_, i) => i % 2 === 0)
+    const requestIds = ownedIds.filter((_, i) => i % 2 === 1)
+    const state = {
+      ...s,
+      board: s.board.map((b) =>
+        offerIds.includes(b.id) ? { ...b, owner: 0 } : requestIds.includes(b.id) ? { ...b, owner: 1 } : b,
+      ),
+      players: s.players.map((p, i) => (i === 0 ? { ...p, properties: offerIds } : { ...p, properties: requestIds })),
+    }
+    const { container } = renderWithProviders(
+      <TradeModal state={state} targetPlayerId={1} myPlayerId={0} onPropose={() => {}} onClose={() => {}} />,
+    )
+    const grid = container.querySelector('.grid.grid-cols-2')
+    expect(grid).toBeTruthy()
+    expect(grid?.className).toContain('overflow-y-auto')
+    expect(grid?.className).toContain('max-h-[55vh]')
+    expect(screen.getByRole('button', { name: /Propose/i })).toBeVisible()
+  })
+
   it('reveals the request section and enables Propose after picking a counterparty', () => {
     const onPropose = vi.fn()
     renderWithProviders(
