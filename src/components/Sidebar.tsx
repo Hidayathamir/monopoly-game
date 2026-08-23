@@ -52,7 +52,7 @@ export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys
                 <button
                   type="button"
                   onClick={onToggleBot}
-                  title={manualBotEnabled ? 'Bot is playing — click to resume manual control' : 'Let bot play your turn'}
+                  title={manualBotEnabled ? t('bot.toggleOn') : t('bot.toggleOff')}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                     manualBotEnabled
                       ? 'bg-gold/20 text-gold border border-gold/40'
