@@ -4,6 +4,8 @@ import { GameClient } from '../net/client'
 import { GameActionType } from '../types/game'
 import type { GameApi, GameAction, GameState, PlayerAvatar, TradeOffer } from '../types/game'
 import { ClientMessageType, ConnectionStatus, ServerMessageType } from '../types/net'
+import { Emoticon, EMOTICON_LIFETIME_MS } from '../types/emotion'
+import type { ActiveEmotion } from '../types/emotion'
 import type { LobbyPlayer } from '../types/net'
 import type { PlayerIdentity } from '../net/identity'
 
@@ -32,6 +34,9 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const [lobby, setLobby] = useState<LobbyPlayer[]>([])
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.Connecting)
   const [error, setError] = useState<string | null>(null)
+  const [activeEmotions, setActiveEmotions] = useState<ActiveEmotion[]>([])
+  const emotionIdRef = useRef(0)
+  const emotionTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const clientRef = useRef<GameClient | null>(null)
   const onLeftRef = useRef(onLeft)
 
@@ -57,6 +62,13 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
           setHostPlayerId(message.hostPlayerId)
         } else if (message.type === ServerMessageType.State) {
           setState(message.state)
+        } else if (message.type === ServerMessageType.Emoticon) {
+          const id = emotionIdRef.current++
+          const timer = setTimeout(() => {
+            setActiveEmotions((prev) => prev.filter((e) => e.id !== id))
+          }, EMOTICON_LIFETIME_MS)
+          emotionTimersRef.current.push(timer)
+          setActiveEmotions((prev) => [...prev, { id, playerId: message.playerId, emoticon: message.emoticon }])
         } else if (message.type === ServerMessageType.Left) {
           onLeftRef.current()
         } else if (message.type === ServerMessageType.Error) {
@@ -66,7 +78,11 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     })
     client.connect()
     clientRef.current = client
-    return () => client.close()
+    return () => {
+      client.close()
+      for (const timer of emotionTimersRef.current) clearTimeout(timer)
+      emotionTimersRef.current = []
+    }
   }, [])
 
   const send = useCallback((message: Parameters<GameClient['send']>[0]) => {
@@ -100,6 +116,7 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
   const addBot = useCallback(() => send({ type: ClientMessageType.AddBot }), [send])
   const removeBot = useCallback((playerId: number) => send({ type: ClientMessageType.RemoveBot, playerId }), [send])
   const manualBotToggle = useCallback(() => send({ type: ClientMessageType.ManualBotToggle }), [send])
+  const emitEmoticon = useCallback((emoticon: Emoticon) => send({ type: ClientMessageType.Emoticon, emoticon }), [send])
 
   const roll = useCallback(
     (target?: number) => sendAction({ type: GameActionType.RollDice, ...(target != null ? { target } : {}) }),
@@ -143,6 +160,8 @@ export function useNetworkGame(onLeft: () => void): NetworkGameApi {
     addBot,
     removeBot,
     manualBotToggle,
+    activeEmotions,
+    emitEmoticon,
     roll,
     buyProperty,
     declineBuy,

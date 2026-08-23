@@ -1,5 +1,6 @@
 import type { ClientMessage, ServerMessage } from '../types/net'
 import { HttpPath, ClientMessageType } from '../types/net'
+import type { Emoticon } from '../types/emotion'
 
 export interface ClientHandlers {
   onMessage: (message: ServerMessage) => void
@@ -54,6 +55,10 @@ export class GameClient {
 
   manualBotToggle(): void {
     this.send({ type: ClientMessageType.ManualBotToggle })
+  }
+
+  emitEmoticon(emoticon: Emoticon): void {
+    this.send({ type: ClientMessageType.Emoticon, emoticon })
   }
 
   private flush(): void {

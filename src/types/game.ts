@@ -1,4 +1,5 @@
 import type { PresetAvatarId } from '../data/avatars';
+import type { ActiveEmotion, Emoticon } from './emotion';
 
 export const SpaceType = {
   Property: 'property',
@@ -294,6 +295,8 @@ export type GameAction =
 export type GameApi = {
   state: GameState;
   myPlayerId: number | null;
+  activeEmotions: ActiveEmotion[];
+  emitEmoticon: (emoticon: Emoticon) => void;
   roll: (target?: number) => void;
   buyProperty: () => void;
   declineBuy: () => void;
