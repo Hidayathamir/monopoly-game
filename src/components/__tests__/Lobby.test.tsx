@@ -28,6 +28,8 @@ function makeGame(overrides: Partial<NetworkGameApi> = {}): NetworkGameApi {
     addBot: vi.fn(),
     removeBot: vi.fn(),
     manualBotToggle: vi.fn(),
+    activeEmotions: [],
+    emitEmoticon: vi.fn(),
     roll: vi.fn(),
     buyProperty: vi.fn(),
     declineBuy: vi.fn(),
