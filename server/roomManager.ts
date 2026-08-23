@@ -41,6 +41,12 @@ export class RoomManager {
           this.broadcastToRoom(code, { type: ServerMessageType.State, state }),
         broadcastLobby: (players, hostPlayerId) =>
           this.broadcastToRoom(code, { type: ServerMessageType.Lobby, players, hostPlayerId }),
+        broadcastEmoticon: (emotion) =>
+          this.broadcastToRoom(code, {
+            type: ServerMessageType.Emoticon,
+            playerId: emotion.playerId,
+            emoticon: emotion.emoticon,
+          }),
         send: (clientId, msg) => this.events.send(clientId, msg),
       },
       { code, rng: this.rng, tradesEnabled: this.tradesEnabled, seedEnabled: this.seedEnabled, afkTimeoutMs: this.afkTimeoutMs },

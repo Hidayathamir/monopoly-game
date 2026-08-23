@@ -167,6 +167,8 @@ export function createServer(distDir = 'dist', opts?: { tradesEnabled?: boolean;
           roomManager.gameFor(clientId)?.handleAction(clientId, msg.action)
         } else if (msg.type === ClientMessageType.ManualBotToggle) {
           roomManager.gameFor(clientId)?.handleManualBotToggle(clientId)
+        } else if (msg.type === ClientMessageType.Emoticon) {
+          roomManager.gameFor(clientId)?.emitEmoticon(clientId, msg.emoticon)
         }
       } catch {
         // ignore malformed messages

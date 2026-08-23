@@ -9,12 +9,15 @@ import { DEFAULT_AVATAR, isValidAvatar, isSameAvatar, PRESET_AVATARS, type Prese
 import { rollControlledDice } from '../src/logic/controlledDice'
 import { validateStateStructure, validateStateForRoom, ValidationKind } from '../src/logic/seed'
 import { canBuildOnCurrentSpace } from '../src/logic/build'
+import { Emoticon, EMOTICON_COOLDOWN_MS, isEmoticon } from '../src/types/emotion'
+import { detectBotEmotions } from '../src/logic/emotions'
 
 export type ClientId = string
 
 export interface GameServerEvents {
   broadcastState(state: GameState): void
   broadcastLobby(players: LobbyPlayer[], hostPlayerId: number): void
+  broadcastEmoticon(emotion: { playerId: number; emoticon: Emoticon }): void
   send(clientId: ClientId, message: ServerMessage): void
 }
 
@@ -53,6 +56,7 @@ export class GameServer {
   private afkTimer: ReturnType<typeof setTimeout> | null = null
   private seedEnabled: boolean
   private afkTimeoutMs: number
+  private lastEmotionAt = new Map<number, number>()
 
   constructor(events: GameServerEvents, opts?: { rng?: () => number; code?: string; tradesEnabled?: boolean; seedEnabled?: boolean; afkTimeoutMs?: number }) {
     this.state = createInitialState({ tradesEnabled: opts?.tradesEnabled ?? false })
@@ -395,6 +399,19 @@ export class GameServer {
     }
   }
 
+  emitEmoticon(clientId: ClientId, emoticon: Emoticon): void {
+    if (!isEmoticon(emoticon)) return
+    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.Rolling) return
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) return
+    if (!this.state.players[index]) return
+    const now = Date.now()
+    const last = this.lastEmotionAt.get(index) ?? 0
+    if (now - last < EMOTICON_COOLDOWN_MS) return
+    this.lastEmotionAt.set(index, now)
+    this.events.broadcastEmoticon({ playerId: index, emoticon })
+  }
+
   disconnect(clientId: ClientId): void {
     const index = this.slots.findIndex((s) => s.clientId === clientId)
     if (index === -1) return
@@ -450,10 +467,22 @@ export class GameServer {
   }
 
   private applyAction(action: GameAction): void {
+    const prev = this.state
     this.state = gameReducer(this.state, action)
+    this.emitBotEmotions(prev)
     this.broadcast()
     this.scheduleAutoSteps()
     this.driveBots()
+  }
+
+  private emitBotEmotions(prev: GameState): void {
+    const now = Date.now()
+    for (const em of detectBotEmotions(prev, this.state)) {
+      const last = this.lastEmotionAt.get(em.playerId) ?? 0
+      if (now - last < EMOTICON_COOLDOWN_MS) continue
+      this.lastEmotionAt.set(em.playerId, now)
+      this.events.broadcastEmoticon({ playerId: em.playerId, emoticon: em.emoticon })
+    }
   }
 
   private nextConnectedSlot(from: number): number {

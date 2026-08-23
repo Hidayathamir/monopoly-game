@@ -14,6 +14,7 @@ function setup(opts?: { rng?: () => number; code?: string; tradesEnabled?: boole
     {
       broadcastState: (state) => sent.push({ type: ServerMessageType.State, state }),
       broadcastLobby: (players, hostPlayerId) => sent.push({ type: ServerMessageType.Lobby, players, hostPlayerId }),
+      broadcastEmoticon: (em) => sent.push({ type: ServerMessageType.Emoticon, playerId: em.playerId, emoticon: em.emoticon }),
       send: (_id, msg) => sent.push(msg),
     },
     opts,
