@@ -20,8 +20,8 @@ test('wire values are locked for all enum-like consts', () => {
     'DECLARE_BANKRUPTCY', 'COLLECT_FREE_PARKING', 'SKIP_ACTION', 'PAY_JAIL_FINE',
     'USE_GET_OUT_OF_JAIL_FREE', 'SET_BOT_CONTROL', 'SET_RECONNECT_GRACE',
   ]);
-  expect(Object.values(ClientMessageType)).toEqual(['create', 'join', 'start', 'leave', 'addBot', 'removeBot', 'action', 'setIdentity', 'manualBotToggle']);
-  expect(Object.values(ServerMessageType)).toEqual(['welcome', 'lobby', 'state', 'left', 'error']);
+  expect(Object.values(ClientMessageType)).toEqual(['create', 'join', 'start', 'leave', 'addBot', 'removeBot', 'action', 'setIdentity', 'manualBotToggle', 'emoticon']);
+  expect(Object.values(ServerMessageType)).toEqual(['welcome', 'lobby', 'state', 'left', 'error', 'emoticon']);
   expect(Object.values(ConnectionStatus)).toEqual(['connecting', 'connected', 'disconnected']);
   expect(Object.values(LogEventKey)).toEqual([
     'event.gameStarted', 'event.turn', 'event.rolled', 'event.rolledAimed', 'event.passedGo',

@@ -1,4 +1,5 @@
 import type { GameState, GameAction, GamePhase, PlayerAvatar } from './game'
+import type { Emoticon } from './emotion'
 
 export type LobbyPlayer = { id: number; name: string | null; connected: boolean; isBot: boolean; color: string; avatar: PlayerAvatar }
 
@@ -21,6 +22,7 @@ export const ClientMessageType = {
   Action: 'action',
   SetIdentity: 'setIdentity',
   ManualBotToggle: 'manualBotToggle',
+  Emoticon: 'emoticon',
 } as const
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType]
 
@@ -30,6 +32,7 @@ export const ServerMessageType = {
   State: 'state',
   Left: 'left',
   Error: 'error',
+  Emoticon: 'emoticon',
 } as const
 export type ServerMessageType = (typeof ServerMessageType)[keyof typeof ServerMessageType]
 
@@ -51,6 +54,7 @@ export type ClientMessage =
   | { type: typeof ClientMessageType.AddBot }
   | { type: typeof ClientMessageType.RemoveBot; playerId: number }
   | { type: typeof ClientMessageType.Action; action: GameAction }
+  | { type: typeof ClientMessageType.Emoticon; emoticon: Emoticon }
 
 export type ServerMessage =
   | { type: typeof ServerMessageType.Welcome; playerId: number; hostPlayerId: number; players: LobbyPlayer[]; state: GameState; code: string }
@@ -58,3 +62,4 @@ export type ServerMessage =
   | { type: typeof ServerMessageType.State; state: GameState }
   | { type: typeof ServerMessageType.Left }
   | { type: typeof ServerMessageType.Error; message: string }
+  | { type: typeof ServerMessageType.Emoticon; playerId: number; emoticon: Emoticon }
