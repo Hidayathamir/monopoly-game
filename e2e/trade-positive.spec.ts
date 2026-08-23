@@ -37,7 +37,8 @@ test('a cash-only trade swaps cash with no properties on either side', async ({ 
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Cash: Alpha 1200−200+100=1100, Bravo 1200+200−100=1300.
   await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$1.1K')
@@ -64,7 +65,8 @@ test('a property-only trade swaps ownership with no cash on either side', async 
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Cash untouched, stripes swap.
   await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$1.2K')
@@ -92,7 +94,8 @@ test('a multi-property trade swaps several properties in both directions', async
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageA.locator('[data-testid="board-cell-1"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
@@ -118,7 +121,8 @@ test('a trade can include a railroad and a utility', async ({ browser, serverUrl
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageA.locator('[data-testid="board-cell-5"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-12"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
@@ -142,7 +146,8 @@ test('a trade completes when the request equals the target\'s entire cash', asyn
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Bravo' })).toContainText('$0')
   await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$1.3K')
@@ -191,7 +196,8 @@ test('Bravo can propose a trade to Alpha on Bravo\'s turn', async ({ browser, se
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageA.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageA.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageA.locator('[data-testid="board-cell-1"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-9"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
@@ -283,7 +289,8 @@ test('accepting one of two pending offers leaves the other pending', async ({ br
   await expect(bravoBtn).toContainText('1', { timeout: 5000 })
   await bravoBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Alpha's badge drops to 1; Charlie's offer is untouched.
   const alphaBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
@@ -295,7 +302,8 @@ test('accepting one of two pending offers leaves the other pending', async ({ br
   await charlieBtn.click()
   await expect(pageC.getByText(/You receive:.*Salvador/)).toBeVisible({ timeout: 5000 })
   await pageC.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageC.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageC.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)
@@ -338,7 +346,8 @@ test('the offerer sees Cancel on an offer while the target sees Accept/Reject', 
   // Offerer cancels via the trade-card Cancel button (scoped to the offer, not the modal footer).
   await alphaOffer.getByRole('button', { name: 'Cancel' }).click()
   await expect(alphaBtn).not.toContainText('1', { timeout: 5000 })
-  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on cancel.
+  await expect(pageA.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 })
 
 test('two sequential trades in one game both complete', async ({ browser, serverUrlTrades }) => {
@@ -358,11 +367,8 @@ test('two sequential trades in one game both complete', async ({ browser, server
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
-
-  // Close Bravo's inbox (footer Close) so the sidebar is reachable for trade 2 —
-  // TradeInboxModal stays open after Accept by design.
-  await pageB.getByRole('button', { name: 'Close' }).click()
+  // The inbox closes on accept, so the sidebar is reachable for trade 2.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Trade 2: Salvador for Jerusalem (Bravo still owns Jerusalem).
   await openTradeModal(pageA, 'Bravo')
@@ -373,7 +379,8 @@ test('two sequential trades in one game both complete', async ({ browser, server
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Both trades landed.
   await expect(pageA.locator('[data-testid="board-cell-1"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
@@ -451,7 +458,8 @@ test('a player can create a trade offer directly from the Trades inbox', async (
   await expect(bravoInbox).toContainText('1', { timeout: 5000 })
   await bravoInbox.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Cash: Alpha 1200−200+100=1100, Bravo 1200+200−100=1300.
   await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$1.1K')

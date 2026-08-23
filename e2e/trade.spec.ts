@@ -60,7 +60,8 @@ test('Alpha proposes a trade and Bravo accepts — properties and cash swap', as
   await expect(pageB.getByText(/You give: Tel Aviv \+ \$0/)).toBeVisible()
   await pageB.getByRole('button', { name: 'Accept' }).click()
 
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   await expect(pageA.locator('[data-testid="event-entry"]').filter({ hasText: /completed a trade/ })).toBeVisible()
   await expect(pageB.locator('[data-testid="event-entry"]').filter({ hasText: /completed a trade/ })).toBeVisible()
 
@@ -91,7 +92,8 @@ test('Bravo can reject an incoming trade — nothing changes hands', async ({ br
   await expect(pageB.getByText(/You receive: Rio/)).toBeVisible({ timeout: 5000 })
   await pageB.getByRole('button', { name: 'Reject' }).click()
 
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on reject.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   await expect(
     pageB.locator('[data-testid="event-entry"]').filter({ hasText: /declined Alpha's trade offer/ })
   ).toBeVisible()
@@ -118,7 +120,8 @@ test('Alpha can cancel a pending offer before Bravo responds', async ({ browser,
   await expect(pageA.locator('[data-testid="trade-offer"]')).toBeVisible({ timeout: 5000 })
   await pageA.locator('[data-testid="trade-offer"]').getByRole('button', { name: 'Cancel' }).click()
 
-  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on cancel.
+  await expect(pageA.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   await expect(
     pageA.locator('[data-testid="event-entry"]').filter({ hasText: /cancelled their trade offer/ })
   ).toBeVisible()
@@ -247,7 +250,8 @@ test('stale offer auto-rejects when the target can no longer afford the requeste
   await pageB.getByRole('button', { name: 'Accept' }).click()
 
   // No trade happens, the offer is gone, and a rejection is logged.
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   await expect(
     pageB.locator('[data-testid="event-entry"]').filter({ hasText: /declined Alpha's trade offer/ })
   ).toBeVisible()
@@ -284,7 +288,8 @@ test('stale offer auto-rejects when the offered property changed hands after pro
   await pageB.getByRole('button', { name: 'Accept' }).click()
 
   // No trade: offer cleared, rejection logged, Salvador stays unowned (no stripe).
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   await expect(
     pageB.locator('[data-testid="event-entry"]').filter({ hasText: /declined Alpha's trade offer/ })
   ).toBeVisible()
@@ -316,7 +321,8 @@ test('off-turn player can propose a trade to another player', async ({ browser, 
   await expect(pageC.getByText(/You give: Haifa/)).toBeVisible()
   await pageC.getByRole('button', { name: 'Accept' }).click()
 
-  await expect(pageC.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageC.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   // Ownership swaps: Tel Aviv (6) -> Charlie, Haifa (8) -> Bravo.
   await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', CHARLIE_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-8"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
@@ -346,7 +352,8 @@ test('off-turn player can propose a trade to the current player (2-player)', asy
   await expect(pageA.getByText(/You give: Rio/)).toBeVisible()
   await pageA.getByRole('button', { name: 'Accept' }).click()
 
-  await expect(pageA.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageA.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
   // Ownership swaps: Rio -> Bravo, Tel Aviv -> Alpha.
   await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
   await expect(pageA.locator('[data-testid="board-cell-6"] div.absolute')).toHaveCSS('background-color', ALPHA_STRIPE)

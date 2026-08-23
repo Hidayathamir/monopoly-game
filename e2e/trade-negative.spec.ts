@@ -31,7 +31,8 @@ test('offer cash is capped at the proposer\'s available cash', async ({ browser,
   await inboxBtn.click()
   await expect(pageB.getByText(/You receive:.*\$50/)).toBeVisible({ timeout: 5000 })
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   await expect(pageA.locator('[data-testid="player-card"]').filter({ hasText: 'Alpha' })).toContainText('$0')
   await expect(pageB.locator('[data-testid="player-card"]').filter({ hasText: 'Bravo' })).toContainText('$1.3K')
@@ -132,7 +133,8 @@ test('a trade of a mortgaged property transfers ownership and the mortgage debt'
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Ownership swapped; the mortgage flag rides along to the new owner.
   await expect(pageA.locator('[data-testid="board-cell-3"] div.absolute')).toHaveCSS('background-color', BRAVO_STRIPE)
@@ -247,7 +249,8 @@ test('after acceptance the offerer\'s inbox is empty', async ({ browser, serverU
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Accept' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on accept.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // Alpha's inbox is empty — there is no lingering Cancel button to press.
   const alphaBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
@@ -314,7 +317,8 @@ test('rejecting an offer removes it from both players\' inboxes', async ({ brows
   await expect(inboxBtn).toContainText('1', { timeout: 5000 })
   await inboxBtn.click()
   await pageB.getByRole('button', { name: 'Reject' }).click()
-  await expect(pageB.getByText('No pending trade offers')).toBeVisible({ timeout: 5000 })
+  // The inbox closes on reject.
+  await expect(pageB.getByText('No pending trade offers')).toBeHidden({ timeout: 5000 })
 
   // The offerer's inbox is also cleared.
   const alphaBtn = pageA.locator('[data-testid="sidebar"]').getByRole('button', { name: /Trades/ })
