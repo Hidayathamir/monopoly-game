@@ -72,13 +72,24 @@ export async function openTradeModal(page: Page, targetCardText: string): Promis
     await tradeBtn.waitFor({ state: 'visible', timeout: 1000 })
   } catch {
     // In 3-player games the third card wraps below the sidebar's visible fold, so the
-    // pointer above landed on the board instead of the card. Scroll it into view and
-    // re-hover; a no-op for cards that are merely mid-layout.
-    await card.scrollIntoViewIfNeeded()
-    await page.mouse.move(0, 0)
-    await page.waitForTimeout(250)
-    const retryBox = await card.boundingBox()
-    if (retryBox) await page.mouse.move(retryBox.x + retryBox.width / 2, retryBox.y + retryBox.height / 2)
+    // pointer above landed on the board instead of the card. Playwright's hover
+    // scrolls the card into view and retries actionability internally; loop a few
+    // times so a hover that races a slow re-render gets another chance, parking the
+    // pointer between attempts to close any stray popup.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await card.hover({ timeout: 2000 })
+      } catch {
+        // hover could not become actionable this round — retry from a parked pointer.
+      }
+      try {
+        await tradeBtn.waitFor({ state: 'visible', timeout: 1000 })
+        break
+      } catch {
+        await page.mouse.move(0, 0)
+        await page.waitForTimeout(250)
+      }
+    }
   }
   await expect(tradeBtn).toBeVisible({ timeout: 5000 })
   await tradeBtn.hover()
