@@ -381,6 +381,20 @@ export class GameServer {
     this.dispatch(action)
   }
 
+  handleManualBotToggle(clientId: ClientId): void {
+    const index = this.slots.findIndex((s) => s.clientId === clientId)
+    if (index === -1) return
+    const player = this.state.players[index]
+    if (!player || player.isBot) return
+    const newControlled = !player.botControlled
+    this.dispatch({ type: GameActionType.SetBotControl, playerId: index, controlled: newControlled })
+    if (newControlled) {
+      this.clearAfkTimer()
+    } else {
+      this.scheduleAfkTimer(index)
+    }
+  }
+
   disconnect(clientId: ClientId): void {
     const index = this.slots.findIndex((s) => s.clientId === clientId)
     if (index === -1) return
