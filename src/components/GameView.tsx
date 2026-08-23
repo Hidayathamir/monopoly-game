@@ -47,10 +47,10 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
         state={state}
         isMyTurn={isMyTurn}
         myPlayerId={game.myPlayerId}
-        onSell={game.sellHouse}
-        onMortgage={game.mortgage}
-        onUnmortgage={game.unmortgage}
-        onSellProperty={game.sellProperty}
+        onSell={(spaceId: number) => sendActionWithAutoReset(() => game.sellHouse(spaceId))}
+        onMortgage={(spaceId: number) => sendActionWithAutoReset(() => game.mortgage(spaceId))}
+        onUnmortgage={(spaceId: number) => sendActionWithAutoReset(() => game.unmortgage(spaceId))}
+        onSellProperty={(spaceId: number) => sendActionWithAutoReset(() => game.sellProperty(spaceId))}
       >
         <Sidebar
           state={state}
@@ -101,9 +101,9 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
         <TradeInboxModal
           state={state}
           myPlayerId={game.myPlayerId}
-          onAccept={(id) => game.acceptTrade(id)}
-          onReject={(id) => game.rejectTrade(id)}
-          onCancel={(id) => game.cancelTrade(id)}
+          onAccept={(id: number) => { sendActionWithAutoReset(() => game.acceptTrade(id)); setShowTrades(false) }}
+          onReject={(id: number) => { sendActionWithAutoReset(() => game.rejectTrade(id)); setShowTrades(false) }}
+          onCancel={(id: number) => { sendActionWithAutoReset(() => game.cancelTrade(id)); setShowTrades(false) }}
           onNewTrade={() => { setShowTrades(false); setTradeTargetId(null); setShowTradeModal(true) }}
           canCreateTrade={canTrade}
           onClose={() => setShowTrades(false)}
