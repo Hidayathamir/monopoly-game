@@ -68,18 +68,30 @@ describe('DiceHints', () => {
     expect(screen.queryByTestId('dice-hints')).not.toBeInTheDocument()
   })
 
-  it('computes correct target cells for position 0', () => {
+  it('positions hints at correct board cells for position 0', () => {
+    const RATIO = 100 / 11
+    const expectedPos = (col: number, row: number) => ({
+      x: Math.round((col - 0.5) * RATIO * 100) / 100,
+      y: Math.round((row - 0.5) * RATIO * 100) / 100,
+    })
     const state = makeState()
     render(<DiceHints state={state} myPlayerId={0} />)
-    // Player at position 0, value 2 → target cell 2
+    // value 2 → cell 2 → POSITIONS[2] = c(9,11)
     const hint2 = screen.getByTestId('dice-hint-2')
-    expect(hint2).toBeInTheDocument()
-    // Value 12 → target cell 12
+    const pos2 = expectedPos(9, 11)
+    expect(hint2).toHaveStyle({ left: `calc(${pos2.x}% - 9px)`, top: `calc(${pos2.y}% - 9px)` })
+    // value 12 → cell 12 → POSITIONS[12] = c(1,9)
     const hint12 = screen.getByTestId('dice-hint-12')
-    expect(hint12).toBeInTheDocument()
+    const pos12 = expectedPos(1, 9)
+    expect(hint12).toHaveStyle({ left: `calc(${pos12.x}% - 9px)`, top: `calc(${pos12.y}% - 9px)` })
   })
 
   it('wraps around the board correctly', () => {
+    const RATIO = 100 / 11
+    const expectedPos = (col: number, row: number) => ({
+      x: Math.round((col - 0.5) * RATIO * 100) / 100,
+      y: Math.round((row - 0.5) * RATIO * 100) / 100,
+    })
     // Player at position 38, value 5 → (38+5)%40 = 3
     const state = makeState({
       players: [
@@ -88,6 +100,9 @@ describe('DiceHints', () => {
       ],
     })
     render(<DiceHints state={state} myPlayerId={0} />)
-    expect(screen.getByTestId('dice-hint-5')).toBeInTheDocument()
+    const hint5 = screen.getByTestId('dice-hint-5')
+    // POSITIONS[3] = c(8, 11)
+    const pos3 = expectedPos(8, 11)
+    expect(hint5).toHaveStyle({ left: `calc(${pos3.x}% - 9px)`, top: `calc(${pos3.y}% - 9px)` })
   })
 })
