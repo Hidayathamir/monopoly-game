@@ -30,6 +30,8 @@
 
   --animate-dice-shake: dice-shake 0.3s ease-in-out infinite;
   --animate-money-float: money-float 1.2s ease-out forwards;
+  --animate-token-pulse: token-pulse 1.5s ease-in-out infinite;
+  --animate-hint-fade-in: hint-fade-in 0.4s ease-out forwards;
 }
 
 @keyframes dice-shake {
@@ -42,6 +44,16 @@
   0% { opacity: 1; transform: translateY(0); }
   60% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-24px); }
+}
+
+@keyframes token-pulse {
+  0%, 100% { box-shadow: 0 0 8px 2px var(--pulse-color, rgba(255,255,255,0.5)); }
+  50% { box-shadow: 0 0 18px 6px var(--pulse-color, rgba(255,255,255,0.7)); }
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 body {
