@@ -8,6 +8,7 @@ import Avatar from './Avatar'
 
 interface Props {
   state: GameState
+  myPlayerId?: number | null
 }
 
 const RATIO = 100 / 11
@@ -45,7 +46,7 @@ export function getPath(from: number, to: number, backward: boolean): number[] {
   return path
 }
 
-export default function PlayerTokens({ state }: Props) {
+export default function PlayerTokens({ state, myPlayerId = null }: Props) {
   const play = useSound()
   const { players } = state
   const lastMoveSteps = state.lastMoveSteps
@@ -84,13 +85,17 @@ export default function PlayerTokens({ state }: Props) {
         const posId = displayPositions[player.id] ?? player.position
         const pos = POSITIONS[posId] ?? POSITIONS[0]
         const offset = PLAYER_OFFSETS[player.id] ?? PLAYER_OFFSETS[0]
+        const isMyToken = myPlayerId === player.id
+        const isCurrentPlayer = state.currentPlayer === player.id
         return (
           <div
             key={player.id}
             className={[
-              'absolute w-[22px] h-[22px] rounded-full flex items-center justify-center text-base font-bold text-white',
-              '-translate-x-1/2 -translate-y-1/2 z-10',
-              state.currentPlayer === player.id ? 'border-[3px] border-white shadow-[0_0_8px_rgba(255,255,255,0.5)]' : '',
+              'absolute rounded-full flex items-center justify-center text-base font-bold text-white',
+              '-translate-x-1/2 -translate-y-1/2',
+              isMyToken ? 'w-[28px] h-[28px] z-20' : 'w-[22px] h-[22px] z-10',
+              isCurrentPlayer ? 'border-[3px] border-white shadow-[0_0_8px_rgba(255,255,255,0.5)]' : '',
+              isMyToken && isCurrentPlayer ? 'animate-[token-pulse_2s_ease-in-out_infinite]' : '',
               player.bankrupt ? 'opacity-30' : '',
             ].join(' ')}
             style={{
@@ -98,6 +103,7 @@ export default function PlayerTokens({ state }: Props) {
               left: `calc(${pos.x}% + ${offset.dx}px)`,
               top: `calc(${pos.y}% + ${offset.dy}px)`,
               transition: 'left 0.12s ease-in-out, top 0.12s ease-in-out',
+              ...(isMyToken && isCurrentPlayer ? { '--pulse-color': `${player.color}80` } as React.CSSProperties : {}),
             }}
             title={player.name}
           >
