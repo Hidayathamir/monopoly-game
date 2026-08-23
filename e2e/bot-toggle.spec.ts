@@ -91,3 +91,45 @@ test('toggle bot off — resume manual control', async ({ browser, serverUrl }) 
 
   await expect(pageA.locator('[data-testid="dice-roller"] button').first()).toBeVisible({ timeout: 5000 })
 })
+
+test('auto-resets toggle when player manually rolls dice', async ({ browser, serverUrl }) => {
+  const context = await browser.newContext()
+  await context.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const contextB = await browser.newContext()
+  await contextB.addInitScript(() => {
+    localStorage.setItem('monopoly-language', 'en')
+    localStorage.setItem('monopoly-currency', 'USD')
+  })
+  const pageA = await context.newPage()
+  const pageB = await contextB.newPage()
+
+  const code = await createRoom(pageA, serverUrl, 'Alpha')
+  await pageB.goto(serverUrl)
+  await pageB.fill('input[placeholder="Name"]', 'Bravo')
+  await pageB.click('button:has-text("Join Room")')
+  await pageB.fill('input[placeholder="Code"]', code)
+  await pageB.click('button:has-text("Continue")')
+  await expect(pageA.locator('text=Bravo')).toBeVisible({ timeout: 5000 })
+
+  const state = buildWaitingState({
+    players: [
+      { id: 0, name: 'Alpha', money: 1500 },
+      { id: 1, name: 'Bravo', money: 1500 },
+    ],
+    currentPlayer: 0,
+  })
+  await seedGame(serverUrl, code, state)
+
+  const toggleBtn = pageA.locator('[data-testid="bot-toggle"]')
+  await expect(toggleBtn).toBeVisible({ timeout: 5000 })
+  await toggleBtn.click()
+
+  const rollBtn = pageA.locator('[data-testid="dice-roller"] button').first()
+  await expect(rollBtn).toBeVisible({ timeout: 5000 })
+  await rollBtn.click()
+
+  await expect(toggleBtn).not.toHaveClass(/bg-gold/)
+})
