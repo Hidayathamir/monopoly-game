@@ -1,9 +1,24 @@
 import {
-  GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type TradeOffer,
+  GameActionType, GamePhase, PendingActionType, SpaceType, type GameAction, type GameState, type Space, type TradeOffer,
 } from '../types/game';
 import { getHouseCost, JAIL_FINE, MAX_HOUSES, STARTING_MONEY } from '../data/board';
 
 export const BUILD_CASH_RESERVE = Math.floor(STARTING_MONEY * 0.1);
+
+const HOUSE_MULTIPLIERS: Record<number, number> = {
+  0: 1,
+  1: 1.3,
+  2: 1.6,
+  3: 2,
+  4: 2.5,
+  5: 2.5,
+};
+
+const TRADE_SURPLUS_REQUIRED = 1.1;
+const LOW_CASH_SURPLUS_REQUIRED = 2;
+const MONOPOLY_GAIN_BONUS = 0.5;
+const MONOPOLY_LOSS_PENALTY = 1;
+const TRADE_RESERVE = BUILD_CASH_RESERVE;
 
 const BUYABLE_TYPES: SpaceType[] = [SpaceType.Property, SpaceType.Railroad, SpaceType.Utility];
 
@@ -83,12 +98,67 @@ function liquidationAction(state: GameState): GameAction {
   return { type: GameActionType.DeclareBankruptcy };
 }
 
+function propertyValue(space: Space, houseCost: number): number {
+  const multiplier = HOUSE_MULTIPLIERS[space.houses] ?? 1;
+  return (space.price ?? 0) + space.houses * houseCost * multiplier;
+}
+
+function tradeValue(state: GameState, propertyIds: number[], cash: number): number {
+  let total = cash;
+  for (const id of propertyIds) {
+    const space = state.board[id];
+    if (!space) continue;
+    total += propertyValue(space, getHouseCost(space, 0));
+  }
+  return total;
+}
+
+function monopolyBonus(state: GameState, offerProperties: number[], requestProperties: number[], playerId: number): number {
+  let bonus = 0;
+  for (const id of offerProperties) {
+    const space = state.board[id];
+    if (!space || space.type !== SpaceType.Property || !space.color) continue;
+    const set = state.board.filter((s) => s.type === SpaceType.Property && s.color === space.color);
+    const ownedAfter = set.filter(
+      (s) => s.owner === playerId || offerProperties.includes(s.id),
+    ).filter((s) => !requestProperties.includes(s.id)).length;
+    if (ownedAfter === set.length && set.some((s) => s.owner !== playerId)) {
+      bonus += MONOPOLY_GAIN_BONUS * propertyValue(space, getHouseCost(space, 0));
+    }
+  }
+  return bonus;
+}
+
+function monopolyPenalty(state: GameState, requestProperties: number[], playerId: number): number {
+  let penalty = 0;
+  for (const id of requestProperties) {
+    const space = state.board[id];
+    if (!space || space.type !== SpaceType.Property || !space.color) continue;
+    const set = state.board.filter((s) => s.type === SpaceType.Property && s.color === space.color);
+    const currentlyOwned = set.filter((s) => s.owner === playerId).length;
+    if (currentlyOwned === set.length) {
+      penalty += MONOPOLY_LOSS_PENALTY * propertyValue(space, getHouseCost(space, 0));
+    }
+  }
+  return penalty;
+}
+
 export function shouldAcceptTrade(state: GameState, offer: TradeOffer): boolean {
-  const received =
-    offer.offerCash +
-    offer.offerProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
-  const given =
-    offer.requestCash +
-    offer.requestProperties.reduce((sum, id) => sum + (state.board[id]?.price ?? 0), 0);
-  return received >= given;
+  const bot = state.players[offer.toId];
+  if (!bot) return false;
+
+  const receivedValue = tradeValue(state, offer.offerProperties, offer.offerCash);
+  const givenValue = tradeValue(state, offer.requestProperties, offer.requestCash);
+
+  const bonus = monopolyBonus(state, offer.offerProperties, offer.requestProperties, bot.id);
+  const penalty = monopolyPenalty(state, offer.requestProperties, bot.id);
+
+  const totalReceived = receivedValue + bonus;
+  const totalGiven = givenValue + penalty;
+
+  const postTradeMoney = bot.money + offer.offerCash - offer.requestCash;
+  if (postTradeMoney < TRADE_RESERVE) {
+    return totalReceived > totalGiven * LOW_CASH_SURPLUS_REQUIRED;
+  }
+  return totalReceived > totalGiven * TRADE_SURPLUS_REQUIRED;
 }
