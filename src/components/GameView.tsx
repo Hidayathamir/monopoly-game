@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { type GameApi, type TradeOffer } from '../types/game'
 import GameBoard from './GameBoard'
 import Sidebar from './Sidebar'
@@ -21,6 +21,11 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
   const [tradeTargetId, setTradeTargetId] = useState<number | null>(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
   const [showTrades, setShowTrades] = useState(false)
+  const [manualBotEnabled, setManualBotEnabled] = useState(false)
+  const handleToggleBot = useCallback(() => {
+    game.manualBotToggle()
+    setManualBotEnabled((prev) => !prev)
+  }, [game])
   const tradeCount = state.pendingTrades.filter((tr) =>
     game.myPlayerId === null || tr.fromId === game.myPlayerId || tr.toId === game.myPlayerId
   ).length
@@ -59,6 +64,8 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           exitKeys={exitKeys}
           tradeCount={tradeCount}
           onOpenTrades={() => setShowTrades(true)}
+          manualBotEnabled={manualBotEnabled}
+          onToggleBot={handleToggleBot}
         />
       </GameBoard>
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />
