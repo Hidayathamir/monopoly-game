@@ -1,4 +1,3 @@
-import { GamePhase } from '../types/game'
 import type { GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import TurnHeader from './TurnHeader'
@@ -72,7 +71,7 @@ export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys
           )}
         </div>
         <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
-        <EmoticonBar disabled={state.phase === GamePhase.Rolling} onEmit={onEmitEmoticon} />
+        <EmoticonBar onEmit={onEmitEmoticon} />
         {isMyTurn ? (
           <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
         ) : (

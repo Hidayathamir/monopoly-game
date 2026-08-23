@@ -59,7 +59,7 @@ describe('GameServer emoticons', () => {
     vi.useRealTimers()
   })
 
-  it('does not broadcast while dice are rolling (Rolling phase)', () => {
+  it('still broadcasts while dice are rolling (Rolling phase)', () => {
     vi.useFakeTimers()
     const { server, sent } = setup()
     server.join('c0', 'Alice')
@@ -68,7 +68,7 @@ describe('GameServer emoticons', () => {
     server.roll('c0') // phase -> Rolling
     expect(server.getState().phase).toBe(GamePhase.Rolling)
     server.emitEmoticon('c0', Emoticon.Happy)
-    expect(emoticonMessages(sent)).toHaveLength(0)
+    expect(emoticonMessages(sent)).toEqual([{ type: ServerMessageType.Emoticon, playerId: 0, emoticon: Emoticon.Happy }])
     vi.useRealTimers()
   })
 

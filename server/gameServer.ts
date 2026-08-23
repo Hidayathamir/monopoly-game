@@ -401,7 +401,7 @@ export class GameServer {
 
   emitEmoticon(clientId: ClientId, emoticon: Emoticon): void {
     if (!isEmoticon(emoticon)) return
-    if (this.state.phase === GamePhase.Setup || this.state.phase === GamePhase.Rolling) return
+    if (this.state.phase === GamePhase.Setup) return
     const index = this.slots.findIndex((s) => s.clientId === clientId)
     if (index === -1) return
     if (!this.state.players[index]) return

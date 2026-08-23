@@ -13,7 +13,7 @@ Monopoly is social; players want a lightweight, non-verbal way to react to what'
 - Limited set: sad 😢, happy/laugh 😂, angry 😠, proud/arrogant 😎 — quick buttons only (no free-text chat, no emoji shortcuts).
 - Emoticons render inline, floating above the emitter's token/space on the board.
 - Visible to ALL players in the room.
-- Can be emitted at any time during the game, any phase **except while dice are rolling**.
+- Can be emitted at any time during the game, in any phase.
 - Per-player cooldown: one emit every 5 seconds (server-authoritative, same rule for humans, bots, and AFK/bot-controlled players).
 - No persistence — ephemeral, in-memory only; no DB/replay support.
 - Emoticons are board-only — never written to the event log.
@@ -22,8 +22,8 @@ Monopoly is social; players want a lightweight, non-verbal way to react to what'
 
 ## Assumptions (made while the user was away)
 
-1. "Dice rolling" means the `Rolling` phase (dice animation). All other phases are allowed, including `Moving`, `Resolving`, `Buying`, `Building`, and `GameOver`.
-2. Emitting is blocked only before the game starts (lobby/`Setup` phase) and during `Rolling`.
+1. "Dice rolling" means the `Rolling` phase (dice animation). Emitting is allowed in every phase, including `Rolling`, `Moving`, `Resolving`, `Buying`, `Building`, and `GameOver`.
+2. Emitting is blocked only before the game starts (lobby/`Setup` phase).
 3. "Expensive rent" = a single rent payment ≥ `EXPENSIVE_RENT_THRESHOLD` ($300, 20% of starting money).
 4. Bot emoticon triggers are derived from the reducer's `eventLog` diff (no reducer changes needed).
 5. A rejected emit (cooldown active / wrong phase / not in a game) is silently dropped — no error message, to avoid UI noise.
@@ -35,7 +35,7 @@ Monopoly is social; players want a lightweight, non-verbal way to react to what'
 
 1. Player clicks one of 4 glyph buttons in the sidebar (always visible during a game, regardless of whose turn).
 2. Client immediately disables the buttons for 5s (local cooldown feedback) and sends `{ type: 'emoticon', emoticon }`.
-3. Server validates: game has started, phase is not `Rolling`, and the sender's 5s cooldown has elapsed.
+3. Server validates: game has started and the sender's 5s cooldown has elapsed.
 4. If valid, server broadcasts `{ type: 'emoticon', playerId, emoticon }` to all room members. Each client adds a bubble above the sender's token that pops up and fades out over `EMOTICON_LIFETIME_MS` (3s), then is removed.
 5. If invalid, the message is dropped silently.
 
@@ -88,7 +88,7 @@ export const EXPENSIVE_RENT_THRESHOLD = Math.floor(STARTING_MONEY * 0.2) // 300
 
 - Add `broadcastEmoticon(emotion: { playerId: number; emoticon: Emoticon })` to `GameServerEvents`.
 - `emitEmoticon(clientId, emoticon)`:
-  1. Resolve the sender's slot/player index by `clientId`; if not found or phase is `Setup`/`Rolling`, drop.
+  1. Resolve the sender's slot/player index by `clientId`; if not found or phase is `Setup`, drop.
   2. Enforce `EMOTICON_COOLDOWN_MS` via `private lastEmotionAt: Map<number, number>`.
   3. Broadcast to the room.
 - `applyAction`: capture `prevState`, run the reducer, then call `emitBotEmotions(prevState)` (respecting cooldown) before `broadcast()`.
@@ -124,7 +124,7 @@ export function detectBotEmotions(prev: GameState, next: GameState): Array<{ pla
 
 ### UI
 
-- **`EmoticonBar`** (new, `src/components/EmoticonBar.tsx`): 4 glyph buttons; disabled while `state.phase === GamePhase.Rolling` and during the local 5s cooldown. Placed in `Sidebar` above the turn-specific content (always visible). Buttons have i18n `title`s (`emoticon.sad` etc.).
+- **`EmoticonBar`** (new, `src/components/EmoticonBar.tsx`): 4 glyph buttons; disabled only during the local 5s cooldown. Placed in `Sidebar` above the turn-specific content (always visible). Buttons have i18n `title`s (`emoticon.sad` etc.).
 - **`EmoticonOverlay`** (new, `src/components/EmoticonOverlay.tsx`): absolutely-positioned bubbles above each token using the same `POSITIONS`/`PLAYER_OFFSETS` math as `PlayerTokens` (export `POSITIONS` from `PlayerTokens`). Bubbles anchor to `player.position` (the target space) — during the brief token-move animation a bubble may sit at the destination; acceptable for an ephemeral effect. Pop + fade CSS animation; `data-testid="emoticon-<playerId>-<emoticon>"`. Rendered by `GameBoard` (new `emotions` prop threaded from `GameView`).
 - i18n keys added to `en` and `id` locales.
 
@@ -139,8 +139,8 @@ export function detectBotEmotions(prev: GameState, next: GameState): Array<{ pla
 ### Unit tests
 
 - `src/logic/__tests__/emotions.test.ts`: each trigger maps to the right (player, emoticon); ignores non-bot players; ignores cheap rent; only newest entries are considered.
-- `server/__tests__/emoticon.test.ts` (new GameServer tests): emit broadcasts; cooldown suppresses a second emit within 5s; blocked during `Rolling`; blocked in `Setup`; bot auto-emits on a seeded bankruptcy/expensive-rent state; bot respects the same cooldown.
-- `src/components/__tests__/EmoticonBar.test.tsx`: renders 4 buttons with correct glyphs; click calls `onEmit` with the right emoticon; buttons disabled during `Rolling`; disabled during cooldown and re-enabled after 5s (fake timers).
+- `server/__tests__/emoticon.test.ts` (new GameServer tests): emit broadcasts; cooldown suppresses a second emit within 5s; allowed during `Rolling`; blocked in `Setup`; bot auto-emits on a seeded bankruptcy/expensive-rent state; bot respects the same cooldown.
+- `src/components/__tests__/EmoticonBar.test.tsx`: renders 4 buttons with correct glyphs; click calls `onEmit` with the right emoticon; disabled during cooldown and re-enabled after 5s (fake timers).
 - `src/hooks/__tests__/useNetworkGame.test.ts`: `emoticon` server message appends to `activeEmotions`; expiry removal after lifetime; `emitEmoticon` sends the correct client message.
 - `src/types/__tests__/enums.test.ts`: lock new wire values.
 
