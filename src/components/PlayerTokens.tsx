@@ -56,7 +56,15 @@ export default function PlayerTokens({ state }: Props) {
 
   useEffect(() => {
     players.forEach((player) => {
-      const prevTarget = prevTargets.current[player.id] ?? 0
+      const current = displayPositions[player.id]
+      if (current === undefined) {
+        prevTargets.current[player.id] = player.position
+        setDisplayPositions((prev) =>
+          prev[player.id] !== undefined ? prev : { ...prev, [player.id]: player.position },
+        )
+        return
+      }
+      const prevTarget = prevTargets.current[player.id] ?? current
       if (prevTarget === player.position) return
       if (animating.current[player.id]) return
       prevTargets.current[player.id] = player.position
@@ -67,7 +75,7 @@ export default function PlayerTokens({ state }: Props) {
       }
       animating.current[player.id] = true
       const backward = (lastMoveSteps ?? 0) < 0
-      const path = getPath(displayPositions[player.id] ?? prevTarget, player.position, backward)
+      const path = getPath(current, player.position, backward)
       function step(index: number) {
         if (index >= path.length) { animating.current[player.id] = false; return }
         play(SoundId.TokenStep)
