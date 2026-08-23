@@ -76,6 +76,7 @@ export default function GameView({ game, connectedPlayerIds, onLeave, exitKeys }
           onOpenTrades={() => setShowTrades(true)}
           manualBotEnabled={manualBotEnabled}
           onToggleBot={handleToggleBot}
+          onEmitEmoticon={game.emitEmoticon}
         />
       </GameBoard>
       <CardModal state={state} isMyTurn={isMyTurn} onResolve={game.resolveCard} />

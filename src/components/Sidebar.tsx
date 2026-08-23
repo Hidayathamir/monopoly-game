@@ -1,3 +1,4 @@
+import { GamePhase } from '../types/game'
 import type { GameState } from '../types/game'
 import { useTranslation } from 'react-i18next'
 import TurnHeader from './TurnHeader'
@@ -8,6 +9,8 @@ import ActionSection from './ActionSection'
 import EventLog from './EventLog'
 import { useSound } from '../audio/SoundContext'
 import { SoundId } from '../audio/soundEngine'
+import EmoticonBar from './EmoticonBar'
+import type { Emoticon } from '../types/emotion'
 
 interface Props {
   state: GameState
@@ -33,9 +36,10 @@ interface Props {
   connectedPlayerIds?: Set<number>
   tradeCount: number
   onOpenTrades: () => void
+  onEmitEmoticon: (emoticon: Emoticon) => void
 }
 
-export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys, manualBotEnabled, onToggleBot, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, ...actions }: Props) {
+export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys, manualBotEnabled, onToggleBot, onProposeTrade, canTrade = true, tradesEnabled = true, connectedPlayerIds, tradeCount, onOpenTrades, onEmitEmoticon, ...actions }: Props) {
   const { t } = useTranslation()
   const play = useSound()
   return (
@@ -68,6 +72,7 @@ export default function Sidebar({ state, isMyTurn, myPlayerId, onLeave, exitKeys
           )}
         </div>
         <DiceRoller state={state} onRoll={actions.onRoll} isMyTurn={isMyTurn} />
+        <EmoticonBar disabled={state.phase === GamePhase.Rolling} onEmit={onEmitEmoticon} />
         {isMyTurn ? (
           <ActionSection state={state} {...actions} isMyTurn={isMyTurn} />
         ) : (

@@ -320,6 +320,11 @@
   "seed.applyError": "Apply failed",
   "seed.hidden": "",
 
+  "emoticon.sad": "Sad",
+  "emoticon.happy": "Happy",
+  "emoticon.angry": "Angry",
+  "emoticon.proud": "Proud",
+
   "bot.toggleOn": "Bot is playing — click to resume manual control",
   "bot.toggleOff": "Let bot play your turn"
 }

@@ -320,6 +320,11 @@
   "seed.applyError": "Gagal menerapkan",
   "seed.hidden": "",
 
+  "emoticon.sad": "Sedih",
+  "emoticon.happy": "Tertawa",
+  "emoticon.angry": "Marah",
+  "emoticon.proud": "Sombong",
+
   "bot.toggleOn": "Bot sedang bermain — klik untuk kembali kontrol manual",
   "bot.toggleOff": "Biarkan bot bermain giliranmu"
 }
