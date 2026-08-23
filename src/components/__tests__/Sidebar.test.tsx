@@ -45,6 +45,7 @@ function makeProps() {
     onBuild: noop,
     tradeCount: 0,
     onOpenTrades: noop,
+    onEmitEmoticon: noop,
   }
 }
 
