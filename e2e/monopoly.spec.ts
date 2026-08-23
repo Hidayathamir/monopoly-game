@@ -34,8 +34,11 @@ test.describe('Monopoly Game E2E', () => {
   test('setup screen renders the multiplayer form', async ({ browser, serverUrl }) => {
     const page = await newGamePage(browser, serverUrl)
     await expect(page.locator('h1')).toHaveText('Monopoly')
-    await expect(page.locator('button:has-text("Create Room")')).toBeVisible()
-    await expect(page.locator('button:has-text("Join Room")')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Create Room', exact: true })).toBeVisible()
+    // Exact-name match: the open-rooms list also renders room-row buttons that
+    // contain a "Join Room →" span, so the substring locator is ambiguous when
+    // earlier tests in this worker left rooms on the shared server.
+    await expect(page.getByRole('button', { name: 'Join Room', exact: true })).toBeVisible()
     await expect(page.locator('input[placeholder="Name"]')).toBeVisible()
     await expect(page.locator('input[placeholder="Code"]')).toHaveCount(0)
   })
